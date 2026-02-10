@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Users, UserCheck, UserX } from 'lucide-react';
+import { Plus, Edit, Trash2, Users, UserCheck, UserX, Mail, Shield, Search } from 'lucide-react';
 import { staffService } from '../../services/staffService';
-import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Loader from '../../components/common/Loader';
-import EmptyState from '../../components/common/EmptyState';
 import toast from 'react-hot-toast';
 
 const Staff = () => {
   const [staff, setStaff] = useState([]);
+  const [filteredStaff, setFilteredStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,10 +23,19 @@ const Staff = () => {
     fetchStaff();
   }, []);
 
+  useEffect(() => {
+    const filtered = staff.filter(member =>
+      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    setFilteredStaff(filtered);
+  }, [searchTerm, staff]);
+
   const fetchStaff = async () => {
     try {
       const data = await staffService.getAllStaff();
       setStaff(data);
+      setFilteredStaff(data);
     } catch (error) {
       toast.error('Failed to fetch staff');
     } finally {
@@ -85,7 +94,7 @@ const Staff = () => {
       setFormData({
         name: staffMember.name,
         email: staffMember.email,
-        password: '', // Don't prefill password for security
+        password: '',
       });
     } else {
       setEditingStaff(null);
@@ -116,134 +125,163 @@ const Staff = () => {
     );
   }
 
+  const stats = {
+    total: staff.length,
+    active: staff.filter(s => s.isActive).length,
+    inactive: staff.filter(s => !s.isActive).length,
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="px-6 pb-10 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Staff Management
           </h1>
-          <p className="text-secondary-600 dark:text-secondary-400">
-            Manage your staff members and their access
+          <p className="text-gray-600 dark:text-gray-400">
+            Manage your team members and their access
           </p>
         </div>
-        <Button onClick={() => openModal()} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Add Staff
-        </Button>
+        <button
+          onClick={() => openModal()}
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+        >
+          <Plus className="w-5 h-5" />
+          Add Staff Member
+        </button>
       </div>
 
-      {staff.length === 0 ? (
-        <EmptyState
-          icon={Users}
-          title="No staff members"
-          description="Add staff members to help manage your business."
-          action={
-            <Button onClick={() => openModal()}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Staff
-            </Button>
-          }
-        />
-      ) : (
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-secondary-50 dark:bg-secondary-800">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
-                    Joined
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 dark:text-secondary-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
-                {staff.map((member) => (
-                  <tr key={member.id} className="table-row">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
-                        {member.name}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-secondary-900 dark:text-secondary-100">
-                        {member.email}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          member.isActive
-                            ? 'bg-success-100 text-success-800 dark:bg-success-900/20 dark:text-success-400'
-                            : 'bg-secondary-100 text-secondary-800 dark:bg-secondary-900/20 dark:text-secondary-400'
-                        }`}
-                      >
-                        {member.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-secondary-900 dark:text-secondary-100">
-                        {new Date(member.createdAt).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => openModal(member)}
-                          className="text-primary-600 hover:text-primary-900 dark:text-primary-400 dark:hover:text-primary-300"
-                          title="Edit"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => toggleStaffStatus(member)}
-                          className={`${
-                            member.isActive
-                              ? 'text-warning-600 hover:text-warning-900 dark:text-warning-400 dark:hover:text-warning-300'
-                              : 'text-success-600 hover:text-success-900 dark:text-success-400 dark:hover:text-success-300'
-                          }`}
-                          title={member.isActive ? 'Deactivate' : 'Activate'}
-                        >
-                          {member.isActive ? (
-                            <UserX className="w-4 h-4" />
-                          ) : (
-                            <UserCheck className="w-4 h-4" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(member.id)}
-                          className="text-danger-600 hover:text-danger-900 dark:text-danger-400 dark:hover:text-danger-300"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center justify-between mb-4">
+            <Users className="w-8 h-8 text-blue-600" />
+            <span className="text-xs font-semibold px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Total</span>
           </div>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Staff</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
+          <div className="flex items-center justify-between mb-4">
+            <UserCheck className="w-8 h-8 text-green-600" />
+            <span className="text-xs font-semibold px-3 py-1 bg-green-100 text-green-700 rounded-full">Active</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Active Members</p>
+        </div>
+
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-800">
+          <div className="flex items-center justify-between mb-4">
+            <UserX className="w-8 h-8 text-orange-600" />
+            <span className="text-xs font-semibold px-3 py-1 bg-orange-100 text-orange-700 rounded-full">Inactive</span>
+          </div>
+          <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.inactive}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Inactive Members</p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search staff by name or email..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+        />
+      </div>
+
+      {/* Staff Grid */}
+      {filteredStaff.length === 0 ? (
+        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
+          <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No staff members found</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            {searchTerm ? 'Try adjusting your search' : 'Add staff members to help manage your business'}
+          </p>
+          {!searchTerm && (
+            <button
+              onClick={() => openModal()}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg transition-all"
+            >
+              <Plus className="w-5 h-5" />
+              Add Staff Member
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredStaff.map((member, index) => (
+            <div
+              key={member.id}
+              className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 hover:shadow-xl"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <Users className="w-7 h-7 text-white" />
+                </div>
+                <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${
+                  member.isActive 
+                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                    : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+                }`}>
+                  {member.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+                {member.name}
+              </h3>
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <Mail className="w-4 h-4" />
+                {member.email}
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+                <Shield className="w-4 h-4" />
+                Staff Member
+              </div>
+
+              <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => openModal(member)}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit
+                </button>
+                <button
+                  onClick={() => toggleStaffStatus(member)}
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                    member.isActive
+                      ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30'
+                      : 'bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
+                  }`}
+                >
+                  {member.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                  {member.isActive ? 'Deactivate' : 'Activate'}
+                </button>
+                <button
+                  onClick={() => handleDelete(member.id)}
+                  className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {/* Modal */}
       {showModal && (
-        <div className="modal-overlay flex items-center justify-center p-4">
-          <div className="modal-content max-w-md w-full">
-            <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4">
-              {editingStaff ? 'Edit Staff' : 'Add Staff'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+              {editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -258,7 +296,7 @@ const Staff = () => {
               />
 
               <Input
-                label="Email"
+                label="Email Address"
                 type="email"
                 name="email"
                 value={formData.email}
@@ -280,12 +318,20 @@ const Staff = () => {
               )}
 
               <div className="flex justify-end gap-3 pt-4">
-                <Button type="button" variant="secondary" onClick={closeModal}>
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                >
                   Cancel
-                </Button>
-                <Button type="submit" loading={submitting}>
-                  {editingStaff ? 'Update' : 'Add'} Staff
-                </Button>
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                >
+                  {submitting ? 'Saving...' : editingStaff ? 'Update' : 'Add'} Staff
+                </button>
               </div>
             </form>
           </div>

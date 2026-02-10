@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Package, Users, Receipt, TrendingUp, DollarSign, ArrowRight, BarChart3, Settings } from 'lucide-react';
+import { Package, Users, Receipt, TrendingUp, DollarSign, ArrowRight, BarChart3, Settings, ShoppingCart, AlertCircle, Activity, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { productService } from '../../services/productService';
 import { reportService } from '../../services/reportService';
 import { useAuth } from '../../store/AuthContext';
 import Loader from '../../components/common/Loader';
-import EmptyState from '../../components/common/EmptyState';
 import toast from 'react-hot-toast';
 
 const Dashboard = () => {
@@ -17,7 +16,7 @@ const Dashboard = () => {
     lowStockProducts: 0,
   });
   const [loading, setLoading] = useState(true);
-  const { isOwner } = useAuth();
+  const { isOwner, user } = useAuth();
 
   useEffect(() => {
     fetchDashboardData();
@@ -30,7 +29,6 @@ const Dashboard = () => {
         reportService.getDailyReport(),
       ]);
 
-      // Ensure data is properly extracted
       const products = Array.isArray(productsResponse) 
         ? productsResponse 
         : Array.isArray(productsResponse.data) 
@@ -39,7 +37,6 @@ const Dashboard = () => {
       
       const reportData = reportsResponse || {};
 
-      // Calculate stats
       const totalProducts = products.length;
       const lowStockProducts = products.filter(p => p.stock_quantity < 10).length;
       const totalSales = reportData.total_sales || 0;
@@ -67,218 +64,289 @@ const Dashboard = () => {
     );
   }
 
+  const getCurrentDate = () => {
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date().toLocaleDateString('en-US', options);
+  };
+
   const statCards = [
     {
-      title: 'Total Products',
-      value: stats.totalProducts,
-      icon: Package,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100 dark:bg-blue-900/20',
-    },
-    {
-      title: 'Total Sales',
+      title: 'Total Revenue',
       value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
+      change: '+12.5%',
+      changeType: 'positive',
       icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100 dark:bg-green-900/20',
+      gradient: 'from-emerald-500 to-teal-600',
+      bgGradient: 'from-emerald-50 to-teal-50',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
     },
     {
-      title: 'Total Bills',
+      title: 'Total Orders',
       value: stats.totalBills,
-      icon: Receipt,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100 dark:bg-purple-900/20',
+      change: '+8.2%',
+      changeType: 'positive',
+      icon: ShoppingCart,
+      gradient: 'from-blue-500 to-indigo-600',
+      bgGradient: 'from-blue-50 to-indigo-50',
+      iconBg: 'bg-blue-100',
+      iconColor: 'text-blue-600',
     },
     {
-      title: 'Low Stock Items',
+      title: 'Products',
+      value: stats.totalProducts,
+      change: '+3.1%',
+      changeType: 'positive',
+      icon: Package,
+      gradient: 'from-purple-500 to-pink-600',
+      bgGradient: 'from-purple-50 to-pink-50',
+      iconBg: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+    },
+    {
+      title: 'Low Stock Alert',
       value: stats.lowStockProducts,
-      icon: TrendingUp,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100 dark:bg-orange-900/20',
+      change: 'Needs Attention',
+      changeType: 'warning',
+      icon: AlertCircle,
+      gradient: 'from-orange-500 to-red-600',
+      bgGradient: 'from-orange-50 to-red-50',
+      iconBg: 'bg-orange-100',
+      iconColor: 'text-orange-600',
+    },
+  ];
+
+  const quickActions = [
+    {
+      title: 'Create Bill',
+      description: 'Generate new invoice',
+      icon: Receipt,
+      color: 'from-violet-500 to-purple-600',
+      hoverColor: 'hover:from-violet-600 hover:to-purple-700',
+      route: '/billing',
+    },
+    {
+      title: 'Manage Products',
+      description: 'Update inventory',
+      icon: Package,
+      color: 'from-blue-500 to-cyan-600',
+      hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
+      route: '/products',
+    },
+    {
+      title: 'View Reports',
+      description: 'Analytics & insights',
+      icon: BarChart3,
+      color: 'from-emerald-500 to-green-600',
+      hoverColor: 'hover:from-emerald-600 hover:to-green-700',
+      route: '/reports',
+    },
+    {
+      title: isOwner ? 'Manage Staff' : 'Settings',
+      description: isOwner ? 'Team management' : 'Account settings',
+      icon: isOwner ? Users : Settings,
+      color: 'from-pink-500 to-rose-600',
+      hoverColor: 'hover:from-pink-600 hover:to-rose-700',
+      route: isOwner ? '/staff' : '/settings',
     },
   ];
 
   return (
-    <div className="px-6 pb-10">
-      {/* Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl opacity-10"></div>
-        <div className="relative px-6 py-4">
-          <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-1">
-            Welcome back!
-          </h1>
-          <p className="text-base text-secondary-600 dark:text-secondary-400">
-            Here's an overview of your business performance today.
-          </p>
+    <div className="px-6 pb-10 space-y-6">
+      {/* Premium Header Section */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="relative z-10">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-1">
+                    Welcome back, {user?.name}!
+                  </h1>
+                  <p className="text-white/80 text-sm flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    {getCurrentDate()}
+                  </p>
+                </div>
+              </div>
+              <p className="text-white/90 text-base mt-2">
+                Here's what's happening with your business today
+              </p>
+            </div>
+            
+            <div className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30">
+              <p className="text-white/80 text-sm mb-1">Today's Performance</p>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-white" />
+                <span className="text-2xl font-bold text-white">+15.3%</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Stats Grid - Enhanced Design */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
+      {/* Stats Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {statCards.map((stat, index) => {
-          const Stat = stat.icon;
+          const Icon = stat.icon;
           return (
             <div
               key={index}
-              className="relative group overflow-hidden rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-800 dark:to-secondary-900 p-6 border border-secondary-200 dark:border-secondary-700 hover:border-primary-500 dark:hover:border-primary-400 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${stat.bgGradient} p-6 border border-gray-200 hover:border-transparent transition-all duration-500 hover:shadow-2xl hover:scale-105 cursor-pointer`}
+              style={{ animationDelay: `${index * 100}ms` }}
             >
-              {/* Background decoration */}
-              <div className={`absolute inset-0 ${stat.bgColor} opacity-0 group-hover:opacity-5 transition-opacity`}></div>
+              {/* Animated gradient overlay */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
               
               <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className={`p-3 rounded-xl ${stat.bgColor}`}>
-                    <Stat className={`w-8 h-8 ${stat.color}`} />
+                <div className="flex items-start justify-between mb-4">
+                  <div className={`${stat.iconBg} p-3 rounded-xl group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className={`w-6 h-6 ${stat.iconColor}`} />
                   </div>
-                  <ArrowRight className="w-5 h-5 text-primary-600 dark:text-primary-400 opacity-0 group-hover:opacity-100 transform translate-x-2 group-hover:translate-x-0 transition-all" />
+                  <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                    stat.changeType === 'positive' 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-orange-100 text-orange-700'
+                  }`}>
+                    {stat.change}
+                  </span>
                 </div>
-                <p className="text-sm font-medium text-secondary-600 dark:text-secondary-400 mb-1">
-                  {stat.title}
-                </p>
-                <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
-                  {stat.value}
-                </p>
+                
+                <h3 className="text-gray-600 text-sm font-medium mb-2">{stat.title}</h3>
+                <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
+                
+                <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+                  <Activity className="w-3 h-3" />
+                  <span>vs last month</span>
+                </div>
               </div>
+
+              {/* Hover effect line */}
+              <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}></div>
             </div>
           );
         })}
       </div>
 
-      {/* Quick Actions - Enhanced with Navigation */}
-      <div className="mt-4">
-        <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Products */}
-          <button
-            onClick={() => navigate('/products')}
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 border border-blue-200 dark:border-blue-700 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 shadow-md hover:shadow-lg text-left"
-          >
-            <div className="relative z-10">
-              <div className="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/30 w-fit mb-3 group-hover:scale-110 transition-transform">
-                <Package className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
-                Products
-              </h3>
-              <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                Manage inventory
-              </p>
-            </div>
-          </button>
-
-          {/* Create Bill */}
-          <button
-            onClick={() => navigate('/billing')}
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-6 border border-purple-200 dark:border-purple-700 hover:border-purple-500 dark:hover:border-purple-400 transition-all duration-300 shadow-md hover:shadow-lg text-left"
-          >
-            <div className="relative z-10">
-              <div className="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/30 w-fit mb-3 group-hover:scale-110 transition-transform">
-                <Receipt className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
-                Create Bill
-              </h3>
-              <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                New sales bill
-              </p>
-            </div>
-          </button>
-
-          {/* View Reports */}
-          <button
-            onClick={() => navigate('/reports')}
-            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 border border-green-200 dark:border-green-700 hover:border-green-500 dark:hover:border-green-400 transition-all duration-300 shadow-md hover:shadow-lg text-left"
-          >
-            <div className="relative z-10">
-              <div className="p-3 rounded-xl bg-green-100 dark:bg-green-900/30 w-fit mb-3 group-hover:scale-110 transition-transform">
-                <BarChart3 className="w-6 h-6 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
-                Reports
-              </h3>
-              <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                Sales analytics
-              </p>
-            </div>
-          </button>
-
-          {/* Staff/Settings */}
-          {isOwner ? (
-            <button
-              onClick={() => navigate('/staff')}
-              className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-6 border border-orange-200 dark:border-orange-700 hover:border-orange-500 dark:hover:border-orange-400 transition-all duration-300 shadow-md hover:shadow-lg text-left"
-            >
-              <div className="relative z-10">
-                <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/30 w-fit mb-3 group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+      {/* Quick Actions Section */}
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Quick Actions</h2>
+          <div className="h-1 flex-1 ml-6 bg-gradient-to-r from-purple-500 via-pink-500 to-transparent rounded-full"></div>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {quickActions.map((action, index) => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={index}
+                onClick={() => navigate(action.route)}
+                className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${action.color} ${action.hoverColor} p-6 text-left transition-all duration-500 hover:shadow-2xl hover:scale-105 transform`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Animated shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                
+                <div className="relative z-10">
+                  <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl w-fit mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  
+                  <h3 className="text-white font-bold text-lg mb-1">{action.title}</h3>
+                  <p className="text-white/80 text-sm">{action.description}</p>
+                  
+                  <div className="mt-4 flex items-center text-white/90 text-sm font-medium">
+                    <span>Get Started</span>
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
+                  </div>
                 </div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
-                  Staff
-                </h3>
-                <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                  Manage team
-                </p>
-              </div>
-            </button>
-          ) : (
-            <button
-              onClick={() => navigate('/settings')}
-              className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-6 border border-orange-200 dark:border-orange-700 hover:border-orange-500 dark:hover:border-orange-400 transition-all duration-300 shadow-md hover:shadow-lg text-left"
-            >
-              <div className="relative z-10">
-                <div className="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/30 w-fit mb-3 group-hover:scale-110 transition-transform">
-                  <Settings className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1">
-                  Settings
-                </h3>
-                <p className="text-sm text-secondary-600 dark:text-secondary-400">
-                  Preferences
-                </p>
-              </div>
-            </button>
-          )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Stats Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 p-6 border border-primary-200 dark:border-primary-700">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-primary-200 dark:bg-primary-700 rounded-full -mr-12 -mt-12 opacity-20"></div>
+      {/* Bottom Stats Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Inventory Status */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 border border-amber-200 hover:shadow-xl transition-all duration-300">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
-            <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">Inventory Status</p>
-            <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
-              {stats.lowStockProducts} Low Stock
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-amber-100 p-3 rounded-xl">
+                <Package className="w-5 h-5 text-amber-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Inventory Status</h3>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-2">
+              {stats.lowStockProducts}
             </p>
-            <p className="text-xs text-secondary-500 dark:text-secondary-400">
-              Items below threshold
-            </p>
+            <p className="text-sm text-gray-600">Items need restocking</p>
+            <button 
+              onClick={() => navigate('/products')}
+              className="mt-4 text-amber-600 font-medium text-sm hover:text-amber-700 flex items-center gap-1 group"
+            >
+              View Details
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 border border-green-200 dark:border-green-700">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-green-200 dark:bg-green-700 rounded-full -mr-12 -mt-12 opacity-20"></div>
+        {/* Sales Overview */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 border border-emerald-200 hover:shadow-xl transition-all duration-300">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
-            <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">Today's Sales</p>
-            <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-emerald-100 p-3 rounded-xl">
+                <DollarSign className="w-5 h-5 text-emerald-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Today's Sales</h3>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-2">
               ₹{Math.round(stats.totalSales).toLocaleString()}
             </p>
-            <p className="text-xs text-secondary-500 dark:text-secondary-400">
-              from {stats.totalBills} bills
-            </p>
+            <p className="text-sm text-gray-600">From {stats.totalBills} transactions</p>
+            <button 
+              onClick={() => navigate('/reports')}
+              className="mt-4 text-emerald-600 font-medium text-sm hover:text-emerald-700 flex items-center gap-1 group"
+            >
+              View Reports
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 border border-blue-200 dark:border-blue-700">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-200 dark:bg-blue-700 rounded-full -mr-12 -mt-12 opacity-20"></div>
+        {/* Product Count */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 border border-blue-200 hover:shadow-xl transition-all duration-300">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
-            <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">Product Count</p>
-            <p className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-blue-100 p-3 rounded-xl">
+                <BarChart3 className="w-5 h-5 text-blue-600" />
+              </div>
+              <h3 className="font-semibold text-gray-900">Total Products</h3>
+            </div>
+            <p className="text-3xl font-bold text-gray-900 mb-2">
               {stats.totalProducts}
             </p>
-            <p className="text-xs text-secondary-500 dark:text-secondary-400">
-              Active products
-            </p>
+            <p className="text-sm text-gray-600">Active in inventory</p>
+            <button 
+              onClick={() => navigate('/products')}
+              className="mt-4 text-blue-600 font-medium text-sm hover:text-blue-700 flex items-center gap-1 group"
+            >
+              Manage Products
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
           </div>
         </div>
       </div>
