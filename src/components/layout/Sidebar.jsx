@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Package,
@@ -9,9 +9,10 @@ import {
   Settings,
   X,
   Sparkles,
-} from 'lucide-react';
-import { useAuth } from '../../store/AuthContext';
-import { cn } from '../../utils/cn';
+  Plus,
+} from "lucide-react";
+import { useAuth } from "../../store/AuthContext";
+import { cn } from "../../utils/cn";
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
@@ -19,57 +20,71 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
   const navigation = [
     {
-      name: 'Dashboard',
-      href: '/dashboard',
+      name: "Dashboard",
+      href: "/dashboard",
       icon: LayoutDashboard,
-      current: location.pathname === '/dashboard',
-      gradient: 'from-blue-500 to-indigo-600',
+      current: location.pathname === "/dashboard",
+      gradient: "from-blue-500 to-indigo-600",
     },
     {
-      name: 'Products',
-      href: '/products',
+      name: "Products",
+      href: "/products",
       icon: Package,
-      current: location.pathname === '/products',
-      gradient: 'from-purple-500 to-pink-600',
+      current: location.pathname === "/products",
+      gradient: "from-purple-500 to-pink-600",
     },
     {
-      name: 'Billing',
-      href: '/billing',
+      name: "Billing",
+      href: "/billing",
       icon: Receipt,
-      current: location.pathname === '/billing',
-      gradient: 'from-violet-500 to-purple-600',
+      current: location.pathname === "/billing",
+      gradient: "from-violet-500 to-purple-600",
     },
-    {
-      name: 'Reports',
-      href: '/reports',
-      icon: BarChart3,
-      current: location.pathname === '/reports',
-      gradient: 'from-emerald-500 to-teal-600',
-    },
-    {
-      name: 'Invoices',
-      href: '/invoices',
-      icon: FileText,
-      current: location.pathname === '/invoices',
-      gradient: 'from-cyan-500 to-blue-600',
-    },
+  
+    
+
+    // ✅ OWNER ONLY STAFF SECTION
     ...(isOwner
       ? [
           {
-            name: 'Staff',
-            href: '/staff',
+            name: "Staff",
+            href: "/staff",
             icon: Users,
-            current: location.pathname === '/staff',
-            gradient: 'from-orange-500 to-red-600',
+            current: location.pathname === "/staff",
+            gradient: "from-orange-500 to-red-600",
+          },
+          {
+            name: "Add Staff",
+            href: "/staff?add=true",
+            icon: Plus,
+            current:
+              location.pathname === "/staff" &&
+              location.search.includes("add=true"),
+            gradient: "from-pink-500 to-rose-600",
+          },
+          {
+            name: "Reports",
+            href: "/reports",
+            icon: BarChart3,
+            current: location.pathname === "/reports",
+            gradient: "from-emerald-500 to-teal-600",
+          },
+          {
+            name: "Invoices",
+            href: "/invoices",
+            icon: FileText,
+            current: location.pathname === "/invoices",
+            gradient: "from-cyan-500 to-blue-600",
           },
         ]
       : []),
+
     {
-      name: 'Settings',
-      href: '/settings',
+      name: "Settings",
+      href: "/settings",
       icon: Settings,
-      current: location.pathname === '/settings',
-      gradient: 'from-gray-500 to-slate-600',
+      current: location.pathname === "/settings",
+      gradient: "from-gray-500 to-slate-600",
     },
   ];
 
@@ -78,29 +93,28 @@ const Sidebar = ({ isOpen, onToggle }) => {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={onToggle}
         />
       )}
 
-      {/* Sidebar */}
       <div
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transform transition-all duration-300 ease-in-out lg:translate-x-0  shadow-xl lg:shadow-none',
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transform transition-all duration-300 ease-in-out lg:translate-x-0 shadow-xl lg:shadow-none",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="relative flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-indigo-600 to-purple-600">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-indigo-600 to-purple-600">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-xl font-bold text-white">StockSaaS</h1>
           </div>
           <button
             onClick={onToggle}
-            className="p-1.5 rounded-lg hover:bg-white/20 transition-colors lg:hidden"
+            className="p-1.5 rounded-lg hover:bg-white/20 lg:hidden"
           >
             <X className="w-5 h-5 text-white" />
           </button>
@@ -115,58 +129,50 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 key={item.name}
                 to={item.href}
                 className={cn(
-                  'group relative flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300',
+                  "group relative flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-300",
                   item.current
-                    ? 'bg-gradient-to-r ' + item.gradient + ' text-white shadow-lg scale-105'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-105'
+                    ? "bg-gradient-to-r " +
+                        item.gradient +
+                        " text-white shadow-lg scale-105"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:scale-105"
                 )}
                 onClick={() => onToggle()}
-                style={{ animationDelay: `${index * 50}ms` }}
+                style={{ animationDelay: `${index * 40}ms` }}
               >
-                {/* Active indicator */}
                 {item.current && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
                 )}
 
-                {/* Icon with animation */}
-                <div className={cn(
-                  'relative flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300',
-                  item.current 
-                    ? 'bg-white/20' 
-                    : 'bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-200 dark:group-hover:bg-gray-700'
-                )}>
-                  <Icon className={cn(
-                    'w-5 h-5 transition-transform duration-300 group-hover:scale-110',
-                    item.current ? 'text-white' : 'text-gray-600 dark:text-gray-400'
-                  )} />
-                  
-                  {/* Pulse effect on active */}
-                  {item.current && (
-                    <div className="absolute inset-0 rounded-lg bg-white/30 animate-ping"></div>
+                <div
+                  className={cn(
+                    "flex items-center justify-center w-10 h-10 rounded-lg",
+                    item.current
+                      ? "bg-white/20"
+                      : "bg-gray-100 dark:bg-gray-800"
                   )}
+                >
+                  <Icon
+                    className={cn(
+                      "w-5 h-5",
+                      item.current
+                        ? "text-white"
+                        : "text-gray-600 dark:text-gray-400"
+                    )}
+                  />
                 </div>
 
-                {/* Text */}
                 <span className="flex-1">{item.name}</span>
-
-                {/* Hover arrow */}
-                {!item.current && (
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400"></div>
-                  </div>
-                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Bottom decoration */}
+        {/* Bottom section */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-800">
-          <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
-            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-            <div className="relative z-10">
-              <p className="text-white font-semibold text-sm mb-1">Premium Plan</p>
-              <p className="text-white/80 text-xs">Unlimited access to all features</p>
+          <div className="rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4 text-white text-sm">
+            Premium Plan  
+            <div className="text-xs opacity-80">
+              Unlimited access to all features
             </div>
           </div>
         </div>

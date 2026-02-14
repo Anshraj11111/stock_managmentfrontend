@@ -1,11 +1,20 @@
-import api from './api';
+import api from "../utils/api"; // axios instance
 
 export const invoiceService = {
-  // Generate invoice PDF
   generateInvoice: async (billId) => {
-    const response = await api.get(`/invoices/${billId}`, {
-      responseType: 'blob', // For PDF download
+    const res = await api.get(`/invoices/${billId}`, {
+      responseType: "blob",
     });
-    return response.data;
+    return res.data;
+  },
+
+  getRecentInvoices: async () => {
+    const res = await api.get("/bills/recent");
+    return res.data;
+  },
+
+  getInvoiceStats: async () => {
+    const res = await api.get("/bills/stats");
+    return res.data;
   },
 };

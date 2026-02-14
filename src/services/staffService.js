@@ -24,4 +24,17 @@ export const staffService = {
     const response = await api.delete(`/staff/${id}`);
     return response.data;
   },
+
+  // Activate staff
+activateStaff: async (id) => {
+  const response = await api.patch(`/staff/${id}/activate`);
+  return response.data;
+},
+
+// Deactivate staff
+deactivateStaff: async (id) => {
+  const response = await api.patch(`/staff/${id}/deactivate`);
+  return response.data;
+},
+
 };

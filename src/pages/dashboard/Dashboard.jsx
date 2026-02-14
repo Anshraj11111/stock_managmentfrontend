@@ -69,87 +69,187 @@ const Dashboard = () => {
     return new Date().toLocaleDateString('en-US', options);
   };
 
-  const statCards = [
-    {
-      title: 'Total Revenue',
-      value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
-      change: '+12.5%',
-      changeType: 'positive',
-      icon: DollarSign,
-      gradient: 'from-emerald-500 to-teal-600',
-      bgGradient: 'from-emerald-50 to-teal-50',
-      iconBg: 'bg-emerald-100',
-      iconColor: 'text-emerald-600',
-    },
-    {
-      title: 'Total Orders',
-      value: stats.totalBills,
-      change: '+8.2%',
-      changeType: 'positive',
-      icon: ShoppingCart,
-      gradient: 'from-blue-500 to-indigo-600',
-      bgGradient: 'from-blue-50 to-indigo-50',
-      iconBg: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-    },
-    {
-      title: 'Products',
-      value: stats.totalProducts,
-      change: '+3.1%',
-      changeType: 'positive',
-      icon: Package,
-      gradient: 'from-purple-500 to-pink-600',
-      bgGradient: 'from-purple-50 to-pink-50',
-      iconBg: 'bg-purple-100',
-      iconColor: 'text-purple-600',
-    },
-    {
-      title: 'Low Stock Alert',
-      value: stats.lowStockProducts,
-      change: 'Needs Attention',
-      changeType: 'warning',
-      icon: AlertCircle,
-      gradient: 'from-orange-500 to-red-600',
-      bgGradient: 'from-orange-50 to-red-50',
-      iconBg: 'bg-orange-100',
-      iconColor: 'text-orange-600',
-    },
-  ];
+  // const statCards = [
+  //   {
+  //     title: 'Total Revenue',
+  //     value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
+  //     change: '+12.5%',
+  //     changeType: 'positive',
+  //     icon: DollarSign,
+  //     gradient: 'from-emerald-500 to-teal-600',
+  //     bgGradient: 'from-emerald-50 to-teal-50',
+  //     iconBg: 'bg-emerald-100',
+  //     iconColor: 'text-emerald-600',
+  //   },
+  //   {
+  //     title: 'Total Orders',
+  //     value: stats.totalBills,
+  //     change: '+8.2%',
+  //     changeType: 'positive',
+  //     icon: ShoppingCart,
+  //     gradient: 'from-blue-500 to-indigo-600',
+  //     bgGradient: 'from-blue-50 to-indigo-50',
+  //     iconBg: 'bg-blue-100',
+  //     iconColor: 'text-blue-600',
+  //   },
+  //   {
+  //     title: 'Products',
+  //     value: stats.totalProducts,
+  //     change: '+3.1%',
+  //     changeType: 'positive',
+  //     icon: Package,
+  //     gradient: 'from-purple-500 to-pink-600',
+  //     bgGradient: 'from-purple-50 to-pink-50',
+  //     iconBg: 'bg-purple-100',
+  //     iconColor: 'text-purple-600',
+  //   },
+  //   {
+  //     title: 'Low Stock Alert',
+  //     value: stats.lowStockProducts,
+  //     change: 'Needs Attention',
+  //     changeType: 'warning',
+  //     icon: AlertCircle,
+  //     gradient: 'from-orange-500 to-red-600',
+  //     bgGradient: 'from-orange-50 to-red-50',
+  //     iconBg: 'bg-orange-100',
+  //     iconColor: 'text-orange-600',
+  //   },
+  // ];
 
-  const quickActions = [
-    {
-      title: 'Create Bill',
-      description: 'Generate new invoice',
-      icon: Receipt,
-      color: 'from-violet-500 to-purple-600',
-      hoverColor: 'hover:from-violet-600 hover:to-purple-700',
-      route: '/billing',
-    },
-    {
-      title: 'Manage Products',
-      description: 'Update inventory',
-      icon: Package,
-      color: 'from-blue-500 to-cyan-600',
-      hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
-      route: '/products',
-    },
-    {
-      title: 'View Reports',
-      description: 'Analytics & insights',
-      icon: BarChart3,
-      color: 'from-emerald-500 to-green-600',
-      hoverColor: 'hover:from-emerald-600 hover:to-green-700',
-      route: '/reports',
-    },
-    {
-      title: isOwner ? 'Manage Staff' : 'Settings',
-      description: isOwner ? 'Team management' : 'Account settings',
-      icon: isOwner ? Users : Settings,
-      color: 'from-pink-500 to-rose-600',
-      hoverColor: 'hover:from-pink-600 hover:to-rose-700',
-      route: isOwner ? '/staff' : '/settings',
-    },
-  ];
+  const statCards = [
+  ...(isOwner
+    ? [
+        {
+          title: 'Total Revenue',
+          value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
+          change: '+12.5%',
+          changeType: 'positive',
+          icon: DollarSign,
+          gradient: 'from-emerald-500 to-teal-600',
+          bgGradient: 'from-emerald-50 to-teal-50',
+          iconBg: 'bg-emerald-100',
+          iconColor: 'text-emerald-600',
+        },
+      ]
+    : []),
+
+  {
+    title: 'Total Orders',
+    value: stats.totalBills,
+    change: '+8.2%',
+    changeType: 'positive',
+    icon: ShoppingCart,
+    gradient: 'from-blue-500 to-indigo-600',
+    bgGradient: 'from-blue-50 to-indigo-50',
+    iconBg: 'bg-blue-100',
+    iconColor: 'text-blue-600',
+  },
+
+  {
+    title: 'Products',
+    value: stats.totalProducts,
+    change: '+3.1%',
+    changeType: 'positive',
+    icon: Package,
+    gradient: 'from-purple-500 to-pink-600',
+    bgGradient: 'from-purple-50 to-pink-50',
+    iconBg: 'bg-purple-100',
+    iconColor: 'text-purple-600',
+  },
+
+  ...(isOwner
+    ? [
+        {
+          title: 'Low Stock Alert',
+          value: stats.lowStockProducts,
+          change: 'Needs Attention',
+          changeType: 'warning',
+          icon: AlertCircle,
+          gradient: 'from-orange-500 to-red-600',
+          bgGradient: 'from-orange-50 to-red-50',
+          iconBg: 'bg-orange-100',
+          iconColor: 'text-orange-600',
+        },
+      ]
+    : []),
+];
+
+
+  // const quickActions = [
+  //   {
+  //     title: 'Create Bill',
+  //     description: 'Generate new invoice',
+  //     icon: Receipt,
+  //     color: 'from-violet-500 to-purple-600',
+  //     hoverColor: 'hover:from-violet-600 hover:to-purple-700',
+  //     route: '/billing',
+  //   },
+  //   {
+  //     title: 'Manage Products',
+  //     description: 'Update inventory',
+  //     icon: Package,
+  //     color: 'from-blue-500 to-cyan-600',
+  //     hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
+  //     route: '/products',
+  //   },
+  //   {
+  //     title: 'View Reports',
+  //     description: 'Analytics & insights',
+  //     icon: BarChart3,
+  //     color: 'from-emerald-500 to-green-600',
+  //     hoverColor: 'hover:from-emerald-600 hover:to-green-700',
+  //     route: '/reports',
+  //   },
+  //   {
+  //     title: isOwner ? 'Manage Staff' : 'Settings',
+  //     description: isOwner ? 'Team management' : 'Account settings',
+  //     icon: isOwner ? Users : Settings,
+  //     color: 'from-pink-500 to-rose-600',
+  //     hoverColor: 'hover:from-pink-600 hover:to-rose-700',
+  //     route: isOwner ? '/staff' : '/settings',
+  //   },
+  // ];
+
+const quickActions = [
+  {
+    title: 'Create Bill',
+    description: 'Generate new invoice',
+    icon: Receipt,
+    color: 'from-violet-500 to-purple-600',
+    hoverColor: 'hover:from-violet-600 hover:to-purple-700',
+    route: '/billing',
+  },
+  {
+    title: 'Manage Products',
+    description: 'Update inventory',
+    icon: Package,
+    color: 'from-blue-500 to-cyan-600',
+    hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
+    route: '/products',
+  },
+
+  ...(isOwner
+    ? [
+        {
+          title: 'View Reports',
+          description: 'Analytics & insights',
+          icon: BarChart3,
+          color: 'from-emerald-500 to-green-600',
+          hoverColor: 'hover:from-emerald-600 hover:to-green-700',
+          route: '/reports',
+        },
+        {
+          title: 'Manage Staff',
+          description: 'Team management',
+          icon: Users,
+          color: 'from-pink-500 to-rose-600',
+          hoverColor: 'hover:from-pink-600 hover:to-rose-700',
+          route: '/staff',
+        },
+      ]
+    : []),
+];
+
 
   return (
     <div className="px-6 pb-10 space-y-6">
@@ -275,83 +375,88 @@ const Dashboard = () => {
           })}
         </div>
       </div>
+    
 
+    
       {/* Bottom Stats Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Inventory Status */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 border border-amber-200 hover:shadow-xl transition-all duration-300">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full -mr-16 -mt-16"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-amber-100 p-3 rounded-xl">
-                <Package className="w-5 h-5 text-amber-600" />
+      {isOwner && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Inventory Status */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 border border-amber-200 hover:shadow-xl transition-all duration-300">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full -mr-16 -mt-16"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-amber-100 p-3 rounded-xl">
+                  <Package className="w-5 h-5 text-amber-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900">Inventory Status</h3>
               </div>
-              <h3 className="font-semibold text-gray-900">Inventory Status</h3>
+              <p className="text-3xl font-bold text-gray-900 mb-2">
+                {stats.lowStockProducts}
+              </p>
+              <p className="text-sm text-gray-600">Items need restocking</p>
+              <button 
+                onClick={() => navigate('/products')}
+                className="mt-4 text-amber-600 font-medium text-sm hover:text-amber-700 flex items-center gap-1 group"
+              >
+                View Details
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-2">
-              {stats.lowStockProducts}
-            </p>
-            <p className="text-sm text-gray-600">Items need restocking</p>
-            <button 
-              onClick={() => navigate('/products')}
-              className="mt-4 text-amber-600 font-medium text-sm hover:text-amber-700 flex items-center gap-1 group"
-            >
-              View Details
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
           </div>
-        </div>
 
-        {/* Sales Overview */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 border border-emerald-200 hover:shadow-xl transition-all duration-300">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full -mr-16 -mt-16"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-emerald-100 p-3 rounded-xl">
-                <DollarSign className="w-5 h-5 text-emerald-600" />
+          {/* Sales Overview */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 border border-emerald-200 hover:shadow-xl transition-all duration-300">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full -mr-16 -mt-16"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-emerald-100 p-3 rounded-xl">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900">Today's Sales</h3>
               </div>
-              <h3 className="font-semibold text-gray-900">Today's Sales</h3>
+              <p className="text-3xl font-bold text-gray-900 mb-2">
+                ₹{Math.round(stats.totalSales).toLocaleString()}
+              </p>
+              <p className="text-sm text-gray-600">From {stats.totalBills} transactions</p>
+              <button 
+                onClick={() => navigate('/reports')}
+                className="mt-4 text-emerald-600 font-medium text-sm hover:text-emerald-700 flex items-center gap-1 group"
+              >
+                View Reports
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-2">
-              ₹{Math.round(stats.totalSales).toLocaleString()}
-            </p>
-            <p className="text-sm text-gray-600">From {stats.totalBills} transactions</p>
-            <button 
-              onClick={() => navigate('/reports')}
-              className="mt-4 text-emerald-600 font-medium text-sm hover:text-emerald-700 flex items-center gap-1 group"
-            >
-              View Reports
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
           </div>
-        </div>
 
-        {/* Product Count */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 border border-blue-200 hover:shadow-xl transition-all duration-300">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full -mr-16 -mt-16"></div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-blue-100 p-3 rounded-xl">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
+          {/* Product Count */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 border border-blue-200 hover:shadow-xl transition-all duration-300">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full -mr-16 -mt-16"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-blue-100 p-3 rounded-xl">
+                  <BarChart3 className="w-5 h-5 text-blue-600" />
+                </div>
+                <h3 className="font-semibold text-gray-900">Total Products</h3>
               </div>
-              <h3 className="font-semibold text-gray-900">Total Products</h3>
+              <p className="text-3xl font-bold text-gray-900 mb-2">
+                {stats.totalProducts}
+              </p>
+              <p className="text-sm text-gray-600">Active in inventory</p>
+              <button 
+                onClick={() => navigate('/products')}
+                className="mt-4 text-blue-600 font-medium text-sm hover:text-blue-700 flex items-center gap-1 group"
+              >
+                Manage Products
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
-            <p className="text-3xl font-bold text-gray-900 mb-2">
-              {stats.totalProducts}
-            </p>
-            <p className="text-sm text-gray-600">Active in inventory</p>
-            <button 
-              onClick={() => navigate('/products')}
-              className="mt-4 text-blue-600 font-medium text-sm hover:text-blue-700 flex items-center gap-1 group"
-            >
-              Manage Products
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
+
 };
 
 export default Dashboard;
