@@ -422,27 +422,24 @@ import {
   Edit,
   Trash2,
   Package,
-  Search,
-  Filter,
   TrendingDown,
   TrendingUp,
   AlertCircle,
 } from 'lucide-react';
 import { productService } from '../../services/productService';
-import Input from '../../components/common/Input';
 import Loader from '../../components/common/Loader';
 import { useAuth } from '../../store/AuthContext';
 import toast from 'react-hot-toast';
 
 const Products = () => {
-  const { isOwner } = useAuth(); // ✅ IMPORTANT FIX
+  const { user } = useAuth();
+  const isOwner = user?.role?.toLowerCase() === "owner";
 
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -456,21 +453,12 @@ const Products = () => {
     fetchProducts();
   }, []);
 
-  useEffect(() => {
-    const filtered = products.filter((product) =>
-      product.product_name
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase())
-    );
-    setFilteredProducts(filtered);
-  }, [searchTerm, products]);
-
   const fetchProducts = async () => {
     try {
       const data = await productService.getProducts();
       setProducts(data || []);
       setFilteredProducts(data || []);
-    } catch (error) {
+    } catch {
       toast.error('Failed to fetch products');
     } finally {
       setLoading(false);
@@ -507,7 +495,7 @@ const Products = () => {
       await productService.deleteProduct(productId);
       toast.success('Product deleted successfully');
       fetchProducts();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete product');
     }
   };
@@ -515,12 +503,7 @@ const Products = () => {
   const openModal = (product = null) => {
     if (product) {
       setEditingProduct(product);
-      setFormData({
-        product_name: product.product_name,
-        purchase_price: product.purchase_price,
-        selling_price: product.selling_price,
-        stock_quantity: product.stock_quantity,
-      });
+      setFormData(product);
     } else {
       setEditingProduct(null);
       setFormData({
@@ -601,54 +584,30 @@ const Products = () => {
         )}
       </div>
 
-      {/* STATS CARDS */}
+      {/* STATS */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
-        {/* Total */}
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200">
-          <div className="flex items-center justify-between mb-2">
-            <Package className="w-8 h-8 text-blue-600" />
-            <span className="text-xs font-semibold px-3 py-1 bg-blue-100 text-blue-700 rounded-full">
-              Total
-            </span>
-          </div>
+          <Package className="w-8 h-8 text-blue-600 mb-2" />
           <p className="text-3xl font-bold">{stats.total}</p>
           <p className="text-sm text-gray-600 mt-1">Total Products</p>
         </div>
 
-        {/* Low Stock */}
         <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-200">
-          <div className="flex items-center justify-between mb-2">
-            <TrendingDown className="w-8 h-8 text-orange-600" />
-            <span className="text-xs font-semibold px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
-              Alert
-            </span>
-          </div>
+          <TrendingDown className="w-8 h-8 text-orange-600 mb-2" />
           <p className="text-3xl font-bold">{stats.lowStock}</p>
           <p className="text-sm text-gray-600 mt-1">Low Stock Items</p>
         </div>
 
-        {/* Out of Stock */}
         <div className="bg-gradient-to-br from-red-50 to-pink-50 rounded-2xl p-6 border border-red-200">
-          <div className="flex items-center justify-between mb-2">
-            <AlertCircle className="w-8 h-8 text-red-600" />
-            <span className="text-xs font-semibold px-3 py-1 bg-red-100 text-red-700 rounded-full">
-              Critical
-            </span>
-          </div>
+          <AlertCircle className="w-8 h-8 text-red-600 mb-2" />
           <p className="text-3xl font-bold">{stats.outOfStock}</p>
           <p className="text-sm text-gray-600 mt-1">Out of Stock</p>
         </div>
 
-        {/* Inventory Value (Owner Only) */}
         {isOwner && (
           <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-6 border border-emerald-200">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-8 h-8 text-emerald-600" />
-              <span className="text-xs font-semibold px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full">
-                Value
-              </span>
-            </div>
+            <TrendingUp className="w-8 h-8 text-emerald-600 mb-2" />
             <p className="text-3xl font-bold">
               ₹{Math.round(stats.totalValue).toLocaleString()}
             </p>
@@ -659,87 +618,117 @@ const Products = () => {
 
       {/* TABLE */}
       <div className="bg-white rounded-2xl border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                  Product Name
-                </th>
+        <table className="w-full">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Product Name</th>
+              {isOwner && <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Purchase Price</th>}
+              <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Selling Price</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Stock</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Status</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold uppercase">Actions</th>
+            </tr>
+          </thead>
 
-                {isOwner && (
-                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                    Purchase Price
-                  </th>
-                )}
+          <tbody className="divide-y">
+            {filteredProducts.map((product) => {
+              const status = getStockStatus(product.stock_quantity);
+              const StatusIcon = status.icon;
 
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                  Selling Price
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                  Stock
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                  Status
-                </th>
-                <th className="px-6 py-4 text-left text-xs font-semibold uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y">
-              {filteredProducts.map((product) => {
-                const status = getStockStatus(product.stock_quantity);
-                const StatusIcon = status.icon;
-
-                return (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-semibold">
-                      {product.product_name}
-                    </td>
-
+              return (
+                <tr key={product.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 font-semibold">{product.product_name}</td>
+                  {isOwner && <td className="px-6 py-4">₹{product.purchase_price}</td>}
+                  <td className="px-6 py-4">₹{product.selling_price}</td>
+                  <td className="px-6 py-4">{product.stock_quantity}</td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border ${status.color}`}>
+                      <StatusIcon className="w-4 h-4" />
+                      {status.label}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 flex gap-3">
+                    <button onClick={() => openModal(product)}>
+                      <Edit className="w-4 h-4 text-blue-600" />
+                    </button>
                     {isOwner && (
-                      <td className="px-6 py-4">
-                        ₹{product.purchase_price}
-                      </td>
-                    )}
-
-                    <td className="px-6 py-4">
-                      ₹{product.selling_price}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      {product.stock_quantity}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border ${status.color}`}>
-                        <StatusIcon className="w-4 h-4" />
-                        {status.label}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-4 flex gap-3">
-                      <button onClick={() => openModal(product)}>
-                        <Edit className="w-4 h-4 text-blue-600" />
+                      <button onClick={() => handleDelete(product.id)}>
+                        <Trash2 className="w-4 h-4 text-red-600" />
                       </button>
-
-                      {isOwner && (
-                        <button onClick={() => handleDelete(product.id)}>
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-
-          </table>
-        </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
+      {/* MODAL */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-2xl font-bold mb-6">
+              {editingProduct ? "Edit Product" : "Add Product"}
+            </h2>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Product Name"
+                value={formData.product_name}
+                onChange={(e) =>
+                  setFormData({ ...formData, product_name: e.target.value })
+                }
+                className="w-full border px-4 py-2 rounded-xl"
+                required
+              />
+
+              {isOwner && (
+                <input
+                  type="number"
+                  placeholder="Purchase Price"
+                  value={formData.purchase_price}
+                  onChange={(e) =>
+                    setFormData({ ...formData, purchase_price: e.target.value })
+                  }
+                  className="w-full border px-4 py-2 rounded-xl"
+                  required
+                />
+              )}
+
+              <input
+                type="number"
+                placeholder="Selling Price"
+                value={formData.selling_price}
+                onChange={(e) =>
+                  setFormData({ ...formData, selling_price: e.target.value })
+                }
+                className="w-full border px-4 py-2 rounded-xl"
+                required
+              />
+
+              <input
+                type="number"
+                placeholder="Stock Quantity"
+                value={formData.stock_quantity}
+                onChange={(e) =>
+                  setFormData({ ...formData, stock_quantity: e.target.value })
+                }
+                className="w-full border px-4 py-2 rounded-xl"
+                required
+              />
+
+              <button
+                type="submit"
+                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium"
+              >
+                {editingProduct ? "Update Product" : "Add Product"}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
