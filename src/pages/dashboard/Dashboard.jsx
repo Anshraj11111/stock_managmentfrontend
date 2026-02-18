@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Package, Users, Receipt, TrendingUp, DollarSign, ArrowRight, BarChart3, Settings, ShoppingCart, AlertCircle, Activity, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { productService } from '../../services/productService';
 import { reportService } from '../../services/reportService';
 import { useAuth } from '../../store/AuthContext';
@@ -9,6 +10,7 @@ import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalSales: 0,
@@ -120,7 +122,7 @@ const Dashboard = () => {
   ...(isOwner
     ? [
         {
-          title: 'Total Revenue',
+          title: t('dashboard.totalRevenue'),
           value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
           change: '+12.5%',
           changeType: 'positive',
@@ -134,7 +136,7 @@ const Dashboard = () => {
     : []),
 
   {
-    title: 'Total Orders',
+    title: t('dashboard.totalOrders'),
     value: stats.totalBills,
     change: '+8.2%',
     changeType: 'positive',
@@ -146,7 +148,7 @@ const Dashboard = () => {
   },
 
   {
-    title: 'Products',
+    title: t('dashboard.products'),
     value: stats.totalProducts,
     change: '+3.1%',
     changeType: 'positive',
@@ -160,9 +162,9 @@ const Dashboard = () => {
   ...(isOwner
     ? [
         {
-          title: 'Low Stock Alert',
+          title: t('dashboard.lowStockAlert'),
           value: stats.lowStockProducts,
-          change: 'Needs Attention',
+          change: t('dashboard.needsAttention'),
           changeType: 'warning',
           icon: AlertCircle,
           gradient: 'from-orange-500 to-red-600',
@@ -212,16 +214,16 @@ const Dashboard = () => {
 
 const quickActions = [
   {
-    title: 'Create Bill',
-    description: 'Generate new invoice',
+    title: t('dashboard.createBill'),
+    description: t('dashboard.generateInvoice'),
     icon: Receipt,
     color: 'from-violet-500 to-purple-600',
     hoverColor: 'hover:from-violet-600 hover:to-purple-700',
     route: '/billing',
   },
   {
-    title: 'Manage Products',
-    description: 'Update inventory',
+    title: t('dashboard.manageProducts'),
+    description: t('dashboard.updateInventory'),
     icon: Package,
     color: 'from-blue-500 to-cyan-600',
     hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
@@ -231,16 +233,16 @@ const quickActions = [
   ...(isOwner
     ? [
         {
-          title: 'View Reports',
-          description: 'Analytics & insights',
+          title: t('dashboard.viewReports'),
+          description: t('dashboard.analyticsInsights'),
           icon: BarChart3,
           color: 'from-emerald-500 to-green-600',
           hoverColor: 'hover:from-emerald-600 hover:to-green-700',
           route: '/reports',
         },
         {
-          title: 'Manage Staff',
-          description: 'Team management',
+          title: t('dashboard.manageStaff'),
+          description: t('dashboard.teamManagement'),
           icon: Users,
           color: 'from-pink-500 to-rose-600',
           hoverColor: 'hover:from-pink-600 hover:to-rose-700',
@@ -252,25 +254,25 @@ const quickActions = [
 
 
   return (
-    <div className="px-6 pb-10 space-y-6">
+    <div className="space-y-6 sm:space-y-8">
       {/* Premium Header Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-6 sm:p-8 shadow-2xl">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+          <div className="absolute -top-1/2 -right-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-1/2 -left-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
         </div>
 
         <div className="relative z-10">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-8">
+            <div className="flex-1">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
                   <Activity className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-white mb-1">
-                    Welcome back, {user?.name}!
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
+                    {t('dashboard.welcomeBack')}, {user?.name}!
                   </h1>
                   <p className="text-white/80 text-sm flex items-center gap-2">
                     <Calendar className="w-4 h-4" />
@@ -278,16 +280,16 @@ const quickActions = [
                   </p>
                 </div>
               </div>
-              <p className="text-white/90 text-base mt-2">
-                Here's what's happening with your business today
+              <p className="text-white/90 text-sm sm:text-base">
+                {t('dashboard.happeningToday')}
               </p>
             </div>
             
-            <div className="bg-white/20 backdrop-blur-md rounded-2xl px-6 py-4 border border-white/30">
-              <p className="text-white/80 text-sm mb-1">Today's Performance</p>
+            <div className="bg-white/20 backdrop-blur-md rounded-2xl px-4 sm:px-6 py-3 sm:py-4 border border-white/30 flex-shrink-0">
+              <p className="text-white/80 text-xs sm:text-sm mb-1">{t('dashboard.todaysPerformance')}</p>
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-white" />
-                <span className="text-2xl font-bold text-white">+15.3%</span>
+                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                <span className="text-xl sm:text-2xl font-bold text-white">+15.3%</span>
               </div>
             </div>
           </div>
@@ -295,38 +297,38 @@ const quickActions = [
       </div>
 
       {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div
               key={index}
-              className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${stat.bgGradient} p-6 border border-gray-200 hover:border-transparent transition-all duration-500 hover:shadow-2xl hover:scale-105 cursor-pointer`}
+              className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 hover:border-transparent transition-all duration-500 hover:shadow-2xl hover:scale-105 cursor-pointer`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Animated gradient overlay */}
               <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
               
               <div className="relative z-10">
-                <div className="flex items-start justify-between mb-4">
-                  <div className={`${stat.iconBg} p-3 rounded-xl group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className={`w-6 h-6 ${stat.iconColor}`} />
+                <div className="flex items-start justify-between mb-3 sm:mb-4">
+                  <div className={`${stat.iconBg} dark:bg-secondary-800 p-2.5 sm:p-3 rounded-lg sm:rounded-xl group-hover:scale-110 transition-transform duration-300`}>
+                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.iconColor} dark:text-secondary-300`} />
                   </div>
-                  <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                  <span className={`text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full ${
                     stat.changeType === 'positive' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-orange-100 text-orange-700'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                      : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
                   }`}>
                     {stat.change}
                   </span>
                 </div>
                 
-                <h3 className="text-gray-600 text-sm font-medium mb-2">{stat.title}</h3>
-                <p className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</p>
+                <h3 className="text-secondary-600 dark:text-secondary-400 text-xs sm:text-sm font-medium mb-1 sm:mb-2">{stat.title}</h3>
+                <p className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-1">{stat.value}</p>
                 
-                <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
+                <div className="flex items-center gap-1 text-xs text-secondary-500 dark:text-secondary-400 mt-2">
                   <Activity className="w-3 h-3" />
-                  <span>vs last month</span>
+                  <span>{t('dashboard.vsLastMonth')}</span>
                 </div>
               </div>
 
@@ -339,34 +341,34 @@ const quickActions = [
 
       {/* Quick Actions Section */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">Quick Actions</h2>
-          <div className="h-1 flex-1 ml-6 bg-gradient-to-r from-purple-500 via-pink-500 to-transparent rounded-full"></div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-secondary-900 dark:text-secondary-100">{t('dashboard.quickActions')}</h2>
+          <div className="h-1 flex-1 ml-0 sm:ml-6 bg-gradient-to-r from-purple-500 via-pink-500 to-transparent rounded-full"></div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {quickActions.map((action, index) => {
             const Icon = action.icon;
             return (
               <button
                 key={index}
                 onClick={() => navigate(action.route)}
-                className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${action.color} ${action.hoverColor} p-6 text-left transition-all duration-500 hover:shadow-2xl hover:scale-105 transform`}
+                className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br ${action.color} ${action.hoverColor} p-4 sm:p-6 text-left transition-all duration-500 hover:shadow-2xl hover:scale-105 transform`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {/* Animated shine effect */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
                 
                 <div className="relative z-10">
-                  <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl w-fit mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                    <Icon className="w-6 h-6 text-white" />
+                  <div className="bg-white/20 backdrop-blur-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl w-fit mb-3 sm:mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
                   
-                  <h3 className="text-white font-bold text-lg mb-1">{action.title}</h3>
+                  <h3 className="text-white font-bold text-base sm:text-lg mb-1">{action.title}</h3>
                   <p className="text-white/80 text-sm">{action.description}</p>
                   
-                  <div className="mt-4 flex items-center text-white/90 text-sm font-medium">
-                    <span>Get Started</span>
+                  <div className="mt-3 sm:mt-4 flex items-center text-white/90 text-sm font-medium">
+                    <span>{t('dashboard.getStarted')}</span>
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
                   </div>
                 </div>
@@ -382,72 +384,72 @@ const quickActions = [
       {isOwner && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Inventory Status */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 p-6 border border-amber-200 hover:shadow-xl transition-all duration-300">
+          <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 hover:shadow-xl transition-all duration-300">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full -mr-16 -mt-16"></div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-amber-100 p-3 rounded-xl">
-                  <Package className="w-5 h-5 text-amber-600" />
+                <div className="bg-amber-100 dark:bg-amber-900/30 p-3 rounded-xl">
+                  <Package className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Inventory Status</h3>
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{t('dashboard.inventoryStatus')}</h3>
               </div>
-              <p className="text-3xl font-bold text-gray-900 mb-2">
+              <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
                 {stats.lowStockProducts}
               </p>
-              <p className="text-sm text-gray-600">Items need restocking</p>
+              <p className="text-sm text-secondary-600 dark:text-secondary-400">{t('dashboard.itemsNeedRestocking')}</p>
               <button 
                 onClick={() => navigate('/products')}
-                className="mt-4 text-amber-600 font-medium text-sm hover:text-amber-700 flex items-center gap-1 group"
+                className="mt-4 text-amber-600 dark:text-amber-400 font-medium text-sm hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 group"
               >
-                View Details
+                {t('dashboard.viewDetails')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
 
           {/* Sales Overview */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 p-6 border border-emerald-200 hover:shadow-xl transition-all duration-300">
+          <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 hover:shadow-xl transition-all duration-300">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full -mr-16 -mt-16"></div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-emerald-100 p-3 rounded-xl">
-                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-xl">
+                  <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Today's Sales</h3>
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{t('dashboard.todaysSales')}</h3>
               </div>
-              <p className="text-3xl font-bold text-gray-900 mb-2">
+              <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
                 ₹{Math.round(stats.totalSales).toLocaleString()}
               </p>
-              <p className="text-sm text-gray-600">From {stats.totalBills} transactions</p>
+              <p className="text-sm text-secondary-600 dark:text-secondary-400">{t('dashboard.fromTransactions', { count: stats.totalBills })}</p>
               <button 
                 onClick={() => navigate('/reports')}
-                className="mt-4 text-emerald-600 font-medium text-sm hover:text-emerald-700 flex items-center gap-1 group"
+                className="mt-4 text-emerald-600 dark:text-emerald-400 font-medium text-sm hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1 group"
               >
-                View Reports
+                {t('dashboard.viewReports')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
           </div>
 
           {/* Product Count */}
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 p-6 border border-blue-200 hover:shadow-xl transition-all duration-300">
+          <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 hover:shadow-xl transition-all duration-300">
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full -mr-16 -mt-16"></div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-blue-100 p-3 rounded-xl">
-                  <BarChart3 className="w-5 h-5 text-blue-600" />
+                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-xl">
+                  <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h3 className="font-semibold text-gray-900">Total Products</h3>
+                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{t('dashboard.totalProducts')}</h3>
               </div>
-              <p className="text-3xl font-bold text-gray-900 mb-2">
+              <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
                 {stats.totalProducts}
               </p>
-              <p className="text-sm text-gray-600">Active in inventory</p>
+              <p className="text-sm text-secondary-600 dark:text-secondary-400">{t('dashboard.activeInInventory')}</p>
               <button 
                 onClick={() => navigate('/products')}
-                className="mt-4 text-blue-600 font-medium text-sm hover:text-blue-700 flex items-center gap-1 group"
+                className="mt-4 text-blue-600 dark:text-blue-400 font-medium text-sm hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 group"
               >
-                Manage Products
+                {t('dashboard.manageProducts')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>

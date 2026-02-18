@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
 import Layout from "../components/layout/Layout";
 
+
 // Auth pages
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
@@ -14,9 +15,14 @@ import Billing from "../pages/billing/Billing";
 import Reports from "../pages/reports/Reports";
 import Invoices from "../pages/invoices/Invoices";
 import Settings from "../pages/settings/Settings";
+import Landing from "../pages/auth/Landing";
 
 const ProtectedRoute = ({ children, requireOwner = false }) => {
-  const { isAuthenticated, isOwner } = useAuth();
+  const { isAuthenticated, isOwner, loading } = useAuth();
+
+  if (loading) {
+    return null; // wait until token check complete
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -29,16 +35,20 @@ const ProtectedRoute = ({ children, requireOwner = false }) => {
   return children;
 };
 
+
 const AppRoutes = () => {
   return (
     <Routes>
 
       {/* 👇 FORCE ROOT TO LOGIN ALWAYS */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<Navigate to="/landing" replace />} />
 
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+
+      <Route path="/landing" element={<Landing />} />
+
 
       {/* Protected Layout */}
       <Route

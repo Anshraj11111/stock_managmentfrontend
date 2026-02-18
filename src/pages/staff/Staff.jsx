@@ -154,10 +154,10 @@
 //       {/* Header */}
 //       <div className="flex items-center justify-between flex-wrap gap-4">
 //         <div>
-//           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+//           <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
 //             Staff Management
 //           </h1>
-//           <p className="text-gray-600 dark:text-gray-400">
+//           <p className="text-secondary-600 dark:text-secondary-400">
 //             Manage your team members and their access
 //           </p>
 //         </div>
@@ -177,8 +177,8 @@
 //             <Users className="w-8 h-8 text-blue-600" />
 //             <span className="text-xs font-semibold px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Total</span>
 //           </div>
-//           <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-//           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Total Staff</p>
+//           <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">{stats.total}</p>
+//           <p className="text-sm text-secondary-600 dark:text-secondary-400 mt-1">Total Staff</p>
 //         </div>
 
 //         <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
@@ -186,8 +186,8 @@
 //             <UserCheck className="w-8 h-8 text-green-600" />
 //             <span className="text-xs font-semibold px-3 py-1 bg-green-100 text-green-700 rounded-full">Active</span>
 //           </div>
-//           <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.active}</p>
-//           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Active Members</p>
+//           <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">{stats.active}</p>
+//           <p className="text-sm text-secondary-600 dark:text-secondary-400 mt-1">Active Members</p>
 //         </div>
 
 //         <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-800">
@@ -195,29 +195,29 @@
 //             <UserX className="w-8 h-8 text-orange-600" />
 //             <span className="text-xs font-semibold px-3 py-1 bg-orange-100 text-orange-700 rounded-full">Inactive</span>
 //           </div>
-//           <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.inactive}</p>
-//           <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Inactive Members</p>
+//           <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">{stats.inactive}</p>
+//           <p className="text-sm text-secondary-600 dark:text-secondary-400 mt-1">Inactive Members</p>
 //         </div>
 //       </div>
 
 //       {/* Search */}
 //       <div className="relative">
-//         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+//         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
 //         <input
 //           type="text"
 //           placeholder="Search staff by name or email..."
 //           value={searchTerm}
 //           onChange={(e) => setSearchTerm(e.target.value)}
-//           className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+//           className="w-full pl-12 pr-4 py-3 bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
 //         />
 //       </div>
 
 //       {/* Staff Grid */}
 //       {filteredStaff.length === 0 ? (
-//         <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
-//           <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-//           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No staff members found</h3>
-//           <p className="text-gray-600 dark:text-gray-400 mb-6">
+//         <div className="text-center py-16 bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800">
+//           <Users className="w-16 h-16 text-secondary-400 mx-auto mb-4" />
+//           <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-2">No staff members found</h3>
+//           <p className="text-secondary-600 dark:text-secondary-400 mb-6">
 //             {searchTerm ? 'Try adjusting your search' : 'Add staff members to help manage your business'}
 //           </p>
 //           {!searchTerm && (
@@ -235,7 +235,7 @@
 //           {filteredStaff.map((member, index) => (
 //             <div
 //               key={member.id}
-//               className="group relative overflow-hidden bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 hover:shadow-xl"
+//               className="group relative overflow-hidden bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 hover:shadow-xl"
 //               style={{ animationDelay: `${index * 50}ms` }}
 //             >
 //               <div className="flex items-start justify-between mb-4">
@@ -245,25 +245,25 @@
 //                 <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${
 //                   member.isActive 
 //                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-//                     : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
+//                     : 'bg-secondary-100 text-secondary-700 dark:bg-secondary-800 dark:text-secondary-400'
 //                 }`}>
 //                   {member.isActive ? 'Active' : 'Inactive'}
 //                 </span>
 //               </div>
 
-//               <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
+//               <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100 mb-1">
 //                 {member.name}
 //               </h3>
-//               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-1">
+//               <div className="flex items-center gap-2 text-sm text-secondary-600 dark:text-secondary-400 mb-1">
 //                 <Mail className="w-4 h-4" />
 //                 {member.email}
 //               </div>
-//               <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-4">
+//               <div className="flex items-center gap-2 text-sm text-secondary-600 dark:text-secondary-400 mb-4">
 //                 <Shield className="w-4 h-4" />
 //                 Staff Member
 //               </div>
 
-//               <div className="flex items-center gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+//               <div className="flex items-center gap-2 pt-4 border-t border-secondary-200 dark:border-secondary-800">
 //                 <button
 //                   onClick={() => openModal(member)}
 //                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
@@ -297,8 +297,8 @@
 //       {/* Modal */}
 //       {showModal && (
 //         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-//           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
-//             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+//           <div className="bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
+//             <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-6">
 //               {editingStaff ? 'Edit Staff Member' : 'Add New Staff Member'}
 //             </h2>
 
@@ -339,7 +339,7 @@
 //                 <button
 //                   type="button"
 //                   onClick={closeModal}
-//                   className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+//                   className="px-6 py-2.5 border border-secondary-300 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 rounded-xl hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors font-medium"
 //                 >
 //                   Cancel
 //                 </button>
@@ -372,6 +372,7 @@ import {
   Shield,
   Search,
 } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { staffService } from "../../services/staffService";
 import Input from "../../components/common/Input";
 import Loader from "../../components/common/Loader";
@@ -379,6 +380,7 @@ import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
 
 const Staff = () => {
+  const { t } = useTranslation();
   const location = useLocation();
 
   const [staff, setStaff] = useState([]);
@@ -421,7 +423,7 @@ const Staff = () => {
       setStaff(data);
       setFilteredStaff(data);
     } catch {
-      toast.error("Failed to fetch staff");
+      toast.error(t('staff.fetchFailed'));
     } finally {
       setLoading(false);
     }
@@ -434,10 +436,10 @@ const Staff = () => {
     try {
       if (editingStaff) {
         await staffService.updateStaff(editingStaff.id, formData);
-        toast.success("Staff updated successfully");
+        toast.success(t('staff.staffUpdated'));
       } else {
         await staffService.addStaff(formData);
-        toast.success("Staff added successfully");
+        toast.success(t('staff.staffAdded'));
       }
 
       fetchStaff();
@@ -453,14 +455,14 @@ const Staff = () => {
     try {
       if (member.isActive) {
         await staffService.deactivateStaff(member.id);
-        toast.success("Staff deactivated");
+        toast.success(t('staff.staffDeactivated'));
       } else {
         await staffService.activateStaff(member.id);
-        toast.success("Staff activated");
+        toast.success(t('staff.staffActivated'));
       }
       fetchStaff();
     } catch {
-      toast.error("Failed to update status");
+      toast.error(t('staff.updateFailed'));
     }
   };
 
@@ -469,10 +471,10 @@ const Staff = () => {
 
     try {
       await staffService.deleteStaff(id);
-      toast.success("Staff deleted");
+      toast.success(t('staff.staffDeleted'));
       fetchStaff();
     } catch {
-      toast.error("Failed to delete");
+      toast.error(t('staff.deleteFailed'));
     }
   };
 
@@ -505,39 +507,77 @@ const Staff = () => {
     );
 
   return (
-    <div className="px-6 pb-10 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Staff Management</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-secondary-100">{t('staff.title')}</h1>
+          <p className="text-sm sm:text-base text-secondary-600 dark:text-secondary-400 mt-1">
+            {t('staff.subtitle')}
+          </p>
+        </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg"
+          className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
         >
-          <Plus size={18} />
-          Add Staff
+          <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+          <span className="hidden sm:inline">{t('staff.addStaffMember')}</span>
+          <span className="sm:hidden">{t('staff.addStaff')}</span>
         </button>
       </div>
 
       {/* Staff List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {filteredStaff.map((member) => (
           <div
             key={member.id}
-            className="bg-white dark:bg-gray-800 p-6 rounded-xl border"
+            className="bg-white dark:bg-secondary-900 p-4 sm:p-6 rounded-xl border border-secondary-200 dark:border-secondary-800 hover:shadow-lg transition-shadow"
           >
-            <h3 className="font-bold text-lg">{member.name}</h3>
-            <p className="text-sm text-gray-500">{member.email}</p>
+            <div className="flex items-start justify-between mb-3 sm:mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+              </div>
+              <span className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-semibold ${
+                member.isActive 
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                  : 'bg-secondary-100 text-secondary-700 dark:bg-secondary-800 dark:text-secondary-400'
+              }`}>
+                {member.isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
 
-            <div className="flex gap-2 mt-4">
-              <button onClick={() => openModal(member)}>
-                <Edit size={18} />
+            <h3 className="font-bold text-base sm:text-lg text-secondary-900 dark:text-secondary-100 mb-1">
+              {member.name}
+            </h3>
+            <p className="text-sm text-secondary-500 dark:text-secondary-400 mb-4 break-all">
+              {member.email}
+            </p>
+
+            <div className="flex flex-wrap gap-2">
+              <button 
+                onClick={() => openModal(member)}
+                className="flex-1 min-w-0 p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors flex items-center justify-center gap-1 text-sm"
+              >
+                <Edit className="w-4 h-4" />
+                <span className="hidden sm:inline">Edit</span>
               </button>
 
-              <button onClick={() => toggleStaffStatus(member)}>
-                {member.isActive ? <UserX size={18} /> : <UserCheck size={18} />}
+              <button 
+                onClick={() => toggleStaffStatus(member)}
+                className={`flex-1 min-w-0 p-2 rounded-lg transition-colors flex items-center justify-center gap-1 text-sm ${
+                  member.isActive
+                    ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30'
+                    : 'bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
+                }`}
+              >
+                {member.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                <span className="hidden sm:inline">{member.isActive ? 'Deactivate' : 'Activate'}</span>
               </button>
 
-              <button onClick={() => handleDelete(member.id)}>
-                <Trash2 size={18} />
+              <button 
+                onClick={() => handleDelete(member.id)}
+                className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors flex items-center justify-center"
+              >
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -547,9 +587,9 @@ const Staff = () => {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-          <div className="bg-white p-6 rounded-xl w-96">
-            <h2 className="text-xl font-bold mb-4">
-              {editingStaff ? "Edit Staff" : "Add Staff"}
+          <div className="bg-white dark:bg-secondary-900 p-6 rounded-xl w-96 border border-secondary-200 dark:border-secondary-800">
+            <h2 className="text-xl font-bold mb-4 text-secondary-900 dark:text-secondary-100">
+              {editingStaff ? t('staff.editStaff') : t('staff.addStaff')}
             </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -584,10 +624,18 @@ const Staff = () => {
               )}
 
               <div className="flex justify-end gap-2">
-                <button type="button" onClick={closeModal}>
+                <button 
+                  type="button" 
+                  onClick={closeModal}
+                  className="px-4 py-2 border border-secondary-300 dark:border-secondary-700 text-secondary-700 dark:text-secondary-300 rounded-lg hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors"
+                >
                   Cancel
                 </button>
-                <button type="submit" disabled={submitting}>
+                <button 
+                  type="submit" 
+                  disabled={submitting}
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                >
                   {editingStaff ? "Update" : "Add"}
                 </button>
               </div>

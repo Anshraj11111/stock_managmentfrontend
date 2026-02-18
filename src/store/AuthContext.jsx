@@ -182,15 +182,17 @@ export const AuthProvider = ({ children }) => {
     toast.success("Logged out successfully");
   };
 
-  const value = {
-    user,
-    login,
-    signup,
-    logout,
-    isAuthenticated: !!user,
-    isOwner: user?.role === "owner",
-    isStaff: user?.role === "staff",
-  };
+ const value = {
+  user,
+  loading,
+  login,
+  signup,
+  logout,
+  isAuthenticated: !!user,
+  isOwner: user?.role === "owner",
+  isStaff: user?.role === "staff",
+};
+
 
   if (loading) {
     return (

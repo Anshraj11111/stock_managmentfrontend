@@ -232,7 +232,7 @@
 //       {/* Header */}
 //       <div className="flex items-center justify-between flex-wrap gap-4">
 //         <div>
-//           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+//           <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
 //             Create New Bill
 //           </h1>
 //           <p className="text-gray-600 dark:text-gray-400">
@@ -243,7 +243,7 @@
 //           <ShoppingCart className="w-5 h-5 text-emerald-600" />
 //           <div>
 //             <p className="text-xs text-gray-600 dark:text-gray-400">Items in Cart</p>
-//             <p className="text-xl font-bold text-gray-900 dark:text-white">{selectedItems.length}</p>
+//             <p className="text-xl font-bold text-secondary-900 dark:text-secondary-100">{selectedItems.length}</p>
 //           </div>
 //         </div>
 //       </div>
@@ -259,13 +259,13 @@
 //               placeholder="Search products..."
 //               value={searchTerm}
 //               onChange={(e) => setSearchTerm(e.target.value)}
-//               className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+//               className="w-full pl-12 pr-4 py-3 bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
 //             />
 //           </div>
 
 //           {/* Products Grid */}
-//           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-//             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+//           <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6">
+//             <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
 //               <Package className="w-5 h-5 text-indigo-600" />
 //               Available Products
 //             </h2>
@@ -282,7 +282,7 @@
 //                 {filteredProducts.map((product, index) => (
 //                   <div
 //                     key={product.id}
-//                     className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
+//                     className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 border border-secondary-200 dark:border-secondary-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
 //                     style={{ animationDelay: `${index * 50}ms` }}
 //                   >
 //                     <div className="absolute top-2 right-2">
@@ -298,7 +298,7 @@
 //                     </div>
 
 //                     <div className="mb-3">
-//                       <h3 className="font-semibold text-gray-900 dark:text-white mb-1 pr-20">
+//                       <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1 pr-20">
 //                         {product.product_name}
 //                       </h3>
 //                       <div className="flex items-center gap-2">
@@ -327,8 +327,8 @@
 //         {/* Bill Summary */}
 //         <div className="space-y-6">
 //           {/* Current Bill */}
-//           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 sticky top-20">
-//             <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+//           <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6 sticky top-20">
+//             <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
 //               <Receipt className="w-5 h-5 text-purple-600" />
 //               Current Bill
 //             </h2>
@@ -346,11 +346,11 @@
 //                   {selectedItems.map((item, index) => (
 //                     <div
 //                       key={item.product_id}
-//                       className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-200 dark:border-gray-600"
+//                       className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-secondary-200 dark:border-secondary-700"
 //                       style={{ animationDelay: `${index * 50}ms` }}
 //                     >
 //                       <div className="flex-1 min-w-0">
-//                         <p className="font-semibold text-gray-900 dark:text-white truncate">
+//                         <p className="font-semibold text-secondary-900 dark:text-secondary-100 truncate">
 //                           {item.name}
 //                         </p>
 //                         <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -382,10 +382,10 @@
 //                   ))}
 //                 </div>
 
-//                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+//                 <div className="border-t border-secondary-200 dark:border-secondary-800 pt-4">
 //                   <div className="flex justify-between items-center mb-4">
 //                     <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-//                     <span className="text-2xl font-bold text-gray-900 dark:text-white">
+//                     <span className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
 //                       ₹{calculateTotal().toFixed(2)}
 //                     </span>
 //                   </div>
@@ -405,7 +405,7 @@
 //           {/* Bill Preview */}
 //           {previewData && (
 //             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 p-6">
-//               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+//               <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
 //                 <Receipt className="w-5 h-5 text-emerald-600" />
 //                 Bill Preview
 //               </h2>
@@ -416,7 +416,7 @@
 //                     <span className="text-gray-700 dark:text-gray-300">
 //                       {item.name} × {item.quantity}
 //                     </span>
-//                     <span className="font-semibold text-gray-900 dark:text-white">
+//                     <span className="font-semibold text-secondary-900 dark:text-secondary-100">
 //                       ₹{item.total}
 //                     </span>
 //                   </div>
@@ -425,7 +425,7 @@
 
 //               <div className="border-t border-emerald-200 dark:border-emerald-700 pt-3 mb-4">
 //                 <div className="flex justify-between items-center">
-//                   <span className="text-lg font-semibold text-gray-900 dark:text-white">Total:</span>
+//                   <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Total:</span>
 //                   <span className="text-2xl font-bold text-emerald-600">
 //                     ₹{previewData.total_amount}
 //                   </span>
@@ -447,15 +447,15 @@
 //       {/* Payment Modal */}
 //       {showPaymentModal && (
 //         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-//           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
-//             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+//           <div className="bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
+//             <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-6">
 //               Payment Details
 //             </h2>
 
 //             <div className="space-y-4">
 //               <div className="text-center p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
 //                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Amount</p>
-//                 <p className="text-4xl font-bold text-gray-900 dark:text-white">
+//                 <p className="text-4xl font-bold text-secondary-900 dark:text-secondary-100">
 //                   ₹{previewData.total_amount}
 //                 </p>
 //               </div>
@@ -464,12 +464,12 @@
 //                 {paymentData.payments.map((payment, index) => {
 //                   const Icon = paymentIcons[payment.mode];
 //                   return (
-//                     <div key={index} className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-700">
+//                     <div key={index} className="flex items-center gap-3 p-4 border border-secondary-200 dark:border-secondary-800 rounded-xl bg-gray-50 dark:bg-gray-700">
 //                       <Icon className="w-6 h-6 text-indigo-600" />
 //                       <select
 //                         value={payment.mode}
 //                         onChange={(e) => updatePayment(index, 'mode', e.target.value)}
-//                         className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500"
+//                         className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 focus:ring-2 focus:ring-indigo-500"
 //                       >
 //                         <option value="cash">Cash</option>
 //                         <option value="upi">UPI</option>
@@ -481,7 +481,7 @@
 //                         value={payment.amount}
 //                         onChange={(e) => updatePayment(index, 'amount', e.target.value)}
 //                         placeholder="Amount"
-//                         className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-indigo-500"
+//                         className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 focus:ring-2 focus:ring-indigo-500"
 //                         required
 //                       />
 //                       {paymentData.payments.length > 1 && (
@@ -499,7 +499,7 @@
 
 //               <button
 //                 onClick={addPaymentMethod}
-//                 className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+//                 className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-secondary-300 dark:border-secondary-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
 //               >
 //                 <Plus className="w-5 h-5" />
 //                 Add Payment Method
@@ -509,7 +509,7 @@
 //                 <button
 //                   type="button"
 //                   onClick={() => setShowPaymentModal(false)}
-//                   className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+//                   className="px-6 py-2.5 border border-secondary-300 dark:border-secondary-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
 //                 >
 //                   Cancel
 //                 </button>
@@ -533,6 +533,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Minus, Trash2, Receipt, CreditCard, Smartphone, Banknote, ShoppingCart, DollarSign, Package, Search } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import jsPDF from 'jspdf';
 import { productService } from '../../services/productService';
 import { billService } from '../../services/billService';
@@ -544,6 +545,7 @@ import { QRCodeCanvas } from 'qrcode.react';
 
 
 const Billing = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -780,82 +782,82 @@ const Billing = () => {
   }
 
   return (
-    <div className="px-6 pb-10 space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Create New Bill
+          <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+            {t('billing.title')}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Select products and generate invoices
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            {t('billing.subtitle')}
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-6 py-3 rounded-xl border border-emerald-200 dark:border-emerald-800">
-          <ShoppingCart className="w-5 h-5 text-emerald-600" />
+        <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-emerald-200 dark:border-emerald-800">
+          <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">Items in Cart</p>
-            <p className="text-xl font-bold text-gray-900 dark:text-white">{selectedItems.length}</p>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{t('billing.itemsInCart')}</p>
+            <p className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100">{selectedItems.length}</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         {/* Products List */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-2 space-y-4 sm:space-y-6">
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm sm:text-base"
             />
           </div>
 
           {/* Products Grid */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Package className="w-5 h-5 text-indigo-600" />
-              Available Products
+          <div className="bg-white dark:bg-secondary-900 rounded-xl sm:rounded-2xl border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6">
+            <h2 className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
+              <Package className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+              {t('billing.availableProducts')}
             </h2>
 
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400">
-                  {searchTerm ? 'No products found' : 'No products available'}
+              <div className="text-center py-8 sm:py-12">
+                <Package className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                  {searchTerm ? t('billing.noProductsFound') : t('billing.noProductsAvailable')}
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 max-h-[500px] sm:max-h-[600px] overflow-y-auto pr-2">
                 {filteredProducts.map((product, index) => (
                   <div
                     key={product.id}
-                    className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-600 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
+                    className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 sm:p-4 border border-secondary-200 dark:border-secondary-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="absolute top-2 right-2">
                       <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${
                         product.stock_quantity > 10 
-                          ? 'bg-green-100 text-green-700' 
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
                           : product.stock_quantity > 0 
-                          ? 'bg-orange-100 text-orange-700' 
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' 
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       }`}>
-                        Stock: {product.stock_quantity}
+                        {t('billing.stock')}: {product.stock_quantity}
                       </span>
                     </div>
 
-                    <div className="mb-3">
-                      <h3 className="font-semibold text-gray-900 dark:text-white mb-1 pr-20">
+                    <div className="mb-3 pr-16">
+                      <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1 text-sm sm:text-base truncate">
                         {product.product_name}
                       </h3>
                       <div className="flex items-center gap-2">
-                        <DollarSign className="w-4 h-4 text-emerald-600" />
-                        <span className="text-2xl font-bold text-emerald-600">
+                        <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600" />
+                        <span className="text-lg sm:text-2xl font-bold text-emerald-600">
                           ₹{product.selling_price}
                         </span>
                       </div>
@@ -864,10 +866,11 @@ const Billing = () => {
                     <button
                       onClick={() => addToBill(product)}
                       disabled={product.stock_quantity === 0}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group-hover:shadow-lg"
+                      className="w-full flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group-hover:shadow-lg text-sm sm:text-base"
                     >
-                      <Plus className="w-4 h-4" />
-                      Add to Bill
+                      <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="hidden sm:inline">{t('billing.addToBill')}</span>
+                      <span className="sm:hidden">{t('billing.add')}</span>
                     </button>
                   </div>
                 ))}
@@ -877,67 +880,67 @@ const Billing = () => {
         </div>
 
         {/* Bill Summary */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Current Bill */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 sticky top-20">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-purple-600" />
-              Current Bill
+          <div className="bg-white dark:bg-secondary-900 rounded-xl sm:rounded-2xl border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 sticky top-4 sm:top-20">
+            <h2 className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
+              <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+              {t('billing.currentBill')}
             </h2>
 
             {selectedItems.length === 0 ? (
-              <div className="text-center py-12">
-                <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  No items added yet
+              <div className="text-center py-8 sm:py-12">
+                <ShoppingCart className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('billing.noItemsAdded')}
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="max-h-64 overflow-y-auto space-y-2 pr-2">
+                <div className="max-h-48 sm:max-h-64 overflow-y-auto space-y-2 pr-2">
                   {selectedItems.map((item, index) => (
                     <div
                       key={item.product_id}
-                      className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-200 dark:border-gray-600"
+                      className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-secondary-200 dark:border-secondary-700"
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 dark:text-white truncate">
+                        <p className="font-semibold text-secondary-900 dark:text-secondary-100 truncate text-sm sm:text-base">
                           {item.name}
                         </p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                           ₹{item.price} × {item.quantity} = ₹{item.total}
                         </p>
                       </div>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                          className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                          className="p-1 sm:p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                         >
-                          <Minus className="w-4 h-4" />
+                          <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
-                        <span className="w-8 text-center font-semibold">{item.quantity}</span>
+                        <span className="w-6 sm:w-8 text-center font-semibold text-sm sm:text-base">{item.quantity}</span>
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                          className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                          className="p-1 sm:p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                         >
-                          <Plus className="w-4 h-4" />
+                          <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
                         <button
                           onClick={() => removeFromBill(item.product_id)}
-                          className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ml-1"
+                          className="p-1 sm:p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ml-1"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div className="border-t border-secondary-200 dark:border-secondary-800 pt-4">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                    <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{t('billing.subtotal')}:</span>
+                    <span className="text-xl sm:text-2xl font-bold text-secondary-900 dark:text-secondary-100">
                       ₹{calculateTotal().toFixed(2)}
                     </span>
                   </div>
@@ -945,9 +948,9 @@ const Billing = () => {
                   <button
                     onClick={previewBill}
                     disabled={previewLoading}
-                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
+                    className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-sm sm:text-base"
                   >
-                    {previewLoading ? 'Loading...' : 'Preview Bill'}
+                    {previewLoading ? t('common.loading') : t('billing.previewBill')}
                   </button>
                 </div>
               </div>
@@ -957,9 +960,9 @@ const Billing = () => {
           {/* Bill Preview */}
           {previewData && (
             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-emerald-600" />
-                Bill Preview
+                {t('billing.billPreview')}
               </h2>
 
               <div className="space-y-3 mb-4">
@@ -968,7 +971,7 @@ const Billing = () => {
                     <span className="text-gray-700 dark:text-gray-300">
                       {item.name} × {item.quantity}
                     </span>
-                    <span className="font-semibold text-gray-900 dark:text-white">
+                    <span className="font-semibold text-secondary-900 dark:text-secondary-100">
                       ₹{item.total}
                     </span>
                   </div>
@@ -977,7 +980,7 @@ const Billing = () => {
 
               <div className="border-t border-emerald-200 dark:border-emerald-700 pt-3 mb-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-gray-900 dark:text-white">Total:</span>
+                  <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">{t('billing.total')}:</span>
                   <span className="text-2xl font-bold text-emerald-600">
                     ₹{previewData.total_amount}
                   </span>
@@ -989,7 +992,7 @@ const Billing = () => {
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 <Receipt className="w-5 h-5" />
-                Proceed to Payment
+                {t('billing.proceedToPayment')}
               </button>
             </div>
           )}
@@ -999,15 +1002,20 @@ const Billing = () => {
       {/* Payment Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              Payment Details
-            </h2>
+          <div className="bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+            
+            {/* Header - Fixed */}
+            <div className="p-6 border-b border-secondary-200 dark:border-secondary-800">
+              <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
+                {t('billing.paymentDetails')}
+              </h2>
+            </div>
 
-            <div className="space-y-4">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               <div className="text-center p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Amount</p>
-                <p className="text-4xl font-bold text-gray-900 dark:text-white">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('billing.totalAmount')}</p>
+                <p className="text-4xl font-bold text-secondary-900 dark:text-secondary-100">
                   ₹{previewData.total_amount}
                 </p>
               </div>
@@ -1019,17 +1027,17 @@ const Billing = () => {
                     return (
                       <div key={index} className="space-y-3">
                         
-                        <div className="flex items-center gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-700">
-                          <Icon className="w-6 h-6 text-indigo-600" />
+                        <div className="flex items-center gap-3 p-4 border border-secondary-200 dark:border-secondary-800 rounded-xl bg-gray-50 dark:bg-gray-700">
+                          <Icon className="w-6 h-6 text-indigo-600 flex-shrink-0" />
 
                           <select
                             value={payment.mode}
                             onChange={(e) => updatePayment(index, 'mode', e.target.value)}
-                            className="flex-1 px-3 py-2 border rounded-lg"
+                            className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 min-w-0"
                           >
-                            <option value="cash">Cash</option>
-                            <option value="upi">UPI</option>
-                            <option value="card">Card</option>
+                            <option value="cash">{t('billing.cash')}</option>
+                            <option value="upi">{t('billing.upi')}</option>
+                            <option value="card">{t('billing.card')}</option>
                           </select>
 
                           <input
@@ -1037,16 +1045,25 @@ const Billing = () => {
                             step="0.01"
                             value={payment.amount}
                             onChange={(e) => updatePayment(index, 'amount', e.target.value)}
-                            placeholder="Amount"
-                            className="flex-1 px-3 py-2 border rounded-lg"
+                            placeholder={t('billing.amount')}
+                            className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 dark:placeholder-secondary-400 min-w-0"
                           />
+
+                          {paymentData.payments.length > 1 && (
+                            <button
+                              onClick={() => removePayment(index)}
+                              className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex-shrink-0"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          )}
                         </div>
 
-                        {/* ✅ QR CODE YAHAN */}
+                        {/* QR CODE */}
                         {payment.mode === "upi" && shop?.upi_id && payment.amount && (
-                          <div className="w-full flex flex-col items-center bg-white dark:bg-gray-800 p-4 rounded-xl border border-indigo-200 dark:border-indigo-700">
-                            <p className="text-sm font-semibold mb-2">
-                              Scan to Pay
+                          <div className="w-full flex flex-col items-center bg-white dark:bg-secondary-800 p-4 rounded-xl border border-indigo-200 dark:border-indigo-700">
+                            <p className="text-sm font-semibold mb-2 text-secondary-900 dark:text-secondary-100">
+                              {t('billing.scanToPay')}
                             </p>
 
                             <QRCodeCanvas
@@ -1054,8 +1071,8 @@ const Billing = () => {
                               size={180}
                             />
 
-                            <p className="text-xs mt-2">
-                              UPI ID: {shop.upi_id}
+                            <p className="text-xs mt-2 text-gray-600 dark:text-gray-400 break-all text-center">
+                              {t('billing.upiId')}: {shop.upi_id}
                             </p>
                           </div>
                         )}
@@ -1066,31 +1083,37 @@ const Billing = () => {
 
               </div>
 
-              <button
-                onClick={addPaymentMethod}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                Add Payment Method
-              </button>
+              {paymentData.payments.length < 3 && (
+                <button
+                  onClick={addPaymentMethod}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-secondary-300 dark:border-secondary-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                >
+                  <Plus className="w-5 h-5" />
+                  {t('billing.maxPayments')}
+                </button>
+              )}
+            </div>
 
-              <div className="flex justify-end gap-3 pt-4">
+            {/* Footer - Fixed */}
+            <div className="p-6 border-t border-secondary-200 dark:border-secondary-800 bg-secondary-50 dark:bg-secondary-800">
+              <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setShowPaymentModal(false)}
-                  className="px-6 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                  className="px-6 py-2.5 border border-secondary-300 dark:border-secondary-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   onClick={createBill}
                   disabled={createLoading}
                   className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                 >
-                  {createLoading ? 'Creating...' : 'Create Bill'}
+                  {createLoading ? t('billing.creating') : t('billing.createBill')}
                 </button>
               </div>
             </div>
+
           </div>
         </div>
       )}

@@ -6,9 +6,69 @@
   * {
     @apply border-border;
   }
+  
+  :root {
+    --toast-bg: #ffffff;
+    --toast-color: #0f172a;
+    --toast-border: #e2e8f0;
+  }
+  
+  .dark {
+    --toast-bg: #1e293b;
+    --toast-color: #f1f5f9;
+    --toast-border: #334155;
+  }
+  
   body {
     @apply bg-secondary-50 dark:bg-secondary-950 text-secondary-900 dark:text-secondary-100;
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  }
+  
+  /* Ensure all backgrounds are dark in dark mode */
+  .dark {
+    color-scheme: dark;
+  }
+  
+  .dark * {
+    border-color: rgb(51 65 85 / 0.2);
+  }
+  
+  /* Custom scrollbar for dark mode */
+  .dark ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .dark ::-webkit-scrollbar-track {
+    background: rgb(30 41 59);
+  }
+  
+  .dark ::-webkit-scrollbar-thumb {
+    background: rgb(51 65 85);
+    border-radius: 4px;
+  }
+  
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: rgb(71 85 105);
+  }
+  
+  /* Light mode scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgb(248 250 252);
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: rgb(203 213 225);
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgb(148 163 184);
   }
 }
 
@@ -22,15 +82,15 @@
   }
 
   .btn-primary {
-    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900;
   }
 
   .btn-secondary {
-    @apply bg-secondary-200 hover:bg-secondary-300 dark:bg-secondary-800 dark:hover:bg-secondary-700 text-secondary-900 dark:text-secondary-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2;
+    @apply bg-secondary-200 hover:bg-secondary-300 dark:bg-secondary-800 dark:hover:bg-secondary-700 text-secondary-900 dark:text-secondary-100 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900;
   }
 
   .btn-danger {
-    @apply bg-danger-600 hover:bg-danger-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-danger-500 focus:ring-offset-2;
+    @apply bg-danger-600 hover:bg-danger-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-danger-500 focus:ring-offset-2 dark:focus:ring-offset-secondary-900;
   }
 
   .input-field {
@@ -54,7 +114,7 @@
   }
 
   .modal-content {
-    @apply glass-card max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto;
+    @apply glass-card max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto bg-white dark:bg-secondary-900;
   }
 
   .animate-fade-in {
@@ -68,10 +128,92 @@
   .animate-bounce-in {
     animation: bounceIn 0.6s ease-out;
   }
+
+  /* Dark theme card backgrounds */
+  .card-bg {
+    @apply bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800;
+  }
+
+  .card-bg-light {
+    @apply bg-secondary-50 dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700;
+  }
+
+  /* Dark theme stat cards */
+  .stat-card {
+    @apply bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-2xl p-6 hover:shadow-xl transition-all duration-300;
+  }
+
+  .stat-card-gradient {
+    @apply rounded-2xl p-6 border hover:shadow-xl transition-all duration-300;
+  }
+
+  /* Dark theme table */
+  .table-header {
+    @apply bg-secondary-50 dark:bg-secondary-800 border-b border-secondary-200 dark:border-secondary-700;
+  }
+
+  .table-cell {
+    @apply px-6 py-4 text-secondary-900 dark:text-secondary-100;
+  }
+
+  .table-row-hover {
+    @apply hover:bg-secondary-50 dark:hover:bg-secondary-800/50 transition-colors duration-200;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+/* Custom Animations for Landing Page */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
   }
 }

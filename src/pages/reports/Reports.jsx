@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { BarChart3, Calendar, Download, Filter, TrendingUp, DollarSign, Receipt, Activity, ArrowUpRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { reportService } from '../../services/reportService';
 import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
 
 const Reports = () => {
+  const { t } = useTranslation();
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('daily');
@@ -43,9 +45,9 @@ const Reports = () => {
 
   const handleExport = () => {
     try {
-      toast.success('Exporting reports...');
+      toast.success(t('reports.exportingReports'));
     } catch (error) {
-      toast.error('Failed to export reports');
+      toast.error(t('reports.exportFailed'));
     }
   };
 
@@ -71,11 +73,11 @@ const Reports = () => {
     <div className="px-6 pb-10 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Sales Reports & Analytics
+          <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+            {t('reports.title')}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Track your business performance and revenue
+          <p className="text-secondary-600 dark:text-secondary-400">
+            {t('reports.subtitle')}
           </p>
         </div>
         <button
@@ -83,7 +85,7 @@ const Reports = () => {
           className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
         >
           <Download className="w-5 h-5" />
-          Export Report
+          {t('reports.exportReport')}
         </button>
       </div>
 
@@ -100,8 +102,8 @@ const Reports = () => {
                 +12.5%
               </span>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Revenue</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">{t('reports.totalRevenue')}</p>
+            <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
               ₹{totals.totalSales.toLocaleString()}
             </p>
           </div>
@@ -119,8 +121,8 @@ const Reports = () => {
                 +8.2%
               </span>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Bills</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">{t('reports.totalBills')}</p>
+            <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
               {totals.totalBills}
             </p>
           </div>
@@ -138,63 +140,63 @@ const Reports = () => {
                 +15.3%
               </span>
             </div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Amount Received</p>
-            <p className="text-3xl font-bold text-gray-900 dark:text-white">
+            <p className="text-sm text-secondary-600 dark:text-secondary-400 mb-1">{t('reports.amountReceived')}</p>
+            <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
               ₹{totals.totalReceived.toLocaleString()}
             </p>
           </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+      <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="w-5 h-5 text-indigo-600" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Filter Reports</h2>
+          <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">{t('reports.filterReports')}</h2>
         </div>
         
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Report Type
+            <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+              {t('reports.reportType')}
             </label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
             >
-              <option value="daily">Daily Report</option>
-              <option value="monthly">Monthly Report</option>
-              <option value="custom">Custom Range</option>
+              <option value="daily">{t('reports.dailyReport')}</option>
+              <option value="monthly">{t('reports.monthlyReport')}</option>
+              <option value="custom">{t('reports.customRange')}</option>
             </select>
           </div>
 
           {filterType === 'custom' && (
             <>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Start Date
+                <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                  {t('reports.startDate')}
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
                   <input
                     type="date"
                     value={dateRange.startDate}
                     onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  End Date
+                <label className="block text-sm font-medium text-secondary-700 dark:text-secondary-300 mb-2">
+                  {t('reports.endDate')}
                 </label>
                 <div className="relative">
-                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-secondary-400" />
                   <input
                     type="date"
                     value={dateRange.endDate}
                     onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -204,37 +206,37 @@ const Reports = () => {
       </div>
 
       {reports && reports.length > 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+        <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 overflow-hidden">
+          <div className="p-6 border-b border-secondary-200 dark:border-secondary-800">
+            <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-indigo-600" />
-              Detailed Reports
+              {t('reports.detailedReports')}
             </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+              <thead className="bg-secondary-50 dark:bg-secondary-950 border-b border-secondary-200 dark:border-secondary-800">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Total Sales</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Total Bills</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Received Amount</th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">{t('reports.date')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">{t('reports.totalSales')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">{t('reports.totalBills')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">{t('reports.receivedAmount')}</th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-secondary-700 dark:text-secondary-300 uppercase tracking-wider">{t('reports.status')}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {reports.map((report, index) => (
-                  <tr key={index} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  <tr key={index} className="hover:bg-secondary-50 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        <Calendar className="w-4 h-4 text-secondary-400" />
+                        <span className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
                           {new Date(report.date || report.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <span className="text-sm font-semibold text-secondary-900 dark:text-secondary-100">
                         ₹{(report.total_sales || 0).toLocaleString()}
                       </span>
                     </td>
@@ -252,7 +254,7 @@ const Reports = () => {
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-xs font-semibold">
                         <TrendingUp className="w-3.5 h-3.5" />
-                        Active
+                        {t('reports.active')}
                       </span>
                     </td>
                   </tr>
@@ -262,11 +264,11 @@ const Reports = () => {
           </div>
         </div>
       ) : (
-        <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700">
-          <BarChart3 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Reports Available</h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            There are no reports available for the selected period.
+        <div className="text-center py-16 bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800">
+          <BarChart3 className="w-16 h-16 text-secondary-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-2">{t('reports.noReportsAvailable')}</h3>
+          <p className="text-secondary-600 dark:text-secondary-400">
+            {t('reports.noReportsForPeriod')}
           </p>
         </div>
       )}
