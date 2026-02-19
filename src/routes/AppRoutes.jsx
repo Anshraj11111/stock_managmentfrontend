@@ -2,6 +2,15 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
 import Layout from "../components/layout/Layout";
 
+// Admin imports
+import { AdminAuthProvider } from "../admin/context/AdminAuthContext";
+import AdminRoute from "../admin/components/AdminRoute";
+import AdminLogin from "../admin/pages/AdminLogin";
+import AdminSignup from "../admin/pages/AdminSignup";
+import AdminDashboard from "../admin/pages/AdminDashboard";
+import AdminUsers from "../admin/pages/AdminUsers";
+import AdminShops from "../admin/pages/AdminShops";
+import AdminAnalytics from "../admin/pages/AdminAnalytics";
 
 // Auth pages
 import Login from "../pages/auth/Login";
@@ -43,6 +52,55 @@ const AppRoutes = () => {
       {/* 👇 FORCE ROOT TO LOGIN ALWAYS */}
       <Route path="/" element={<Navigate to="/landing" replace />} />
 
+      {/* ================= ADMIN ROUTES (Completely Isolated) ================= */}
+      <Route path="/admin/login" element={
+        <AdminAuthProvider>
+          <AdminLogin />
+        </AdminAuthProvider>
+      } />
+      
+      <Route path="/admin/signup" element={
+        <AdminAuthProvider>
+          <AdminSignup />
+        </AdminAuthProvider>
+      } />
+      
+      <Route path="/admin/dashboard" element={
+        <AdminAuthProvider>
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        </AdminAuthProvider>
+      } />
+
+      <Route path="/admin/users" element={
+        <AdminAuthProvider>
+          <AdminRoute>
+            <AdminUsers />
+          </AdminRoute>
+        </AdminAuthProvider>
+      } />
+
+      <Route path="/admin/shops" element={
+        <AdminAuthProvider>
+          <AdminRoute>
+            <AdminShops />
+          </AdminRoute>
+        </AdminAuthProvider>
+      } />
+
+      <Route path="/admin/analytics" element={
+        <AdminAuthProvider>
+          <AdminRoute>
+            <AdminAnalytics />
+          </AdminRoute>
+        </AdminAuthProvider>
+      } />
+
+      {/* Redirect /admin to /admin/dashboard */}
+      <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+
+      {/* ================= USER ROUTES ================= */}
       {/* Public Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
