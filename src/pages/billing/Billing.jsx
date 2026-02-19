@@ -557,6 +557,16 @@ const Billing = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [shop, setShop] = useState(null);
 
+  // ✅ NEW: Customer details state
+  const [customerDetails, setCustomerDetails] = useState({
+    name: '',
+    phone: '',
+  });
+
+  // ✅ NEW: GST state
+  const [gstEnabled, setGstEnabled] = useState(false);
+  const [gstPercentage, setGstPercentage] = useState(18);
+
   const [paymentData, setPaymentData] = useState({
     payments: [{ mode: 'cash', amount: '' }],
   });
@@ -614,14 +624,24 @@ const Billing = () => {
   };
 
   const updateQuantity = (productId, newQuantity) => {
-    if (newQuantity <= 0) {
+    // ✅ Handle direct input - parse as number
+    const quantity = parseInt(newQuantity);
+    
+    if (isNaN(quantity) || quantity <= 0) {
       removeFromBill(productId);
+      return;
+    }
+
+    // ✅ Check stock availability
+    const product = products.find(p => p.id === productId);
+    if (product && quantity > product.stock_quantity) {
+      toast.error(`Only ${product.stock_quantity} items available in stock`);
       return;
     }
 
     setSelectedItems(selectedItems.map(item =>
       item.product_id === productId
-        ? { ...item, quantity: newQuantity, total: item.price * newQuantity }
+        ? { ...item, quantity: quantity, total: item.price * quantity }
         : item
     ));
   };
@@ -636,9 +656,21 @@ const Billing = () => {
       return;
     }
 
+    // ✅ Validate customer phone if provided
+    if (customerDetails.phone && !/^[0-9]{10}$/.test(customerDetails.phone)) {
+      toast.error('Phone number must be exactly 10 digits');
+      return;
+    }
+
     setPreviewLoading(true);
     try {
-      const data = await billService.previewBill(selectedItems);
+      // ✅ Include GST in preview request
+      const requestData = {
+        items: selectedItems,
+        ...(gstEnabled && { gst_percentage: gstPercentage })
+      };
+
+      const data = await billService.previewBill(requestData);
       setPreviewData(data);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to preview bill');
@@ -668,26 +700,40 @@ const Billing = () => {
 
     setCreateLoading(true);
     try {
-      const billResponse = await billService.createBill({
+      // ✅ Include customer details and GST in bill creation
+      const billData = {
         items: selectedItems,
         payments: paymentsWithNumbers,
-      });
+        ...(customerDetails.name && { customer_name: customerDetails.name }),
+        ...(customerDetails.phone && { customer_phone: customerDetails.phone }),
+        ...(gstEnabled && { gst_percentage: gstPercentage })
+      };
+
+      const billResponse = await billService.createBill(billData);
 
       toast.success('Bill created successfully!');
       
       const billDataForPrint = {
         id: billResponse.bill_id || billResponse.data?.bill_id || 'N/A',
         items: previewData.items,
+        subtotal: previewData.subtotal || previewData.total_amount,
+        gst_percentage: previewData.gst_percentage,
+        gst_amount: previewData.gst_amount,
         total_amount: previewData.total_amount,
         payments: paymentsWithNumbers,
+        customer: customerDetails.name || customerDetails.phone ? customerDetails : null,
       };
       
       printBill(billDataForPrint);
       
+      // ✅ Reset all states
       setSelectedItems([]);
       setPreviewData(null);
       setShowPaymentModal(false);
       setPaymentData({ payments: [{ mode: 'cash', amount: '' }] });
+      setCustomerDetails({ name: '', phone: '' });
+      setGstEnabled(false);
+      setGstPercentage(18);
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create bill';
       toast.error(errorMsg);
@@ -698,44 +744,77 @@ const Billing = () => {
 
   const printBill = (billData) => {
     const doc = new jsPDF();
+    
+    // Header
     doc.setFontSize(20);
-    doc.text('Shop Bill', 105, 20, { align: 'center' });
+    doc.text(shop?.shop_name || 'Shop Bill', 105, 20, { align: 'center' });
     doc.setFontSize(12);
-    doc.text('Shop Name: Your Shop Name', 20, 40);
-    doc.text(`Bill ID: ${billData.id || 'N/A'}`, 20, 50);
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 60);
+    doc.text(`Bill ID: ${billData.id || 'N/A'}`, 20, 40);
+    doc.text(`Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 50);
 
-    let yPosition = 80;
+    let yPosition = 60;
+
+    // ✅ Customer Details (if provided)
+    if (billData.customer && (billData.customer.name || billData.customer.phone)) {
+      doc.setFontSize(12);
+      doc.text('Customer Details:', 20, yPosition);
+      yPosition += 8;
+      if (billData.customer.name) {
+        doc.text(`Name: ${billData.customer.name}`, 30, yPosition);
+        yPosition += 8;
+      }
+      if (billData.customer.phone) {
+        doc.text(`Phone: ${billData.customer.phone}`, 30, yPosition);
+        yPosition += 8;
+      }
+      yPosition += 5;
+    }
+
+    // Items Header
     doc.setFontSize(10);
     doc.text('Item', 20, yPosition);
     doc.text('Qty', 100, yPosition);
     doc.text('Price', 130, yPosition);
     doc.text('Total', 160, yPosition);
 
-    yPosition += 10;
+    yPosition += 5;
     doc.line(20, yPosition, 190, yPosition);
-    yPosition += 10;
+    yPosition += 8;
 
-    previewData.items.forEach(item => {
+    // Items
+    (billData.items || previewData?.items || []).forEach(item => {
       doc.text(item.name, 20, yPosition);
       doc.text(item.quantity.toString(), 100, yPosition);
       doc.text(`₹${item.price}`, 130, yPosition);
       doc.text(`₹${item.total}`, 160, yPosition);
-      yPosition += 10;
+      yPosition += 8;
     });
 
-    yPosition += 10;
+    yPosition += 5;
     doc.line(20, yPosition, 190, yPosition);
     yPosition += 10;
-    doc.setFontSize(12);
-    doc.text(`Total Amount: ₹${previewData.total_amount}`, 130, yPosition);
 
+    // ✅ Subtotal, GST, and Total
+    doc.setFontSize(12);
+    if (billData.gst_amount && billData.gst_percentage) {
+      doc.text(`Subtotal: ₹${billData.subtotal || previewData?.subtotal || billData.total_amount}`, 130, yPosition);
+      yPosition += 10;
+      doc.text(`GST (${billData.gst_percentage}%): ₹${billData.gst_amount}`, 130, yPosition);
+      yPosition += 10;
+      doc.line(130, yPosition, 190, yPosition);
+      yPosition += 10;
+    }
+    doc.setFontSize(14);
+    doc.text(`Total Amount: ₹${billData.total_amount}`, 130, yPosition);
+
+    // Payment Details
     yPosition += 20;
+    doc.setFontSize(12);
     doc.text('Payment Details:', 20, yPosition);
     yPosition += 10;
-    paymentData.payments.forEach(payment => {
+    (billData.payments || paymentData.payments).forEach(payment => {
       doc.text(`${payment.mode.toUpperCase()}: ₹${payment.amount}`, 30, yPosition);
-      yPosition += 10;
+      yPosition += 8;
     });
 
     doc.save(`bill_${billData.id || Date.now()}.pdf`);
@@ -881,6 +960,106 @@ const Billing = () => {
 
         {/* Bill Summary */}
         <div className="space-y-4 sm:space-y-6">
+          {/* ✅ NEW: Customer Details Section */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl sm:rounded-2xl border border-blue-200 dark:border-blue-800 p-4 sm:p-6">
+            <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100 mb-3 flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Customer Details (Optional)
+            </h3>
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Customer Name"
+                value={customerDetails.name}
+                onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })}
+                className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <input
+                type="tel"
+                placeholder="Phone Number (10 digits)"
+                value={customerDetails.phone}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                  setCustomerDetails({ ...customerDetails, phone: value });
+                }}
+                maxLength="10"
+                className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {customerDetails.phone && customerDetails.phone.length !== 10 && (
+                <p className="text-xs text-red-600 dark:text-red-400">Phone must be exactly 10 digits</p>
+              )}
+            </div>
+          </div>
+
+          {/* ✅ NEW: GST Section */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl sm:rounded-2xl border border-green-200 dark:border-green-800 p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                GST (Optional)
+              </h3>
+              <button
+                onClick={() => setGstEnabled(!gstEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  gstEnabled ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    gstEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            {gstEnabled && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder="GST %"
+                    value={gstPercentage}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value);
+                      if (value >= 0 && value <= 28) {
+                        setGstPercentage(value);
+                      }
+                    }}
+                    min="0"
+                    max="28"
+                    step="0.1"
+                    className="flex-1 px-3 py-2 border border-green-300 dark:border-green-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">%</span>
+                </div>
+                {selectedItems.length > 0 && (
+                  <div className="bg-white dark:bg-secondary-800 rounded-lg p-3 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
+                      <span className="font-semibold">₹{calculateTotal().toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span>
+                      <span className="font-semibold text-green-600">
+                        ₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-1 mt-1"></div>
+                    <div className="flex justify-between text-base">
+                      <span className="font-bold">Total:</span>
+                      <span className="font-bold text-green-600">
+                        ₹{(calculateTotal() + (calculateTotal() * gstPercentage) / 100).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Current Bill */}
           <div className="bg-white dark:bg-secondary-900 rounded-xl sm:rounded-2xl border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 sticky top-4 sm:top-20">
             <h2 className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
@@ -919,7 +1098,14 @@ const Billing = () => {
                         >
                           <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
                         </button>
-                        <span className="w-6 sm:w-8 text-center font-semibold text-sm sm:text-base">{item.quantity}</span>
+                        {/* ✅ Editable Quantity Input */}
+                        <input
+                          type="number"
+                          value={item.quantity}
+                          onChange={(e) => updateQuantity(item.product_id, e.target.value)}
+                          min="1"
+                          className="w-12 sm:w-16 text-center font-semibold text-sm sm:text-base border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        />
                         <button
                           onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
                           className="p-1 sm:p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -965,6 +1151,19 @@ const Billing = () => {
                 {t('billing.billPreview')}
               </h2>
 
+              {/* ✅ Customer Details in Preview */}
+              {(customerDetails.name || customerDetails.phone) && (
+                <div className="mb-4 pb-3 border-b border-emerald-200 dark:border-emerald-700">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Customer:</p>
+                  {customerDetails.name && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{customerDetails.name}</p>
+                  )}
+                  {customerDetails.phone && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{customerDetails.phone}</p>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-3 mb-4">
                 {previewData.items.map((item, index) => (
                   <div key={index} className="flex justify-between text-sm">
@@ -978,9 +1177,32 @@ const Billing = () => {
                 ))}
               </div>
 
-              <div className="border-t border-emerald-200 dark:border-emerald-700 pt-3 mb-4">
+              <div className="border-t border-emerald-200 dark:border-emerald-700 pt-3 mb-4 space-y-2">
+                {/* ✅ Show Subtotal */}
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-700 dark:text-gray-300">Subtotal:</span>
+                  <span className="font-semibold text-secondary-900 dark:text-secondary-100">
+                    ₹{previewData.subtotal || previewData.total_amount}
+                  </span>
+                </div>
+
+                {/* ✅ Show GST if enabled */}
+                {previewData.gst_amount && previewData.gst_percentage && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      GST ({previewData.gst_percentage}%):
+                    </span>
+                    <span className="font-semibold text-green-600">
+                      ₹{previewData.gst_amount}
+                    </span>
+                  </div>
+                )}
+
+                <div className="border-t border-emerald-300 dark:border-emerald-600 pt-2 mt-2"></div>
+
+                {/* ✅ Total */}
                 <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">{t('billing.total')}:</span>
+                  <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Total:</span>
                   <span className="text-2xl font-bold text-emerald-600">
                     ₹{previewData.total_amount}
                   </span>

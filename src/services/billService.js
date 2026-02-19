@@ -2,8 +2,8 @@ import api from './api';
 
 export const billService = {
   // Preview bill
-  previewBill: async (items) => {
-    const response = await api.post('/bills/preview', { items });
+  previewBill: async (requestData) => {
+    const response = await api.post('/bills/preview', requestData);
     return response.data;
   },
 
