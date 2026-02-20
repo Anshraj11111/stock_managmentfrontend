@@ -16,6 +16,7 @@ const Dashboard = () => {
     totalSales: 0,
     totalBills: 0,
     lowStockProducts: 0,
+    performanceChange: 0, // Real performance percentage
   });
   const [loading, setLoading] = useState(true);
   const { isOwner, user } = useAuth();
@@ -26,7 +27,7 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [productsResponse, reportsResponse] = await Promise.all([
+      const [productsResponse, todayReportResponse] = await Promise.all([
         productService.getProducts(),
         reportService.getDailyReport(),
       ]);
@@ -37,18 +38,42 @@ const Dashboard = () => {
           ? productsResponse.data 
           : [];
       
-      const reportData = reportsResponse || {};
+      const todayData = todayReportResponse || {};
 
       const totalProducts = products.length;
       const lowStockProducts = products.filter(p => p.stock_quantity < 10).length;
-      const totalSales = reportData.total_sales || 0;
-      const totalBills = reportData.total_bills || 0;
+      const totalSales = todayData.total_sales || 0;
+      const totalBills = todayData.total_bills || 0;
+
+      // Calculate real performance: Compare today vs yesterday
+      let performanceChange = 0;
+      try {
+        // Get yesterday's date
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        // Fetch yesterday's data (we'll need to add this endpoint or calculate from existing data)
+        // For now, we'll calculate based on monthly average
+        const currentMonth = new Date().getMonth() + 1;
+        const currentYear = new Date().getFullYear();
+        
+        const monthlyReport = await reportService.getMonthlyReport(currentMonth, currentYear);
+        const monthlyAverage = (monthlyReport.total_sales || 0) / new Date().getDate();
+        
+        if (monthlyAverage > 0) {
+          performanceChange = ((totalSales - monthlyAverage) / monthlyAverage * 100).toFixed(1);
+        }
+      } catch (error) {
+        console.log('Could not calculate performance change:', error);
+        performanceChange = 0;
+      }
 
       setStats({
         totalProducts,
         totalSales,
         totalBills,
         lowStockProducts,
+        performanceChange,
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -289,7 +314,9 @@ const quickActions = [
               <p className="text-white/80 text-xs sm:text-sm mb-1">{t('dashboard.todaysPerformance')}</p>
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                <span className="text-xl sm:text-2xl font-bold text-white">+15.3%</span>
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  {stats.performanceChange > 0 ? '+' : ''}{stats.performanceChange}%
+                </span>
               </div>
             </div>
           </div>

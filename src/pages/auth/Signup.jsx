@@ -168,6 +168,8 @@ const Signup = () => {
     password: '',
     shop_name: '',
     category: '',
+    owner_phone: '',
+    address: '',
     plan_type: selectedPlan,
   });
 
@@ -219,6 +221,7 @@ const Signup = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
+              placeholder="Enter your full name"
             />
 
             <Input
@@ -227,6 +230,7 @@ const Signup = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
+              placeholder="owner@shop.com"
             />
 
             <div>
@@ -255,7 +259,29 @@ const Signup = () => {
               name="shop_name"
               value={formData.shop_name}
               onChange={handleChange}
+              placeholder="Your shop name"
             />
+
+            <Input
+              label="Owner Phone Number"
+              name="owner_phone"
+              type="tel"
+              value={formData.owner_phone}
+              onChange={handleChange}
+              placeholder="+91 98765 43210"
+            />
+
+            <div>
+              <label className="block text-sm font-medium mb-1 text-secondary-700 dark:text-secondary-300">Shop Address</label>
+              <textarea
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                rows="2"
+                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                placeholder="Enter shop address"
+              />
+            </div>
 
             <div>
               <label className="block text-sm font-medium mb-1 text-secondary-700 dark:text-secondary-300">{t('auth.shopCategory')}</label>
@@ -270,6 +296,7 @@ const Signup = () => {
                 <option value="retail">{t('categories.retail')}</option>
                 <option value="electronics">{t('categories.electronics')}</option>
                 <option value="pharmacy">{t('categories.pharmacy')}</option>
+                <option value="others">Others</option>
               </select>
             </div>
 

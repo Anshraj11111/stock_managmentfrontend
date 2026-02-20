@@ -8,8 +8,10 @@ export const reportService = {
   },
 
   // Get monthly sales report
-  getMonthlyReport: async () => {
-    const response = await api.get('/reports/monthly');
+  getMonthlyReport: async (month, year) => {
+    const currentMonth = month || new Date().getMonth() + 1;
+    const currentYear = year || new Date().getFullYear();
+    const response = await api.get(`/reports/monthly?month=${currentMonth}&year=${currentYear}`);
     return response.data;
   },
 

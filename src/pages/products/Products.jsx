@@ -33,6 +33,8 @@ const Products = () => {
     purchase_price: '',
     selling_price: '',
     stock_quantity: '',
+    stock_unit: 'pieces',
+    low_stock_threshold: 10,
   });
 
   useEffect(() => {
@@ -89,7 +91,11 @@ const Products = () => {
   const openModal = (product = null) => {
     if (product) {
       setEditingProduct(product);
-      setFormData(product);
+      setFormData({
+        ...product,
+        stock_unit: product.stock_unit || 'pieces',
+        low_stock_threshold: product.low_stock_threshold || 10,
+      });
     } else {
       setEditingProduct(null);
       setFormData({
@@ -97,6 +103,8 @@ const Products = () => {
         purchase_price: '',
         selling_price: '',
         stock_quantity: '',
+        stock_unit: 'pieces',
+        low_stock_threshold: 10,
       });
     }
     setShowModal(true);
@@ -107,14 +115,19 @@ const Products = () => {
     setEditingProduct(null);
   };
 
-  const getStockStatus = (quantity) => {
-    if (quantity === 0)
+  const getStockStatus = (quantity, threshold = 10) => {
+    // Parse quantity if it's a string like "10 kg"
+    const numericQuantity = typeof quantity === 'string' 
+      ? parseFloat(quantity.replace(/[^0-9.]/g, '')) || 0
+      : quantity;
+
+    if (numericQuantity === 0)
       return {
         label: t('products.outOfStock'),
         color: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800',
         icon: AlertCircle,
       };
-    if (quantity < 10)
+    if (numericQuantity < threshold)
       return {
         label: t('products.lowStock'),
         color: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800',
@@ -129,12 +142,25 @@ const Products = () => {
 
   const stats = {
     total: products.length,
-    lowStock: products.filter((p) => p.stock_quantity < 10).length,
-    outOfStock: products.filter((p) => p.stock_quantity === 0).length,
-    totalValue: products.reduce(
-      (sum, p) => sum + p.selling_price * p.stock_quantity,
-      0
-    ),
+    lowStock: products.filter((p) => {
+      const qty = typeof p.stock_quantity === 'string' 
+        ? parseFloat(p.stock_quantity.replace(/[^0-9.]/g, '')) || 0
+        : p.stock_quantity;
+      const threshold = p.low_stock_threshold || 10;
+      return qty < threshold && qty > 0;
+    }).length,
+    outOfStock: products.filter((p) => {
+      const qty = typeof p.stock_quantity === 'string' 
+        ? parseFloat(p.stock_quantity.replace(/[^0-9.]/g, '')) || 0
+        : p.stock_quantity;
+      return qty === 0;
+    }).length,
+    totalValue: products.reduce((sum, p) => {
+      const qty = typeof p.stock_quantity === 'string' 
+        ? parseFloat(p.stock_quantity.replace(/[^0-9.]/g, '')) || 0
+        : p.stock_quantity;
+      return sum + p.selling_price * qty;
+    }, 0),
   };
 
   if (loading) {
@@ -232,7 +258,7 @@ const Products = () => {
 
             <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
               {filteredProducts.map((product) => {
-                const status = getStockStatus(product.stock_quantity);
+                const status = getStockStatus(product.stock_quantity, product.low_stock_threshold || 10);
                 const StatusIcon = status.icon;
 
                 return (
@@ -240,7 +266,9 @@ const Products = () => {
                     <td className="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-secondary-900 dark:text-secondary-100 text-sm sm:text-base">{product.product_name}</td>
                     {isOwner && <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-900 dark:text-secondary-100 text-sm sm:text-base">₹{product.purchase_price}</td>}
                     <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-900 dark:text-secondary-100 text-sm sm:text-base">₹{product.selling_price}</td>
-                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-900 dark:text-secondary-100 text-sm sm:text-base">{product.stock_quantity}</td>
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-900 dark:text-secondary-100 text-sm sm:text-base">
+                      {product.stock_quantity} {product.stock_unit || ''}
+                    </td>
                     <td className="px-3 sm:px-6 py-3 sm:py-4">
                       <span className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${status.color}`}>
                         <StatusIcon className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -310,16 +338,59 @@ const Products = () => {
                 required
               />
 
-              <input
-                type="number"
-                placeholder={t('products.stockQuantity')}
-                value={formData.stock_quantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, stock_quantity: e.target.value })
-                }
-                className="w-full border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
-                required
-              />
+              {/* Stock Quantity with Unit */}
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="Stock Quantity (e.g., 10, 5.5)"
+                  value={formData.stock_quantity}
+                  onChange={(e) =>
+                    setFormData({ ...formData, stock_quantity: e.target.value })
+                  }
+                  className="w-full border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
+                  required
+                />
+                
+                <select
+                  value={formData.stock_unit}
+                  onChange={(e) =>
+                    setFormData({ ...formData, stock_unit: e.target.value })
+                  }
+                  className="w-full border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
+                >
+                  <option value="pieces">Pieces</option>
+                  <option value="kg">Kg</option>
+                  <option value="grams">Grams</option>
+                  <option value="liters">Liters</option>
+                  <option value="ml">ML</option>
+                  <option value="meters">Meters</option>
+                  <option value="cm">CM</option>
+                  <option value="boxes">Boxes</option>
+                  <option value="packets">Packets</option>
+                  <option value="bottles">Bottles</option>
+                </select>
+              </div>
+
+              {/* Low Stock Threshold */}
+              {isOwner && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                    Low Stock Alert Threshold
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="Alert when stock falls below (e.g., 10)"
+                    value={formData.low_stock_threshold}
+                    onChange={(e) =>
+                      setFormData({ ...formData, low_stock_threshold: e.target.value })
+                    }
+                    className="w-full border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
+                  />
+                  <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                    You'll be alerted when stock falls below this number
+                  </p>
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
