@@ -3,6 +3,7 @@ import { useAuth } from "../../store/AuthContext";
 import { useTheme } from "../../store/ThemeContext";
 import { useState } from "react";
 import LanguageSelector from "../common/LanguageSelector";
+import InstallPWA from "../common/InstallPWA";
 
 const Navbar = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
@@ -34,6 +35,9 @@ const Navbar = ({ onMenuClick }) => {
 
       {/* Right section */}
       <div className="flex items-center gap-3">
+        {/* PWA Install Button */}
+        <InstallPWA />
+
         {/* Language Selector */}
         <LanguageSelector />
 

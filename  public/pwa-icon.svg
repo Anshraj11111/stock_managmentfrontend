@@ -1,0 +1,21 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#1a1a1a"/>
+  
+  <!-- A5x Logo -->
+  <g transform="translate(256, 256)">
+    <!-- Main A -->
+    <path d="M-80,-120 L0,-180 L80,-120 L60,-60 L-60,-60 Z" fill="#808080" stroke="#606060" stroke-width="4"/>
+    <text x="0" y="-70" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#808080" text-anchor="middle">A</text>
+    
+    <!-- 5x Text -->
+    <text x="0" y="40" font-family="Arial, sans-serif" font-size="100" font-weight="bold" fill="#808080" text-anchor="middle">5x</text>
+    
+    <!-- Orbital Rings -->
+    <ellipse cx="0" cy="-40" rx="150" ry="180" fill="none" stroke="#606060" stroke-width="8" stroke-dasharray="20,10" opacity="0.6"/>
+    <circle cx="-120" cy="-100" r="12" fill="#808080"/>
+    <circle cx="120" cy="-100" r="12" fill="#808080"/>
+    <circle cx="-140" cy="60" r="12" fill="#808080"/>
+    <circle cx="140" cy="60" r="12" fill="#808080"/>
+  </g>
+</svg>

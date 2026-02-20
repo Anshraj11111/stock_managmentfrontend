@@ -1,0 +1,42 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#4F46E5" rx="80"/>
+  
+  <!-- Icon Content - Stock/Inventory Symbol -->
+  <g transform="translate(256, 256)">
+    <!-- Box/Package Icon -->
+    <path d="M-80,-100 L0,-140 L80,-100 L80,60 L0,100 L-80,60 Z" 
+          fill="none" 
+          stroke="#FFFFFF" 
+          stroke-width="16" 
+          stroke-linejoin="round"/>
+    
+    <!-- Box Top -->
+    <path d="M-80,-100 L0,-60 L80,-100" 
+          fill="none" 
+          stroke="#FFFFFF" 
+          stroke-width="16" 
+          stroke-linejoin="round"/>
+    
+    <!-- Box Middle Line -->
+    <line x1="0" y1="-60" x2="0" y2="100" 
+          stroke="#FFFFFF" 
+          stroke-width="16"/>
+    
+    <!-- Checkmark -->
+    <path d="M-30,0 L-10,20 L30,-20" 
+          fill="none" 
+          stroke="#FFFFFF" 
+          stroke-width="12" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"/>
+  </g>
+  
+  <!-- App Name -->
+  <text x="256" y="440" 
+        font-family="Arial, sans-serif" 
+        font-size="48" 
+        font-weight="bold" 
+        fill="#FFFFFF" 
+        text-anchor="middle">SM</text>
+</svg>

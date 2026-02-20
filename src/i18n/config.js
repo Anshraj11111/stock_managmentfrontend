@@ -45,6 +45,18 @@ i18n
       order: ['localStorage', 'navigator'],
       caches: ['localStorage'],
     },
+    // Show key if translation missing (for debugging)
+    saveMissing: true,
+    missingKeyHandler: (lng, ns, key) => {
+      console.warn(`Missing translation: ${key} for language: ${lng}`);
+    },
+    // Return key if translation not found
+    returnEmptyString: false,
+    returnNull: false,
+    // Wait for translations to load before rendering
+    react: {
+      useSuspense: true,
+    },
   });
 
 export default i18n;

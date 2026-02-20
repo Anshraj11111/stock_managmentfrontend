@@ -1,0 +1,48 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#grad)"/>
+  
+  <!-- A5x Logo -->
+  <g transform="translate(256, 256)">
+    <!-- A shape background -->
+    <path d="M-76.8,-76.8 L0,-128 L76.8,-76.8 L61.44,-20.48 L-61.44,-20.48 Z" 
+          fill="rgba(255,255,255,0.2)"/>
+    
+    <!-- A text -->
+    <text x="0" y="-40.96" 
+          font-family="Arial, sans-serif" 
+          font-size="92.16" 
+          font-weight="bold" 
+          fill="#FFFFFF" 
+          text-anchor="middle" 
+          dominant-baseline="middle">A</text>
+    
+    <!-- 5x text -->
+    <text x="0" y="61.44" 
+          font-family="Arial, sans-serif" 
+          font-size="112.64" 
+          font-weight="bold" 
+          fill="#FFFFFF" 
+          text-anchor="middle" 
+          dominant-baseline="middle">5x</text>
+    
+    <!-- Decorative circles -->
+    <circle cx="-117.76" cy="-97.28" r="11.776" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="117.76" cy="-97.28" r="11.776" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="-138.24" cy="76.8" r="11.776" fill="rgba(255,255,255,0.4)"/>
+    <circle cx="138.24" cy="76.8" r="11.776" fill="rgba(255,255,255,0.4)"/>
+    
+    <!-- Orbital ring -->
+    <ellipse cx="0" cy="-20.48" rx="148.48" ry="179.2" 
+             fill="none" 
+             stroke="rgba(255,255,255,0.2)" 
+             stroke-width="6.144" 
+             stroke-dasharray="15.36,10.24"/>
+  </g>
+</svg>
