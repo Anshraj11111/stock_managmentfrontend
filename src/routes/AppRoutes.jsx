@@ -22,7 +22,7 @@ import Products from "../pages/products/Products";
 import Staff from "../pages/staff/Staff";
 import Billing from "../pages/billing/Billing";
 import Reports from "../pages/reports/Reports";
-import Invoices from "../pages/invoices/Invoices";
+import Invoices from "../pages/invoice/Invoice";
 import Settings from "../pages/settings/Settings";
 import Landing from "../pages/auth/Landing";
 

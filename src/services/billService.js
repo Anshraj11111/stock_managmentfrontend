@@ -24,4 +24,10 @@ export const billService = {
     const response = await api.get(`/bills/${billId}`);
     return response.data;
   },
+
+  // Get all bills (recent)
+  getBills: async () => {
+    const response = await api.get('/bills/recent');
+    return response.data;
+  },
 };

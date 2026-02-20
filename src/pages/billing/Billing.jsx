@@ -764,125 +764,158 @@ const Billing = () => {
   const printBill = (billData) => {
     const doc = new jsPDF();
     
-    // Debug: Check shop data
-    console.log('🏪 Shop data in printBill:', shop);
-    
     // ========================================
-    // HEADER SECTION - Shop Details (Top)
+    // HEADER SECTION - Professional Invoice Header
     // ========================================
     
-    // Shop Name (Bold, Large, Centered)
-    doc.setFontSize(18);
+    // Shop Name (Bold, Large, Centered at top)
+    doc.setFontSize(20);
     doc.setFont(undefined, 'bold');
-    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, 20, { align: 'center' });
+    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, 15, { align: 'center' });
     
-    // Shop Address (Centered, below shop name)
+    // Shop Address and Contact (Centered, smaller font)
     doc.setFontSize(9);
     doc.setFont(undefined, 'normal');
-    let headerY = 27;
+    let yPos = 22;
     
-    // Always show address line (even if empty, for consistent spacing)
-    const shopAddress = shop?.address || shop?.shop_address || '';
-    if (shopAddress) {
-      // Split long address into multiple lines if needed
-      const addressLines = doc.splitTextToSize(shopAddress, 160);
+    if (shop?.address) {
+      const addressLines = doc.splitTextToSize(shop.address, 160);
       addressLines.forEach(line => {
-        doc.text(line, 105, headerY, { align: 'center' });
-        headerY += 5;
+        doc.text(line, 105, yPos, { align: 'center' });
+        yPos += 4;
       });
     }
     
-    // Shop Phone (Centered, below address)
-    const shopPhone = shop?.owner_phone || shop?.phone || '';
-    if (shopPhone) {
-      doc.text(`Phone: ${shopPhone}`, 105, headerY, { align: 'center' });
-      headerY += 5;
+    if (shop?.owner_phone) {
+      doc.text(`Tel: ${shop.owner_phone}`, 105, yPos, { align: 'center' });
+      yPos += 4;
     }
     
-    // Horizontal line after header
-    headerY += 2;
-    doc.line(20, headerY, 190, headerY);
+    if (shop?.gstin) {
+      doc.text(`GSTIN: ${shop.gstin}`, 105, yPos, { align: 'center' });
+      yPos += 4;
+    }
+    
+    if (shop?.pan) {
+      doc.text(`PAN: ${shop.pan}`, 105, yPos, { align: 'center' });
+      yPos += 4;
+    }
+    
+    // TAX INVOICE heading
+    // yPos += 3;
+    // doc.setFontSize(14);
+    // doc.setFont(undefined, 'bold');
+    // doc.text('TAX INVOICE', 105, yPos, { align: 'center' });
+    
+    // Horizontal line
+    yPos += 3;
+    doc.setLineWidth(0.5);
+    doc.line(15, yPos, 195, yPos);
     
     // ========================================
-    // BILL INFO SECTION
+    // INVOICE DETAILS SECTION (Two columns)
     // ========================================
-    let yPosition = headerY + 7;
+    yPos += 7;
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
     
-    doc.setFontSize(10);
-    // Left side - Bill Number and Date
-    doc.text(`Bill No: ${billData.id || 'N/A'}`, 20, yPosition);
-    doc.text(`Date: ${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`, 130, yPosition);
+    // Left column - Invoice details
+    doc.setFont(undefined, 'bold');
+    doc.text('Bill No:', 15, yPos);
+    doc.setFont(undefined, 'normal');
+    doc.text(`${billData.id || 'N/A'}`, 45, yPos);
     
-    yPosition += 8;
+    // Right column - Date
+    doc.setFont(undefined, 'bold');
+    doc.text('Purchasing Date:', 130, yPos);
+    doc.setFont(undefined, 'normal');
+    doc.text(new Date().toLocaleDateString('en-IN'), 165, yPos);
     
-    // Customer Details (if provided)
+    yPos += 6;
+    
+    // Customer details (if provided)
     if (billData.customer && (billData.customer.name || billData.customer.phone)) {
-      doc.text(`Customer: ${billData.customer.name || 'N/A'}`, 20, yPosition);
+      doc.setFont(undefined, 'bold');
+      doc.text('Customer:', 15, yPos);
+      doc.setFont(undefined, 'normal');
+      doc.text(billData.customer.name || 'N/A', 45, yPos);
+      
       if (billData.customer.phone) {
-        doc.text(`Ph: ${billData.customer.phone}`, 130, yPosition);
+        doc.setFont(undefined, 'bold');
+        doc.text('Ph:', 130, yPos);
+        doc.setFont(undefined, 'normal');
+        doc.text(billData.customer.phone, 145, yPos);
       }
-      yPosition += 8;
+      yPos += 6;
     }
     
     // Horizontal line before items
-    doc.line(20, yPosition, 190, yPosition);
-    yPosition += 8;
+    doc.setLineWidth(0.3);
+    doc.line(15, yPos, 195, yPos);
     
     // ========================================
-    // ITEMS TABLE HEADER
+    // ITEMS TABLE
     // ========================================
+    yPos += 6;
+    
+    // Table header with background
+    doc.setFillColor(240, 240, 240);
+    doc.rect(15, yPos - 4, 180, 6, 'F');
+    
     doc.setFont(undefined, 'bold');
-    doc.text('S.No', 20, yPosition);
-    doc.text('Particulars', 40, yPosition);
-    doc.text('Qty', 110, yPosition, { align: 'center' });
-    doc.text('Rate', 155, yPosition, { align: 'right' });
-    doc.text('Amount', 190, yPosition, { align: 'right' });
-    
-    yPosition += 2;
-    doc.line(20, yPosition, 190, yPosition);
-    yPosition += 6;
-    
-    // ========================================
-    // ITEMS LIST
-    // ========================================
-    doc.setFont(undefined, 'normal');
     doc.setFontSize(9);
+    doc.text('S.No', 17, yPos);
+    doc.text('Particulars', 30, yPos);
+    doc.text('HSN/SAC', 95, yPos);
+    doc.text('Qty', 120, yPos, { align: 'center' });
+    doc.text('Rate', 150, yPos, { align: 'right' });
+    doc.text('Amount', 190, yPos, { align: 'right' });
+    
+    yPos += 2;
+    doc.line(15, yPos, 195, yPos);
+    yPos += 5;
+    
+    // Items list
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(8);
     
     (billData.items || previewData?.items || []).forEach((item, index) => {
       // Check if we need a new page
-      if (yPosition > 250) {
+      if (yPos > 250) {
         doc.addPage();
-        yPosition = 20;
+        yPos = 20;
       }
       
-      doc.text(`${index + 1}`, 20, yPosition);
-      doc.text(item.name.substring(0, 30), 40, yPosition); // Limit name length
-      doc.text(item.quantity.toString(), 110, yPosition, { align: 'center' });
-      doc.text(`₹${parseFloat(item.price).toFixed(2)}`, 155, yPosition, { align: 'right' });
-      doc.text(`₹${parseFloat(item.total).toFixed(2)}`, 190, yPosition, { align: 'right' });
-      yPosition += 6;
+      doc.text(`${index + 1}`, 17, yPos);
+      doc.text(item.name.substring(0, 35), 30, yPos);
+      doc.text('-', 95, yPos); // HSN code placeholder
+      doc.text(item.quantity.toString(), 120, yPos, { align: 'center' });
+      doc.text(`₹${parseFloat(item.price).toFixed(2)}`, 150, yPos, { align: 'right' });
+      doc.text(`₹${parseFloat(item.total).toFixed(2)}`, 190, yPos, { align: 'right' });
+      yPos += 5;
     });
     
     // Line after items
-    yPosition += 2;
-    doc.line(20, yPosition, 190, yPosition);
-    yPosition += 8;
+    yPos += 1;
+    doc.line(15, yPos, 195, yPos);
     
     // ========================================
-    // TOTALS SECTION (Right Aligned)
+    // TOTALS SECTION
     // ========================================
-    doc.setFontSize(10);
+    yPos += 6;
+    doc.setFontSize(9);
     
     // Subtotal
-    doc.text('Subtotal:', 130, yPosition);
-    doc.text(`₹${(billData.subtotal || previewData?.subtotal || billData.total_amount).toFixed(2)}`, 190, yPosition, { align: 'right' });
-    yPosition += 7;
+    doc.setFont(undefined, 'normal');
+    doc.text('Subtotal:', 140, yPos);
+    doc.text(`₹${(billData.subtotal || previewData?.subtotal || billData.total_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
+    yPos += 5;
     
     // GST (if applicable)
     if (billData.gst_amount && billData.gst_percentage) {
-      doc.text(`GST (${billData.gst_percentage}%):`, 130, yPosition);
-      doc.text(`₹${parseFloat(billData.gst_amount).toFixed(2)}`, 190, yPosition, { align: 'right' });
-      yPosition += 7;
+      doc.text(`GST (${billData.gst_percentage}%):`, 140, yPos);
+      doc.text(`₹${parseFloat(billData.gst_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
+      yPos += 5;
     }
     
     // Discount (if applicable)
@@ -890,57 +923,119 @@ const Billing = () => {
       const discountLabel = billData.discount_type === 'percentage' 
         ? `Discount (${billData.discount_value}%)` 
         : `Discount`;
-      doc.setTextColor(255, 0, 0); // Red color
-      doc.text(`${discountLabel}:`, 130, yPosition);
-      doc.text(`-₹${parseFloat(billData.discount_amount).toFixed(2)}`, 190, yPosition, { align: 'right' });
-      doc.setTextColor(0, 0, 0); // Reset to black
-      yPosition += 7;
+      doc.setTextColor(200, 0, 0);
+      doc.text(`${discountLabel}:`, 140, yPos);
+      doc.text(`-₹${parseFloat(billData.discount_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
+      doc.setTextColor(0, 0, 0);
+      yPos += 5;
     }
     
     // Line before grand total
-    doc.line(130, yPosition, 190, yPosition);
-    yPosition += 7;
+    doc.setLineWidth(0.5);
+    doc.line(140, yPos, 195, yPos);
+    yPos += 6;
     
-    // Grand Total (Bold)
+    // Grand Total (Bold, larger)
     doc.setFont(undefined, 'bold');
-    doc.setFontSize(12);
-    doc.text('Total Amount:', 130, yPosition);
-    doc.text(`₹${parseFloat(billData.total_amount).toFixed(2)}`, 190, yPosition, { align: 'right' });
-    yPosition += 10;
+    doc.setFontSize(11);
+    doc.text('Total Amount:', 140, yPos);
+    doc.text(`₹${parseFloat(billData.total_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
+    
+    // ========================================
+    // AMOUNT IN WORDS
+    // ========================================
+    yPos += 8;
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'italic');
+    const amountInWords = numberToWords(billData.total_amount);
+    doc.text(`Amount in words: ${amountInWords}`, 15, yPos);
     
     // ========================================
     // PAYMENT DETAILS
     // ========================================
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(10);
-    doc.text('Payment Mode:', 20, yPosition);
-    yPosition += 6;
+    yPos += 8;
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(9);
+    doc.text('Payment Mode:', 15, yPos);
+    yPos += 5;
     
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(8);
     (billData.payments || paymentData.payments).forEach(payment => {
-      doc.text(`  ${payment.mode.toUpperCase()}:`, 20, yPosition);
-      doc.text(`₹${parseFloat(payment.amount).toFixed(2)}`, 80, yPosition, { align: 'right' });
-      yPosition += 6;
+      doc.text(`${payment.mode.toUpperCase()}:`, 20, yPos);
+      doc.text(`₹${parseFloat(payment.amount).toFixed(2)}`, 60, yPos, { align: 'right' });
+      yPos += 4;
     });
     
     // ========================================
-    // FOOTER
+    // FOOTER SECTION
     // ========================================
-    yPosition += 10;
-    doc.setFontSize(8);
+    yPos += 10;
+    
+    // Terms and conditions
+    doc.setFontSize(7);
     doc.setFont(undefined, 'italic');
-    doc.text('Thank you for your business!', 105, yPosition, { align: 'center' });
+    doc.text('Terms and Conditions:', 15, yPos);
+    yPos += 4;
+    doc.text('1. Goods once sold will not be taken back.', 15, yPos);
+    yPos += 3;
+    doc.text('2. Subject to local jurisdiction.', 15, yPos);
+    
+    // Signature section (right side)
+    doc.setFont(undefined, 'bold');
+    doc.text('For ' + (shop?.shop_name || 'Your Shop Name'), 140, yPos - 7);
+    yPos += 10;
+    doc.setFont(undefined, 'normal');
+    doc.text('Authorized Signatory', 140, yPos);
     
     // Bottom line
-    yPosition += 5;
-    doc.line(20, yPosition, 190, yPosition);
+    yPos += 5;
+    doc.setLineWidth(0.3);
+    doc.line(15, yPos, 195, yPos);
     
-    // Shop name at bottom (small)
-    yPosition += 5;
-    doc.setFontSize(7);
-    doc.text(`For ${shop?.shop_name || 'Your Shop Name'}`, 105, yPosition, { align: 'center' });
+    // Thank you message
+    yPos += 4;
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'italic');
+    doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
+    
+    // Computer generated invoice note
+    yPos += 3;
+    doc.setFontSize(6);
+    doc.text('This is a computer generated invoice', 105, yPos, { align: 'center' });
     
     // Save PDF
-    doc.save(`Bill_${billData.id || Date.now()}.pdf`);
+    doc.save(`Invoice_${billData.id || Date.now()}.pdf`);
+  };
+
+  // Helper function to convert number to words (Indian format)
+  const numberToWords = (num) => {
+    const ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    const tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+    const teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    
+    if (num === 0) return 'Zero Rupees Only';
+    
+    const crore = Math.floor(num / 10000000);
+    const lakh = Math.floor((num % 10000000) / 100000);
+    const thousand = Math.floor((num % 100000) / 1000);
+    const hundred = Math.floor((num % 1000) / 100);
+    const remainder = Math.floor(num % 100);
+    
+    let words = '';
+    
+    if (crore > 0) words += ones[crore] + ' Crore ';
+    if (lakh > 0) words += (lakh < 10 ? ones[lakh] : tens[Math.floor(lakh / 10)] + ' ' + ones[lakh % 10]) + ' Lakh ';
+    if (thousand > 0) words += (thousand < 10 ? ones[thousand] : tens[Math.floor(thousand / 10)] + ' ' + ones[thousand % 10]) + ' Thousand ';
+    if (hundred > 0) words += ones[hundred] + ' Hundred ';
+    
+    if (remainder > 0) {
+      if (remainder < 10) words += ones[remainder];
+      else if (remainder < 20) words += teens[remainder - 10];
+      else words += tens[Math.floor(remainder / 10)] + ' ' + ones[remainder % 10];
+    }
+    
+    return words.trim() + ' Rupees Only';
   };
 
   const addPaymentMethod = () => {

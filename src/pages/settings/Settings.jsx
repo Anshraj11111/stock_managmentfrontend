@@ -17,6 +17,15 @@ const Settings = () => {
     category: "",
     address: "",
     owner_phone: "",
+    gstin: "",
+    pan: "",
+    bank_name: "",
+    bank_branch: "",
+    bank_account_number: "",
+    bank_ifsc: "",
+    authorized_signatory: "",
+    signature_image: "",
+    terms_and_conditions: "",
     trial_end_date: "",
     subscription_active: false,
     upi_id: "",
@@ -25,6 +34,7 @@ const Settings = () => {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [signaturePreview, setSignaturePreview] = useState(null);
 
   useEffect(() => {
     fetchShopDetails();
@@ -39,11 +49,24 @@ const Settings = () => {
         category: data.category || "",
         address: data.address || "",
         owner_phone: data.owner_phone || "",
+        gstin: data.gstin || "",
+        pan: data.pan || "",
+        bank_name: data.bank_name || "",
+        bank_branch: data.bank_branch || "",
+        bank_account_number: data.bank_account_number || "",
+        bank_ifsc: data.bank_ifsc || "",
+        authorized_signatory: data.authorized_signatory || "",
+        signature_image: data.signature_image || "",
+        terms_and_conditions: data.terms_and_conditions || "",
         trial_end_date: data.trial_end_date || "",
         subscription_active: data.subscription_active || false,
         upi_id: data.upi_id || "",
         upi_name: data.upi_name || "",
       });
+      
+      if (data.signature_image) {
+        setSignaturePreview(data.signature_image);
+      }
     } catch (error) {
       toast.error("Failed to fetch shop details");
     } finally {
@@ -60,6 +83,46 @@ const Settings = () => {
     });
   };
 
+  const handleSignatureUpload = (e) => {
+    if (!isOwner) return;
+    
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image size should be less than 2MB');
+      return;
+    }
+    
+    // Convert to base64
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setShopData({
+        ...shopData,
+        signature_image: base64String
+      });
+      setSignaturePreview(base64String);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeSignature = () => {
+    if (!isOwner) return;
+    setShopData({
+      ...shopData,
+      signature_image: ''
+    });
+    setSignaturePreview(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -70,6 +133,9 @@ const Settings = () => {
     try {
       await shopService.updateShopDetails(shopData);
       toast.success("Shop details updated successfully!");
+      
+      // Refresh shop details after save
+      await fetchShopDetails();
     } catch (error) {
       toast.error("Failed to update shop details");
     } finally {
@@ -184,6 +250,185 @@ const Settings = () => {
             </p>
           </div>
 
+          {/* GSTIN */}
+          <div>
+            <label className="block text-sm font-medium mb-1 text-secondary-700 dark:text-secondary-300">
+              GSTIN (GST Number)
+            </label>
+            <input
+              type="text"
+              name="gstin"
+              value={shopData.gstin}
+              onChange={(e) => {
+                if (!isOwner) return;
+                const value = e.target.value.toUpperCase().slice(0, 15);
+                setShopData({ ...shopData, gstin: value });
+              }}
+              disabled={!isOwner}
+              maxLength="15"
+              placeholder="Enter 15-character GSTIN (e.g., 22AAAAA0000A1Z5)"
+              className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg disabled:bg-secondary-100 dark:disabled:bg-secondary-800 disabled:cursor-not-allowed focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+              GST Identification Number (optional, will be printed on tax invoices)
+            </p>
+          </div>
+
+          {/* PAN */}
+          <div>
+            <label className="block text-sm font-medium mb-1 text-secondary-700 dark:text-secondary-300">
+              PAN Number
+            </label>
+            <input
+              type="text"
+              name="pan"
+              value={shopData.pan}
+              onChange={(e) => {
+                if (!isOwner) return;
+                const value = e.target.value.toUpperCase().slice(0, 10);
+                setShopData({ ...shopData, pan: value });
+              }}
+              disabled={!isOwner}
+              maxLength="10"
+              placeholder="Enter 10-character PAN (e.g., ABCDE1234F)"
+              className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg disabled:bg-secondary-100 dark:disabled:bg-secondary-800 disabled:cursor-not-allowed focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+              Permanent Account Number (optional)
+            </p>
+          </div>
+
+          {/* Bank Details Section */}
+          <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
+            <h3 className="text-md font-semibold mb-4 text-secondary-900 dark:text-secondary-100">
+              Bank Details (for Invoice)
+            </h3>
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-4">
+              These details will be printed on all invoices
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Bank Name */}
+              <Input
+                label="Bank Name"
+                name="bank_name"
+                value={shopData.bank_name}
+                onChange={handleChange}
+                disabled={!isOwner}
+                placeholder="e.g., ICICI Bank"
+              />
+
+              {/* Bank Branch */}
+              <Input
+                label="Branch Name"
+                name="bank_branch"
+                value={shopData.bank_branch}
+                onChange={handleChange}
+                disabled={!isOwner}
+                placeholder="e.g., Surat"
+              />
+
+              {/* Account Number */}
+              <Input
+                label="Account Number"
+                name="bank_account_number"
+                value={shopData.bank_account_number}
+                onChange={handleChange}
+                disabled={!isOwner}
+                placeholder="e.g., 271500356"
+              />
+
+              {/* IFSC Code */}
+              <Input
+                label="IFSC Code"
+                name="bank_ifsc"
+                value={shopData.bank_ifsc}
+                onChange={(e) => {
+                  if (!isOwner) return;
+                  const value = e.target.value.toUpperCase();
+                  setShopData({ ...shopData, bank_ifsc: value });
+                }}
+                disabled={!isOwner}
+                placeholder="e.g., ICIC0458F"
+              />
+            </div>
+          </div>
+
+          {/* Signature Section */}
+          <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
+            <h3 className="text-md font-semibold mb-4 text-secondary-900 dark:text-secondary-100">
+              Invoice Signature
+            </h3>
+            
+            <Input
+              label="Authorized Signatory Name"
+              name="authorized_signatory"
+              value={shopData.authorized_signatory}
+              onChange={handleChange}
+              disabled={!isOwner}
+              placeholder="e.g., Proprietor / Manager"
+            />
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1 mb-4">
+              This name will appear as "Authorized Signatory" on invoices
+            </p>
+
+            {/* Signature Image Upload */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                Signature Image (Optional)
+              </label>
+              
+              {signaturePreview ? (
+                <div className="space-y-3">
+                  <div className="border-2 border-dashed border-secondary-300 dark:border-secondary-700 rounded-lg p-4 bg-white dark:bg-secondary-800">
+                    <img 
+                      src={signaturePreview} 
+                      alt="Signature" 
+                      className="max-h-24 mx-auto"
+                    />
+                  </div>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={removeSignature}
+                      className="text-sm text-red-600 dark:text-red-400 hover:underline"
+                    >
+                      Remove Signature
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-secondary-300 dark:border-secondary-700 rounded-lg p-6 text-center bg-secondary-50 dark:bg-secondary-800">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleSignatureUpload}
+                    disabled={!isOwner}
+                    className="hidden"
+                    id="signature-upload"
+                  />
+                  <label
+                    htmlFor="signature-upload"
+                    className={`cursor-pointer ${!isOwner ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <div className="text-secondary-600 dark:text-secondary-400">
+                      <svg className="mx-auto h-12 w-12 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <p className="text-sm">Click to upload signature image</p>
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                        PNG, JPG up to 2MB
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              )}
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-2">
+                This signature will be displayed on invoices
+              </p>
+            </div>
+          </div>
+
           {/* UPI Section */}
           <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
             <h3 className="text-md font-semibold mb-4 text-secondary-900 dark:text-secondary-100">
@@ -209,6 +454,30 @@ const Settings = () => {
             <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-2">
               {t('settings.upiNote')}
             </p>
+          </div>
+
+          {/* Terms and Conditions Section */}
+          <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
+            <h3 className="text-md font-semibold mb-4 text-secondary-900 dark:text-secondary-100">
+              Invoice Terms and Conditions
+            </h3>
+            <div>
+              <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                Terms and Conditions
+              </label>
+              <textarea
+                name="terms_and_conditions"
+                value={shopData.terms_and_conditions}
+                onChange={handleChange}
+                disabled={!isOwner}
+                rows="5"
+                placeholder="Enter terms and conditions (e.g., Subject to Maharashtra Jurisdiction, Goods once sold will not be taken back, etc.)"
+                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg disabled:bg-secondary-100 dark:disabled:bg-secondary-800 disabled:cursor-not-allowed focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+              />
+              <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                These terms will be printed at the bottom of all invoices. Use line breaks for multiple points.
+              </p>
+            </div>
           </div>
 
           {/* Subscription Info */}
