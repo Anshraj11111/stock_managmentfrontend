@@ -567,6 +567,11 @@ const Billing = () => {
   const [gstEnabled, setGstEnabled] = useState(false);
   const [gstPercentage, setGstPercentage] = useState(18);
 
+  // ✅ NEW: Discount state
+  const [discountEnabled, setDiscountEnabled] = useState(false);
+  const [discountType, setDiscountType] = useState('percentage'); // 'percentage' or 'fixed'
+  const [discountValue, setDiscountValue] = useState(0);
+
   const [paymentData, setPaymentData] = useState({
     payments: [{ mode: 'cash', amount: '' }],
   });
@@ -664,10 +669,14 @@ const Billing = () => {
 
     setPreviewLoading(true);
     try {
-      // ✅ Include GST in preview request
+      // ✅ Include GST and Discount in preview request
       const requestData = {
         items: selectedItems,
-        ...(gstEnabled && { gst_percentage: gstPercentage })
+        ...(gstEnabled && { gst_percentage: gstPercentage }),
+        ...(discountEnabled && discountValue > 0 && {
+          discount_type: discountType,
+          discount_value: discountValue
+        })
       };
 
       const data = await billService.previewBill(requestData);
@@ -706,7 +715,11 @@ const Billing = () => {
         payments: paymentsWithNumbers,
         ...(customerDetails.name && { customer_name: customerDetails.name }),
         ...(customerDetails.phone && { customer_phone: customerDetails.phone }),
-        ...(gstEnabled && { gst_percentage: gstPercentage })
+        ...(gstEnabled && { gst_percentage: gstPercentage }),
+        ...(discountEnabled && discountValue > 0 && {
+          discount_type: discountType,
+          discount_value: discountValue
+        })
       };
 
       const billResponse = await billService.createBill(billData);
@@ -719,6 +732,9 @@ const Billing = () => {
         subtotal: previewData.subtotal || previewData.total_amount,
         gst_percentage: previewData.gst_percentage,
         gst_amount: previewData.gst_amount,
+        discount_type: previewData.discount_type,
+        discount_value: previewData.discount_value,
+        discount_amount: previewData.discount_amount,
         total_amount: previewData.total_amount,
         payments: paymentsWithNumbers,
         customer: customerDetails.name || customerDetails.phone ? customerDetails : null,
@@ -734,6 +750,9 @@ const Billing = () => {
       setCustomerDetails({ name: '', phone: '' });
       setGstEnabled(false);
       setGstPercentage(18);
+      setDiscountEnabled(false);
+      setDiscountType('percentage');
+      setDiscountValue(0);
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create bill';
       toast.error(errorMsg);
@@ -745,79 +764,183 @@ const Billing = () => {
   const printBill = (billData) => {
     const doc = new jsPDF();
     
-    // Header
-    doc.setFontSize(20);
-    doc.text(shop?.shop_name || 'Shop Bill', 105, 20, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text(`Bill ID: ${billData.id || 'N/A'}`, 20, 40);
-    doc.text(`Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 50);
-
-    let yPosition = 60;
-
-    // ✅ Customer Details (if provided)
-    if (billData.customer && (billData.customer.name || billData.customer.phone)) {
-      doc.setFontSize(12);
-      doc.text('Customer Details:', 20, yPosition);
-      yPosition += 8;
-      if (billData.customer.name) {
-        doc.text(`Name: ${billData.customer.name}`, 30, yPosition);
-        yPosition += 8;
-      }
-      if (billData.customer.phone) {
-        doc.text(`Phone: ${billData.customer.phone}`, 30, yPosition);
-        yPosition += 8;
-      }
-      yPosition += 5;
+    // Debug: Check shop data
+    console.log('🏪 Shop data in printBill:', shop);
+    
+    // ========================================
+    // HEADER SECTION - Shop Details (Top)
+    // ========================================
+    
+    // Shop Name (Bold, Large, Centered)
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, 20, { align: 'center' });
+    
+    // Shop Address (Centered, below shop name)
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    let headerY = 27;
+    
+    // Always show address line (even if empty, for consistent spacing)
+    const shopAddress = shop?.address || shop?.shop_address || '';
+    if (shopAddress) {
+      // Split long address into multiple lines if needed
+      const addressLines = doc.splitTextToSize(shopAddress, 160);
+      addressLines.forEach(line => {
+        doc.text(line, 105, headerY, { align: 'center' });
+        headerY += 5;
+      });
     }
-
-    // Items Header
+    
+    // Shop Phone (Centered, below address)
+    const shopPhone = shop?.owner_phone || shop?.phone || '';
+    if (shopPhone) {
+      doc.text(`Phone: ${shopPhone}`, 105, headerY, { align: 'center' });
+      headerY += 5;
+    }
+    
+    // Horizontal line after header
+    headerY += 2;
+    doc.line(20, headerY, 190, headerY);
+    
+    // ========================================
+    // BILL INFO SECTION
+    // ========================================
+    let yPosition = headerY + 7;
+    
     doc.setFontSize(10);
-    doc.text('Item', 20, yPosition);
-    doc.text('Qty', 100, yPosition);
-    doc.text('Price', 130, yPosition);
-    doc.text('Total', 160, yPosition);
-
-    yPosition += 5;
+    // Left side - Bill Number and Date
+    doc.text(`Bill No: ${billData.id || 'N/A'}`, 20, yPosition);
+    doc.text(`Date: ${new Date().toLocaleDateString('en-IN')} ${new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`, 130, yPosition);
+    
+    yPosition += 8;
+    
+    // Customer Details (if provided)
+    if (billData.customer && (billData.customer.name || billData.customer.phone)) {
+      doc.text(`Customer: ${billData.customer.name || 'N/A'}`, 20, yPosition);
+      if (billData.customer.phone) {
+        doc.text(`Ph: ${billData.customer.phone}`, 130, yPosition);
+      }
+      yPosition += 8;
+    }
+    
+    // Horizontal line before items
     doc.line(20, yPosition, 190, yPosition);
     yPosition += 8;
-
-    // Items
-    (billData.items || previewData?.items || []).forEach(item => {
-      doc.text(item.name, 20, yPosition);
-      doc.text(item.quantity.toString(), 100, yPosition);
-      doc.text(`₹${item.price}`, 130, yPosition);
-      doc.text(`₹${item.total}`, 160, yPosition);
-      yPosition += 8;
+    
+    // ========================================
+    // ITEMS TABLE HEADER
+    // ========================================
+    doc.setFont(undefined, 'bold');
+    doc.text('S.No', 20, yPosition);
+    doc.text('Particulars', 40, yPosition);
+    doc.text('Qty', 110, yPosition, { align: 'center' });
+    doc.text('Rate', 155, yPosition, { align: 'right' });
+    doc.text('Amount', 190, yPosition, { align: 'right' });
+    
+    yPosition += 2;
+    doc.line(20, yPosition, 190, yPosition);
+    yPosition += 6;
+    
+    // ========================================
+    // ITEMS LIST
+    // ========================================
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    
+    (billData.items || previewData?.items || []).forEach((item, index) => {
+      // Check if we need a new page
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      }
+      
+      doc.text(`${index + 1}`, 20, yPosition);
+      doc.text(item.name.substring(0, 30), 40, yPosition); // Limit name length
+      doc.text(item.quantity.toString(), 110, yPosition, { align: 'center' });
+      doc.text(`₹${parseFloat(item.price).toFixed(2)}`, 155, yPosition, { align: 'right' });
+      doc.text(`₹${parseFloat(item.total).toFixed(2)}`, 190, yPosition, { align: 'right' });
+      yPosition += 6;
     });
-
+    
+    // Line after items
+    yPosition += 2;
+    doc.line(20, yPosition, 190, yPosition);
+    yPosition += 8;
+    
+    // ========================================
+    // TOTALS SECTION (Right Aligned)
+    // ========================================
+    doc.setFontSize(10);
+    
+    // Subtotal
+    doc.text('Subtotal:', 130, yPosition);
+    doc.text(`₹${(billData.subtotal || previewData?.subtotal || billData.total_amount).toFixed(2)}`, 190, yPosition, { align: 'right' });
+    yPosition += 7;
+    
+    // GST (if applicable)
+    if (billData.gst_amount && billData.gst_percentage) {
+      doc.text(`GST (${billData.gst_percentage}%):`, 130, yPosition);
+      doc.text(`₹${parseFloat(billData.gst_amount).toFixed(2)}`, 190, yPosition, { align: 'right' });
+      yPosition += 7;
+    }
+    
+    // Discount (if applicable)
+    if (billData.discount_amount && billData.discount_value) {
+      const discountLabel = billData.discount_type === 'percentage' 
+        ? `Discount (${billData.discount_value}%)` 
+        : `Discount`;
+      doc.setTextColor(255, 0, 0); // Red color
+      doc.text(`${discountLabel}:`, 130, yPosition);
+      doc.text(`-₹${parseFloat(billData.discount_amount).toFixed(2)}`, 190, yPosition, { align: 'right' });
+      doc.setTextColor(0, 0, 0); // Reset to black
+      yPosition += 7;
+    }
+    
+    // Line before grand total
+    doc.line(130, yPosition, 190, yPosition);
+    yPosition += 7;
+    
+    // Grand Total (Bold)
+    doc.setFont(undefined, 'bold');
+    doc.setFontSize(12);
+    doc.text('Total Amount:', 130, yPosition);
+    doc.text(`₹${parseFloat(billData.total_amount).toFixed(2)}`, 190, yPosition, { align: 'right' });
+    yPosition += 10;
+    
+    // ========================================
+    // PAYMENT DETAILS
+    // ========================================
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    doc.text('Payment Mode:', 20, yPosition);
+    yPosition += 6;
+    
+    (billData.payments || paymentData.payments).forEach(payment => {
+      doc.text(`  ${payment.mode.toUpperCase()}:`, 20, yPosition);
+      doc.text(`₹${parseFloat(payment.amount).toFixed(2)}`, 80, yPosition, { align: 'right' });
+      yPosition += 6;
+    });
+    
+    // ========================================
+    // FOOTER
+    // ========================================
+    yPosition += 10;
+    doc.setFontSize(8);
+    doc.setFont(undefined, 'italic');
+    doc.text('Thank you for your business!', 105, yPosition, { align: 'center' });
+    
+    // Bottom line
     yPosition += 5;
     doc.line(20, yPosition, 190, yPosition);
-    yPosition += 10;
-
-    // ✅ Subtotal, GST, and Total
-    doc.setFontSize(12);
-    if (billData.gst_amount && billData.gst_percentage) {
-      doc.text(`Subtotal: ₹${billData.subtotal || previewData?.subtotal || billData.total_amount}`, 130, yPosition);
-      yPosition += 10;
-      doc.text(`GST (${billData.gst_percentage}%): ₹${billData.gst_amount}`, 130, yPosition);
-      yPosition += 10;
-      doc.line(130, yPosition, 190, yPosition);
-      yPosition += 10;
-    }
-    doc.setFontSize(14);
-    doc.text(`Total Amount: ₹${billData.total_amount}`, 130, yPosition);
-
-    // Payment Details
-    yPosition += 20;
-    doc.setFontSize(12);
-    doc.text('Payment Details:', 20, yPosition);
-    yPosition += 10;
-    (billData.payments || paymentData.payments).forEach(payment => {
-      doc.text(`${payment.mode.toUpperCase()}: ₹${payment.amount}`, 30, yPosition);
-      yPosition += 8;
-    });
-
-    doc.save(`bill_${billData.id || Date.now()}.pdf`);
+    
+    // Shop name at bottom (small)
+    yPosition += 5;
+    doc.setFontSize(7);
+    doc.text(`For ${shop?.shop_name || 'Your Shop Name'}`, 105, yPosition, { align: 'center' });
+    
+    // Save PDF
+    doc.save(`Bill_${billData.id || Date.now()}.pdf`);
   };
 
   const addPaymentMethod = () => {
@@ -850,6 +973,31 @@ const Billing = () => {
 
   const calculateTotal = () => {
     return selectedItems.reduce((sum, item) => sum + item.total, 0);
+  };
+
+  // ✅ Calculate discount amount
+  const calculateDiscountAmount = () => {
+    if (!discountEnabled || discountValue === 0) return 0;
+    
+    const subtotal = calculateTotal();
+    const gstAmount = gstEnabled ? (subtotal * gstPercentage) / 100 : 0;
+    const totalBeforeDiscount = subtotal + gstAmount;
+    
+    if (discountType === 'percentage') {
+      return (totalBeforeDiscount * discountValue) / 100;
+    } else {
+      return discountValue;
+    }
+  };
+
+  // ✅ Calculate final total after discount
+  const calculateFinalTotal = () => {
+    const subtotal = calculateTotal();
+    const gstAmount = gstEnabled ? (subtotal * gstPercentage) / 100 : 0;
+    const totalBeforeDiscount = subtotal + gstAmount;
+    const discountAmount = calculateDiscountAmount();
+    
+    return Math.max(0, totalBeforeDiscount - discountAmount);
   };
 
   if (loading) {
@@ -1060,6 +1208,117 @@ const Billing = () => {
             )}
           </div>
 
+          {/* ✅ NEW: Discount Section */}
+          <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl sm:rounded-2xl border border-orange-200 dark:border-orange-800 p-4 sm:p-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
+                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Discount (Optional)
+              </h3>
+              <button
+                onClick={() => setDiscountEnabled(!discountEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  discountEnabled ? 'bg-orange-600' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    discountEnabled ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            
+            {discountEnabled && (
+              <div className="space-y-3">
+                {/* Discount Type Toggle */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setDiscountType('percentage')}
+                    className={`flex-1 px-3 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
+                      discountType === 'percentage'
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-white dark:bg-secondary-800 text-gray-700 dark:text-gray-300 border border-orange-300 dark:border-orange-700'
+                    }`}
+                  >
+                    Percentage (%)
+                  </button>
+                  <button
+                    onClick={() => setDiscountType('fixed')}
+                    className={`flex-1 px-3 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
+                      discountType === 'fixed'
+                        ? 'bg-orange-600 text-white'
+                        : 'bg-white dark:bg-secondary-800 text-gray-700 dark:text-gray-300 border border-orange-300 dark:border-orange-700'
+                    }`}
+                  >
+                    Fixed (₹)
+                  </button>
+                </div>
+
+                {/* Discount Input */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    placeholder={discountType === 'percentage' ? 'Discount %' : 'Discount Amount'}
+                    value={discountValue}
+                    onChange={(e) => {
+                      const value = parseFloat(e.target.value) || 0;
+                      if (discountType === 'percentage' && value > 100) return;
+                      const maxDiscount = gstEnabled 
+                        ? calculateTotal() + (calculateTotal() * gstPercentage) / 100 
+                        : calculateTotal();
+                      if (discountType === 'fixed' && value > maxDiscount) return;
+                      setDiscountValue(value);
+                    }}
+                    min="0"
+                    max={discountType === 'percentage' ? '100' : (gstEnabled ? calculateTotal() + (calculateTotal() * gstPercentage) / 100 : calculateTotal())}
+                    step={discountType === 'percentage' ? '1' : '0.01'}
+                    className="flex-1 px-3 py-2 border border-orange-300 dark:border-orange-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                  />
+                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                    {discountType === 'percentage' ? '%' : '₹'}
+                  </span>
+                </div>
+
+                {/* Discount Preview */}
+                {selectedItems.length > 0 && discountValue > 0 && (
+                  <div className="bg-white dark:bg-secondary-800 rounded-lg p-3 space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
+                      <span className="font-semibold">₹{calculateTotal().toFixed(2)}</span>
+                    </div>
+                    
+                    {gstEnabled && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span>
+                        <span className="font-semibold text-green-600">
+                          ₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between text-red-600">
+                      <span>Discount ({discountType === 'percentage' ? `${discountValue}%` : `₹${discountValue}`}):</span>
+                      <span className="font-semibold">
+                        -₹{calculateDiscountAmount().toFixed(2)}
+                      </span>
+                    </div>
+
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-1 mt-1"></div>
+                    <div className="flex justify-between text-base">
+                      <span className="font-bold">Final Total:</span>
+                      <span className="font-bold text-orange-600">
+                        ₹{calculateFinalTotal().toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {/* Current Bill */}
           <div className="bg-white dark:bg-secondary-900 rounded-xl sm:rounded-2xl border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 sticky top-4 sm:top-20">
             <h2 className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
@@ -1193,7 +1452,19 @@ const Billing = () => {
                       GST ({previewData.gst_percentage}%):
                     </span>
                     <span className="font-semibold text-green-600">
-                      ₹{previewData.gst_amount}
+                      +₹{previewData.gst_amount}
+                    </span>
+                  </div>
+                )}
+
+                {/* ✅ Show Discount if enabled */}
+                {previewData.discount_amount && previewData.discount_value && (
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Discount ({previewData.discount_type === 'percentage' ? `${previewData.discount_value}%` : `₹${previewData.discount_value}`}):
+                    </span>
+                    <span className="font-semibold text-red-600">
+                      -₹{previewData.discount_amount}
                     </span>
                   </div>
                 )}

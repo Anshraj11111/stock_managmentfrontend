@@ -15,6 +15,8 @@ const Settings = () => {
   const [shopData, setShopData] = useState({
     shop_name: "",
     category: "",
+    address: "",
+    owner_phone: "",
     trial_end_date: "",
     subscription_active: false,
     upi_id: "",
@@ -35,6 +37,8 @@ const Settings = () => {
       setShopData({
         shop_name: data.shop_name || "",
         category: data.category || "",
+        address: data.address || "",
+        owner_phone: data.owner_phone || "",
         trial_end_date: data.trial_end_date || "",
         subscription_active: data.subscription_active || false,
         upi_id: data.upi_id || "",
@@ -130,6 +134,54 @@ const Settings = () => {
               <option value="pharmacy">{t('settings.pharmacy')}</option>
               <option value="other">{t('settings.other')}</option>
             </select>
+          </div>
+
+          {/* Shop Address */}
+          <div>
+            <label className="block text-sm font-medium mb-1 text-secondary-700 dark:text-secondary-300">
+              Shop Address
+            </label>
+            <textarea
+              name="address"
+              value={shopData.address}
+              onChange={handleChange}
+              disabled={!isOwner}
+              rows="3"
+              placeholder="Enter your shop address (will appear on bills)"
+              className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg disabled:bg-secondary-100 dark:disabled:bg-secondary-800 disabled:cursor-not-allowed focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+            />
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+              This address will be printed on all bills
+            </p>
+          </div>
+
+          {/* Shop Phone Number */}
+          <div>
+            <label className="block text-sm font-medium mb-1 text-secondary-700 dark:text-secondary-300">
+              Shop Phone Number
+            </label>
+            <input
+              type="tel"
+              name="owner_phone"
+              value={shopData.owner_phone}
+              onChange={(e) => {
+                if (!isOwner) return;
+                const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                setShopData({ ...shopData, owner_phone: value });
+              }}
+              disabled={!isOwner}
+              maxLength="10"
+              placeholder="Enter 10-digit phone number"
+              className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg disabled:bg-secondary-100 dark:disabled:bg-secondary-800 disabled:cursor-not-allowed focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            {shopData.owner_phone && shopData.owner_phone.length !== 10 && (
+              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                Phone number must be exactly 10 digits
+              </p>
+            )}
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+              This phone number will be printed on all bills
+            </p>
           </div>
 
           {/* UPI Section */}
