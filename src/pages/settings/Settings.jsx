@@ -354,7 +354,7 @@ const Settings = () => {
             </div>
           </div>
 
-          {/* Signature Section - TEMPORARILY DISABLED 
+          {/* Signature Section */}
           <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
             <h3 className="text-md font-semibold mb-4 text-secondary-900 dark:text-secondary-100">
               Invoice Signature
@@ -427,7 +427,6 @@ const Settings = () => {
               </p>
             </div>
           </div>
-          */}
 
           {/* UPI Section */}
           <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
