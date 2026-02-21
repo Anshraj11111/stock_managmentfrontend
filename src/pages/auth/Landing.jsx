@@ -4,6 +4,7 @@ import { Moon, Sun, Download, X, Smartphone } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../store/ThemeContext";
 import LanguageSelector from "../../components/common/LanguageSelector";
+import Footer from "../../components/common/Footer";
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 
@@ -408,11 +409,7 @@ const Landing = () => {
       </section>
 
       {/* ================= FOOTER ================= */}
-      <footer className="py-12 text-center text-gray-600 dark:text-gray-500 text-sm border-t border-gray-200 dark:border-white/10 bg-white/50 dark:bg-transparent backdrop-blur-sm">
-        © {new Date().getFullYear()} {t('landing.heroTitle')}
-        <br />
-        {t('landing.footerText')} <span className="font-bold text-indigo-600 dark:text-indigo-400">{t('landing.companyName')}</span> — {t('landing.footerTagline')}
-      </footer>
+      <Footer />
 
       {/* ================= INSTALL PWA POPUP ================= */}
       {showInstallPopup && (

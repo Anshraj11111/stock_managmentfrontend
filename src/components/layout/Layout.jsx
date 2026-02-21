@@ -1,9 +1,15 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import Footer from '../common/Footer';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  
+  // Show footer only on Dashboard page
+  const showFooter = location.pathname === '/dashboard';
 
   return (
     <div className="min-h-screen bg-secondary-50 dark:bg-secondary-950 flex">
@@ -14,14 +20,21 @@ const Layout = ({ children }) => {
       />
 
       {/* Content area */}
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col min-h-screen">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="pt-16 lg:ml-64 bg-secondary-50 dark:bg-secondary-950 min-h-screen">
-          <div className="p-4 sm:p-6 lg:p-8">
-            {children}
-          </div>
-        </main>
+        {/* Main content wrapper */}
+        <div className="pt-16 lg:ml-64 flex-1 flex flex-col">
+          {/* Page content */}
+          <main className="flex-1 bg-secondary-50 dark:bg-secondary-950">
+            <div className="p-4 sm:p-6 lg:p-8 min-h-[calc(100vh-16rem)]">
+              {children}
+            </div>
+          </main>
+          
+          {/* Footer - only on Dashboard page */}
+          {showFooter && <Footer />}
+        </div>
       </div>
     </div>
   );

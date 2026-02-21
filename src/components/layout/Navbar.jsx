@@ -1,14 +1,12 @@
-import { Menu, LogOut, User, Bell, Search, Moon, Sun } from "lucide-react";
+import { Menu, LogOut, User, Search, Moon, Sun } from "lucide-react";
 import { useAuth } from "../../store/AuthContext";
 import { useTheme } from "../../store/ThemeContext";
-import { useState } from "react";
 import LanguageSelector from "../common/LanguageSelector";
 import InstallPWA from "../common/InstallPWA";
 
 const Navbar = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const [showNotifications, setShowNotifications] = useState(false);
 
   return (
     <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 bg-white/80 dark:bg-secondary-950/80 backdrop-blur-md border-b border-secondary-200 dark:border-secondary-800 flex items-center justify-between px-4 lg:px-6 z-40 shadow-sm">
@@ -53,46 +51,6 @@ const Navbar = ({ onMenuClick }) => {
             <Moon className="w-5 h-5 text-indigo-600 group-hover:rotate-12 transition-transform duration-300" />
           )}
         </button>
-
-        {/* Notifications */}
-        <div className="relative">
-          <button
-            onClick={() => setShowNotifications(!showNotifications)}
-            className="relative p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-colors"
-          >
-            <Bell className="w-5 h-5 text-secondary-700 dark:text-secondary-300" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-          </button>
-
-          {/* Notifications dropdown */}
-          {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl border border-secondary-200 dark:border-secondary-700 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-              <div className="p-4 border-b border-secondary-200 dark:border-secondary-700">
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">Notifications</h3>
-              </div>
-              <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
-                <div className="flex gap-3 p-3 rounded-xl hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors cursor-pointer">
-                  <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Bell className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">Low stock alert</p>
-                    <p className="text-xs text-secondary-500 dark:text-secondary-400">5 products need restocking</p>
-                  </div>
-                </div>
-                <div className="flex gap-3 p-3 rounded-xl hover:bg-secondary-50 dark:hover:bg-secondary-700 transition-colors cursor-pointer">
-                  <div className="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Bell className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">New order received</p>
-                    <p className="text-xs text-secondary-500 dark:text-secondary-400">Order #1234 - ₹2,500</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
 
         {/* User menu */}
         <div className="flex items-center gap-3 pl-3 border-l border-secondary-200 dark:border-secondary-700">
