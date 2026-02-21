@@ -25,6 +25,8 @@ import Reports from "../pages/reports/Reports";
 import Invoices from "../pages/invoice/Invoice";
 import Settings from "../pages/settings/Settings";
 import Landing from "../pages/auth/Landing";
+import Customers from "../pages/customers/Customers";
+import CustomerDetail from "../pages/customers/CustomerDetail";
 
 const ProtectedRoute = ({ children, requireOwner = false }) => {
   const { isAuthenticated, isOwner, loading } = useAuth();
@@ -137,6 +139,28 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <Billing />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/customers"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Customers />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/customers/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <CustomerDetail />
             </Layout>
           </ProtectedRoute>
         }

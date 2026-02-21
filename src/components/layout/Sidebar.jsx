@@ -10,6 +10,7 @@ import {
   X,
   Sparkles,
   Plus,
+  Wallet,
 } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../../store/AuthContext";
@@ -41,6 +42,13 @@ const Sidebar = ({ isOpen, onToggle }) => {
       icon: Receipt,
       current: location.pathname === "/billing",
       gradient: "from-violet-500 to-purple-600",
+    },
+    {
+      name: "Customers (Udhar)",
+      href: "/customers",
+      icon: Wallet,
+      current: location.pathname.startsWith("/customers"),
+      gradient: "from-red-500 to-orange-600",
     },
   
     

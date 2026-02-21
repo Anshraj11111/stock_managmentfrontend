@@ -538,6 +538,7 @@ import jsPDF from 'jspdf';
 import { productService } from '../../services/productService';
 import { billService } from '../../services/billService';
 import { shopService } from '../../services/shopService';
+import { customerService } from '../../services/customerService';
 import Button from '../../components/common/Button';
 import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
@@ -557,11 +558,19 @@ const Billing = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [shop, setShop] = useState(null);
 
-  // ✅ NEW: Customer details state
+  // ✅ NEW: Customer details state (with address)
   const [customerDetails, setCustomerDetails] = useState({
     name: '',
     phone: '',
+    address: '', // ✅ Added address field
   });
+  const [existingCustomer, setExistingCustomer] = useState(null);
+  const [searchingCustomer, setSearchingCustomer] = useState(false);
+
+  // ✅ NEW: Simple payment state
+  const [paymentMode, setPaymentMode] = useState('cash'); // 'cash' or 'upi'
+  const [paidAmount, setPaidAmount] = useState('');
+  const [dueAmount, setDueAmount] = useState('');
 
   // ✅ NEW: GST state
   const [gstEnabled, setGstEnabled] = useState(false);
@@ -572,9 +581,7 @@ const Billing = () => {
   const [discountType, setDiscountType] = useState('percentage'); // 'percentage' or 'fixed'
   const [discountValue, setDiscountValue] = useState(0);
 
-  const [paymentData, setPaymentData] = useState({
-    payments: [{ mode: 'cash', amount: '' }],
-  });
+  // ✅ REMOVED: Complex payment array - using simple state instead
 
   useEffect(() => {
     fetchProducts();
@@ -610,6 +617,35 @@ const Billing = () => {
       toast.error('Failed to fetch products');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ✅ NEW: Search customer by phone
+  const searchCustomerByPhone = async (phone) => {
+    if (phone.length !== 10) {
+      setExistingCustomer(null);
+      return;
+    }
+
+    setSearchingCustomer(true);
+    try {
+      const response = await customerService.searchByPhone(phone);
+      if (response.found) {
+        setExistingCustomer(response.customer);
+        setCustomerDetails({
+          name: response.customer.name,
+          phone: response.customer.phone,
+          address: response.customer.address || '', // ✅ Include address
+        });
+        toast.success(`Customer found! Previous due: ₹${response.customer.total_due}`);
+      } else {
+        setExistingCustomer(null);
+      }
+    } catch (error) {
+      console.error('Customer search error:', error);
+      setExistingCustomer(null);
+    } finally {
+      setSearchingCustomer(false);
     }
   };
 
@@ -694,25 +730,64 @@ const Billing = () => {
       return;
     }
 
-    const paymentsWithNumbers = paymentData.payments.map(p => ({
-      ...p,
-      amount: parseFloat(p.amount) || 0,
-    }));
+    // ✅ SIMPLE VALIDATION
+    const paid = parseFloat(paidAmount) || 0;
+    const due = parseFloat(dueAmount) || 0;
+    const total = previewData.total_amount;
 
-    const totalPaid = paymentsWithNumbers.reduce((sum, p) => sum + p.amount, 0);
-    const tolerance = 0.01;
-    
-    if (Math.abs(totalPaid - previewData.total_amount) > tolerance) {
-      toast.error(`Payment amount (₹${totalPaid.toFixed(2)}) must match bill total (₹${previewData.total_amount.toFixed(2)})`);
+    // Check if paid + due = total
+    if (Math.abs((paid + due) - total) > 0.01) {
+      toast.error(`Paid (₹${paid}) + Due (₹${due}) must equal Total (₹${total.toFixed(2)})`);
       return;
+    }
+
+    // If due > 0, require customer details including address
+    if (due > 0) {
+      if (!customerDetails.name || !customerDetails.phone || !customerDetails.address) {
+        toast.error('Customer name, phone, and address required for credit/due sales');
+        return;
+      }
+      if (customerDetails.phone.length !== 10) {
+        toast.error('Phone number must be exactly 10 digits');
+        return;
+      }
     }
 
     setCreateLoading(true);
     try {
+      let customerId = existingCustomer?.id;
+
+      // ✅ If due > 0 and customer doesn't exist, create customer first
+      if (due > 0 && !existingCustomer) {
+        try {
+          const customerResponse = await customerService.createOrUpdateCustomer({
+            name: customerDetails.name,
+            phone: customerDetails.phone,
+            address: customerDetails.address, // ✅ Include address
+          });
+          customerId = customerResponse.customer.id;
+          toast.success('Customer created successfully');
+        } catch (error) {
+          toast.error('Failed to create customer');
+          setCreateLoading(false);
+          return;
+        }
+      }
+
+      // ✅ Build simple payment array
+      const payments = [];
+      if (paid > 0) {
+        payments.push({ mode: paymentMode, amount: paid });
+      }
+      if (due > 0) {
+        payments.push({ mode: 'credit', amount: due });
+      }
+
       // ✅ Include customer details and GST in bill creation
       const billData = {
         items: selectedItems,
-        payments: paymentsWithNumbers,
+        payments: payments,
+        ...(customerId && { customer_id: customerId }),
         ...(customerDetails.name && { customer_name: customerDetails.name }),
         ...(customerDetails.phone && { customer_phone: customerDetails.phone }),
         ...(gstEnabled && { gst_percentage: gstPercentage }),
@@ -724,7 +799,11 @@ const Billing = () => {
 
       const billResponse = await billService.createBill(billData);
 
-      toast.success('Bill created successfully!');
+      if (due > 0) {
+        toast.success(`Bill created! Due amount ₹${due.toFixed(2)} added to customer account`);
+      } else {
+        toast.success('Bill created successfully!');
+      }
       
       const billDataForPrint = {
         id: billResponse.bill_id || billResponse.data?.bill_id || 'N/A',
@@ -736,7 +815,7 @@ const Billing = () => {
         discount_value: previewData.discount_value,
         discount_amount: previewData.discount_amount,
         total_amount: previewData.total_amount,
-        payments: paymentsWithNumbers,
+        payments: payments,
         customer: customerDetails.name || customerDetails.phone ? customerDetails : null,
       };
       
@@ -746,8 +825,11 @@ const Billing = () => {
       setSelectedItems([]);
       setPreviewData(null);
       setShowPaymentModal(false);
-      setPaymentData({ payments: [{ mode: 'cash', amount: '' }] });
-      setCustomerDetails({ name: '', phone: '' });
+      setPaymentMode('cash');
+      setPaidAmount('');
+      setDueAmount('');
+      setCustomerDetails({ name: '', phone: '', address: '' });
+      setExistingCustomer(null);
       setGstEnabled(false);
       setGstPercentage(18);
       setDiscountEnabled(false);
@@ -1038,32 +1120,11 @@ const Billing = () => {
     return words.trim() + ' Rupees Only';
   };
 
-  const addPaymentMethod = () => {
-    setPaymentData({
-      ...paymentData,
-      payments: [...paymentData.payments, { mode: 'cash', amount: '' }]
-    });
-  };
-
-  const updatePayment = (index, field, value) => {
-    const updatedPayments = [...paymentData.payments];
-    updatedPayments[index] = { ...updatedPayments[index], [field]: value };
-    setPaymentData({ ...paymentData, payments: updatedPayments });
-  };
-
-  const removePayment = (index) => {
-    if (paymentData.payments.length > 1) {
-      setPaymentData({
-        ...paymentData,
-        payments: paymentData.payments.filter((_, i) => i !== index)
-      });
-    }
-  };
+  // ✅ REMOVED: Complex payment methods - using simple state instead
 
   const paymentIcons = {
     cash: Banknote,
-    upi: Smartphone,
-    card: CreditCard,
+    upi: Smartphone, // ✅ Simplified to just upi
   };
 
   const calculateTotal = () => {
@@ -1209,30 +1270,80 @@ const Billing = () => {
               <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Customer Details (Optional)
+              Customer Details (For Credit/Udhar)
             </h3>
+            
+            {/* Show existing customer info if found */}
+            {existingCustomer && (
+              <div className="mb-3 p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
+                <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">
+                  ✓ Existing Customer Found
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-400">
+                  Previous Due: ₹{parseFloat(existingCustomer.total_due).toFixed(2)}
+                </p>
+              </div>
+            )}
+
             <div className="space-y-3">
-              <input
-                type="text"
-                placeholder="Customer Name"
-                value={customerDetails.name}
-                onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })}
-                className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              <input
-                type="tel"
-                placeholder="Phone Number (10 digits)"
-                value={customerDetails.phone}
-                onChange={(e) => {
-                  const value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                  setCustomerDetails({ ...customerDetails, phone: value });
-                }}
-                maxLength="10"
-                className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              {customerDetails.phone && customerDetails.phone.length !== 10 && (
-                <p className="text-xs text-red-600 dark:text-red-400">Phone must be exactly 10 digits</p>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Phone Number (10 digits)
+                </label>
+                <input
+                  type="tel"
+                  placeholder="Search by phone..."
+                  value={customerDetails.phone}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setCustomerDetails({ ...customerDetails, phone: value });
+                    if (value.length === 10) {
+                      searchCustomerByPhone(value);
+                    } else {
+                      setExistingCustomer(null);
+                    }
+                  }}
+                  maxLength="10"
+                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {searchingCustomer && (
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Searching...</p>
+                )}
+                {customerDetails.phone && customerDetails.phone.length !== 10 && (
+                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">Phone must be exactly 10 digits</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Customer Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Customer Name"
+                  value={customerDetails.name}
+                  onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              {/* ✅ NEW: Address Field */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Address
+                </label>
+                <textarea
+                  placeholder="Customer Address"
+                  value={customerDetails.address}
+                  onChange={(e) => setCustomerDetails({ ...customerDetails, address: e.target.value })}
+                  rows="2"
+                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                />
+              </div>
+
+              <div className="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+                💡 Required only for partial payment (credit/udhar sales)
+              </div>
             </div>
           </div>
 
@@ -1587,117 +1698,220 @@ const Billing = () => {
         </div>
       </div>
 
-      {/* Payment Modal */}
+      {/* ✅ SIMPLE Payment Modal - Dark Mode Friendly */}
       {showPaymentModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden">
             
-            {/* Header - Fixed */}
-            <div className="p-6 border-b border-secondary-200 dark:border-secondary-800">
-              <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                {t('billing.paymentDetails')}
+            {/* Header - Premium Gradient with Better Colors */}
+            <div className="p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700 shadow-xl">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-3 drop-shadow-lg">
+                <Receipt className="w-7 h-7 text-white" />
+                Payment Details
               </h2>
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              <div className="text-center p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('billing.totalAmount')}</p>
-                <p className="text-4xl font-bold text-secondary-900 dark:text-secondary-100">
+            <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-gray-50 dark:bg-gray-900">
+              
+              {/* Total Amount Display - Premium Design */}
+              <div className="text-center p-8 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 dark:from-emerald-600 dark:via-teal-600 dark:to-cyan-700 rounded-2xl shadow-2xl border-2 border-emerald-300 dark:border-emerald-800">
+                <p className="text-sm text-white/90 font-bold mb-2 tracking-wide uppercase">Total Amount</p>
+                <p className="text-6xl font-black text-white drop-shadow-2xl tracking-tight">
                   ₹{previewData.total_amount}
                 </p>
               </div>
 
-              <div className="space-y-3">
-                {paymentData.payments.map((payment, index) => {
-                    const Icon = paymentIcons[payment.mode];
-
-                    return (
-                      <div key={index} className="space-y-3">
-                        
-                        <div className="flex items-center gap-3 p-4 border border-secondary-200 dark:border-secondary-800 rounded-xl bg-gray-50 dark:bg-gray-700">
-                          <Icon className="w-6 h-6 text-indigo-600 flex-shrink-0" />
-
-                          <select
-                            value={payment.mode}
-                            onChange={(e) => updatePayment(index, 'mode', e.target.value)}
-                            className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 min-w-0"
-                          >
-                            <option value="cash">{t('billing.cash')}</option>
-                            <option value="upi">{t('billing.upi')}</option>
-                            <option value="card">{t('billing.card')}</option>
-                          </select>
-
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={payment.amount}
-                            onChange={(e) => updatePayment(index, 'amount', e.target.value)}
-                            placeholder={t('billing.amount')}
-                            className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 dark:placeholder-secondary-400 min-w-0"
-                          />
-
-                          {paymentData.payments.length > 1 && (
-                            <button
-                              onClick={() => removePayment(index)}
-                              className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors flex-shrink-0"
-                            >
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          )}
-                        </div>
-
-                        {/* QR CODE */}
-                        {payment.mode === "upi" && shop?.upi_id && payment.amount && (
-                          <div className="w-full flex flex-col items-center bg-white dark:bg-secondary-800 p-4 rounded-xl border border-indigo-200 dark:border-indigo-700">
-                            <p className="text-sm font-semibold mb-2 text-secondary-900 dark:text-secondary-100">
-                              {t('billing.scanToPay')}
-                            </p>
-
-                            <QRCodeCanvas
-                              value={`upi://pay?pa=${shop.upi_id}&pn=${shop.shop_name}&am=${payment.amount}&cu=INR`}
-                              size={180}
-                            />
-
-                            <p className="text-xs mt-2 text-gray-600 dark:text-gray-400 break-all text-center">
-                              {t('billing.upiId')}: {shop.upi_id}
-                            </p>
-                          </div>
-                        )}
-
-                      </div>
-                    );
-                  })}
-
+              {/* Payment Mode Dropdown - Premium Style */}
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-gray-800 dark:text-gray-100 tracking-wide">
+                  Payment Mode
+                </label>
+                <div className="relative">
+                  <select
+                    value={paymentMode}
+                    onChange={(e) => setPaymentMode(e.target.value)}
+                    className="w-full px-5 py-4 border-2 border-indigo-400 dark:border-indigo-500 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-gray-900 dark:text-gray-100 font-bold text-lg focus:ring-4 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-indigo-600 dark:focus:border-indigo-400 appearance-none cursor-pointer shadow-lg transition-all"
+                  >
+                    <option value="cash">💵 Cash</option>
+                    <option value="upi">📱 Online (UPI)</option>
+                  </select>
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
-              {paymentData.payments.length < 3 && (
-                <button
-                  onClick={addPaymentMethod}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-secondary-300 dark:border-secondary-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                  {t('billing.maxPayments')}
-                </button>
+              {/* Paid Amount Input */}
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-gray-800 dark:text-gray-100 tracking-wide">
+                  Paid Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={paidAmount}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    setPaidAmount(inputValue);
+                    
+                    // Only calculate due if input is not empty
+                    if (inputValue === '' || inputValue === null) {
+                      setDueAmount('');
+                    } else {
+                      const paid = parseFloat(inputValue) || 0;
+                      const due = Math.max(0, previewData.total_amount - paid);
+                      setDueAmount(due.toString());
+                    }
+                  }}
+                  placeholder="Enter paid amount"
+                  className="w-full px-4 py-3 border-2 border-emerald-400 dark:border-emerald-500 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-emerald-400 dark:focus:ring-emerald-600 focus:border-emerald-600 dark:focus:border-emerald-400 font-bold text-xl shadow-lg transition-all"
+                />
+              </div>
+
+              {/* Due Amount Input */}
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-gray-800 dark:text-gray-100 tracking-wide">
+                  Due Amount (₹)
+                </label>
+                <input
+                  type="number"
+                  step="any"
+                  value={dueAmount}
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    setDueAmount(inputValue);
+                    
+                    // Only calculate paid if input is not empty
+                    if (inputValue === '' || inputValue === null) {
+                      setPaidAmount('');
+                    } else {
+                      const due = parseFloat(inputValue) || 0;
+                      const paid = Math.max(0, previewData.total_amount - due);
+                      setPaidAmount(paid.toString());
+                    }
+                  }}
+                  placeholder="Enter due amount"
+                  className="w-full px-4 py-3 border-2 border-orange-400 dark:border-orange-500 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-orange-400 dark:focus:ring-orange-600 focus:border-orange-600 dark:focus:border-orange-400 font-bold text-xl shadow-lg transition-all"
+                />
+              </div>
+
+              {/* QR Code - Show only for UPI payment */}
+              {paymentMode === 'upi' && shop?.upi_id && paidAmount && parseFloat(paidAmount) > 0 && (
+                <div className="w-full flex flex-col items-center bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 p-5 rounded-xl border-2 border-blue-400 dark:border-blue-700 shadow-lg">
+                  <p className="text-sm font-bold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
+                    <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    Scan QR to Pay
+                  </p>
+
+                  <div className="bg-white p-3 rounded-lg shadow-md">
+                    <QRCodeCanvas
+                      value={`upi://pay?pa=${shop.upi_id}&pn=${shop.shop_name}&am=${paidAmount}&cu=INR`}
+                      size={180}
+                    />
+                  </div>
+
+                  <p className="text-xs mt-3 text-gray-700 dark:text-gray-300 break-all text-center font-semibold">
+                    UPI ID: {shop.upi_id}
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium">
+                    Amount: ₹{parseFloat(paidAmount)}
+                  </p>
+                </div>
               )}
+
+              {/* Due Warning */}
+              {dueAmount && parseFloat(dueAmount) > 0 && (
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-2 border-amber-400 dark:border-amber-600 rounded-xl p-4 shadow-md">
+                  <div className="flex items-start gap-3">
+                    <svg className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-amber-900 dark:text-amber-200 mb-1">
+                        Credit Payment
+                      </p>
+                      <p className="text-xs text-amber-800 dark:text-amber-300 font-medium">
+                        ₹{parseFloat(dueAmount)} will be added to customer's account. Please ensure customer name, phone, and address are filled above.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Summary */}
+              <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl p-5 border-2 border-indigo-200 dark:border-gray-700 shadow-lg">
+                <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  Payment Summary
+                </p>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-700/60 p-3 rounded-lg">
+                    <span className="text-gray-700 dark:text-gray-200 font-medium">Total Amount:</span>
+                    <span className="font-bold text-gray-900 dark:text-gray-100">
+                      ₹{previewData.total_amount}
+                    </span>
+                  </div>
+                  {paidAmount && parseFloat(paidAmount) > 0 && (
+                    <div className="flex justify-between text-sm bg-emerald-50 dark:bg-emerald-900/30 p-3 rounded-lg">
+                      <span className="text-gray-700 dark:text-gray-200 font-medium">
+                        Paid ({paymentMode === 'cash' ? 'Cash' : 'UPI'}):
+                      </span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        ₹{parseFloat(paidAmount)}
+                      </span>
+                    </div>
+                  )}
+                  {dueAmount && parseFloat(dueAmount) > 0 && (
+                    <div className="flex justify-between text-sm bg-orange-50 dark:bg-orange-900/30 p-3 rounded-lg">
+                      <span className="text-gray-700 dark:text-gray-200 font-medium">Due:</span>
+                      <span className="font-bold text-orange-600 dark:text-orange-400">
+                        ₹{parseFloat(dueAmount)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="border-t-2 border-indigo-200 dark:border-gray-600 pt-3 mt-3"></div>
+                  <div className="flex justify-between text-base bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 p-3 rounded-lg">
+                    <span className="font-bold text-gray-900 dark:text-gray-100">Balance:</span>
+                    <span className={`font-bold text-lg ${
+                      Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - previewData.total_amount) < 0.01
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-red-600 dark:text-red-400'
+                    }`}>
+                      ₹{Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - previewData.total_amount)}
+                      {Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - previewData.total_amount) < 0.01 ? ' ✓' : ' ✗'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            {/* Footer - Fixed */}
-            <div className="p-6 border-t border-secondary-200 dark:border-secondary-800 bg-secondary-50 dark:bg-secondary-800">
+            {/* Footer - Fixed with rounded bottom corners */}
+            <div className="p-6 bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowPaymentModal(false)}
-                  className="px-6 py-2.5 border border-secondary-300 dark:border-secondary-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                  onClick={() => {
+                    setShowPaymentModal(false);
+                    setPaidAmount('');
+                    setDueAmount('');
+                    setPaymentMode('cash');
+                  }}
+                  className="px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-all font-bold shadow-sm"
                 >
-                  {t('common.cancel')}
+                  Cancel
                 </button>
                 <button
                   onClick={createBill}
                   disabled={createLoading}
-                  className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 dark:from-indigo-500 dark:to-purple-500 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {createLoading ? t('billing.creating') : t('billing.createBill')}
+                  {createLoading ? 'Creating...' : 'Create Bill'}
                 </button>
               </div>
             </div>

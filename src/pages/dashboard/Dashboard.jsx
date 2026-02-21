@@ -309,16 +309,6 @@ const quickActions = [
                 {t('dashboard.happeningToday')}
               </p>
             </div>
-            
-            <div className="bg-white/20 backdrop-blur-md rounded-2xl px-4 sm:px-6 py-3 sm:py-4 border border-white/30 flex-shrink-0">
-              <p className="text-white/80 text-xs sm:text-sm mb-1">{t('dashboard.todaysPerformance')}</p>
-              <div className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                <span className="text-xl sm:text-2xl font-bold text-white">
-                  {stats.performanceChange > 0 ? '+' : ''}{stats.performanceChange}%
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

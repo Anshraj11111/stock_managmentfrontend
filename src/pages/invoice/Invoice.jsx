@@ -99,17 +99,27 @@ const Invoice = () => {
   const generateProfessionalInvoice = async (bill) => {
     const doc = new jsPDF();
     
+    // Premium Color Palette
+    const colors = {
+      primary: [79, 70, 229],       // Indigo-600 (more professional)
+      secondary: [124, 58, 237],    // Violet-600
+      accent: [219, 39, 119],       // Pink-600
+      dark: [15, 23, 42],           // Slate-900
+      light: [248, 250, 252],       // Slate-50
+      success: [22, 163, 74],       // Green-600
+      text: [30, 41, 59]            // Slate-800
+    };
+    
     // Generate QR Code if UPI ID exists
     let qrCodeDataUrl = null;
     if (shop?.upi_id) {
       try {
-        // Generate UPI payment string
         const upiString = `upi://pay?pa=${shop.upi_id}&pn=${encodeURIComponent(shop.shop_name || 'Shop')}&am=${bill.total_amount}&cu=INR`;
         qrCodeDataUrl = await QRCode.toDataURL(upiString, {
           width: 120,
           margin: 1,
           color: {
-            dark: '#000000',
+            dark: '#6366F1',
             light: '#FFFFFF'
           }
         });
@@ -119,152 +129,147 @@ const Invoice = () => {
     }
     
     // ========================================
-    // HEADER SECTION - Company Details
+    // PREMIUM HEADER WITH GRADIENT EFFECT
     // ========================================
     
-    // Company Name (Bold, Large, Left aligned)
-    doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
-    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 15, 15);
+    // Header background with gradient effect (simulated with rectangles)
+    doc.setFillColor(...colors.primary);
+    doc.rect(0, 0, 210, 48, 'F');
     
-    // Tagline/Description (if any)
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'normal');
-    doc.text('Manufacturing & Supply of Quality Products', 15, 21);
+    // Company Name - Extra Large, Bold, White
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(28);
+    doc.setFont('helvetica', 'bold');
+    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 15, 20);
     
-    // Company Address
-    doc.setFontSize(8);
-    let yPos = 26;
+    // Tagline - Medium, White
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Quality Products & Services', 15, 28);
+    
+    // Company Details - White text
+    doc.setFontSize(9);
+    let yPos = 34;
     if (shop?.address) {
-      const addressLines = doc.splitTextToSize(shop.address, 90);
-      addressLines.forEach(line => {
-        doc.text(line, 15, yPos);
-        yPos += 4;
-      });
+      const addressLines = doc.splitTextToSize(shop.address, 85);
+      doc.text(addressLines[0], 15, yPos);
     }
     
-    // Contact Details (Left side)
+    // Contact info in header
     if (shop?.owner_phone) {
-      doc.text(`Phone: ${shop.owner_phone}`, 15, yPos);
-      yPos += 4;
+      doc.text(`📞 ${shop.owner_phone}`, 15, 39);
     }
-    
     if (shop?.gstin) {
-      doc.text(`GSTIN: ${shop.gstin}`, 15, yPos);
-      yPos += 4;
+      doc.text(`GSTIN: ${shop.gstin}`, 15, 44);
     }
     
-    // PAN and Place of Supply
-    if (shop?.pan) {
-      doc.setFont(undefined, 'bold');
-      doc.text('PAN:', 15, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(shop.pan, 30, yPos);
-    }
-    
-    // Right side - TAX INVOICE heading and logo placeholder
+    // TAX INVOICE Badge - Right side with accent color
+    doc.setFillColor(...colors.accent);
+    doc.roundedRect(138, 10, 60, 14, 2, 2, 'F');
     doc.setFontSize(16);
-    doc.setFont(undefined, 'bold');
-    doc.text('TAX INVOICE', 140, 15);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TAX INVOICE', 168, 19, { align: 'center' });
     
-    // ORIGINAL FOR RECIPIENT
-    doc.setFontSize(7);
-    doc.setFont(undefined, 'normal');
-    doc.text('ORIGINAL FOR RECIPIENT', 140, 20);
-    
-    // Invoice Details Box (Right side)
-    yPos = 25;
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'bold');
-    doc.text('Invoice No:', 140, yPos);
-    doc.setFont(undefined, 'normal');
-    doc.text(`${bill.bill_number || bill.id}`, 165, yPos);
-    
-    yPos += 5;
-    doc.setFont(undefined, 'bold');
-    doc.text('Invoice Date:', 140, yPos);
-    doc.setFont(undefined, 'normal');
-    doc.text(new Date(bill.createdAt).toLocaleDateString('en-IN'), 165, yPos);
-    
-    yPos += 5;
-    doc.setFont(undefined, 'bold');
-    doc.text('Challan Date:', 140, yPos);
-    doc.setFont(undefined, 'normal');
-    doc.text(new Date(bill.createdAt).toLocaleDateString('en-IN'), 165, yPos);
-    
-    // Horizontal line after header
-    yPos = 55;
+    // Invoice Details Box - Premium card style
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(...colors.primary);
     doc.setLineWidth(0.5);
-    doc.line(15, yPos, 195, yPos);
+    doc.roundedRect(138, 26, 60, 20, 2, 2, 'FD');
+    
+    doc.setTextColor(...colors.dark);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice No:', 141, 31);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...colors.primary);
+    doc.setFontSize(10);
+    doc.text(`#${bill.bill_number || bill.id}`, 141, 36);
+    
+    doc.setTextColor(...colors.dark);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date:', 141, 41);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(new Date(bill.createdAt).toLocaleDateString('en-IN'), 141, 45);
+    
+    // Reset text color
+    doc.setTextColor(...colors.text);
+    yPos = 55;
     
     // ========================================
-    // CUSTOMER DETAILS SECTION
+    // CUSTOMER DETAILS - Premium Card Style
     // ========================================
-    yPos += 6;
     
     if (bill.customer_name || bill.customer_phone) {
-      doc.setFontSize(9);
-      doc.setFont(undefined, 'bold');
-      doc.text('M/S:', 15, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(bill.customer_name || 'Walk-in Customer', 30, yPos);
+      // Customer card background
+      doc.setFillColor(...colors.light);
+      doc.setDrawColor(...colors.primary);
+      doc.setLineWidth(0.3);
+      doc.roundedRect(15, yPos, 180, 18, 2, 2, 'FD');
+      
+      yPos += 7;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...colors.primary);
+      doc.text('BILL TO:', 18, yPos);
+      
+      doc.setTextColor(...colors.dark);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text(bill.customer_name || 'Walk-in Customer', 18, yPos + 6);
       
       if (bill.customer_phone) {
-        yPos += 5;
-        doc.setFont(undefined, 'bold');
-        doc.text('Phone:', 15, yPos);
-        doc.setFont(undefined, 'normal');
-        doc.text(bill.customer_phone, 30, yPos);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...colors.text);
+        doc.text(`📱 ${bill.customer_phone}`, 18, yPos + 11);
       }
+      
+      yPos += 22;
+    } else {
       yPos += 6;
     }
     
+    doc.setTextColor(...colors.text);
+    
     // ========================================
-    // ITEMS TABLE WITH BORDERS
+    // PREMIUM ITEMS TABLE
     // ========================================
     
-    const tableTop = yPos;
     const tableLeft = 15;
     const tableWidth = 180;
-    const rowHeight = 6;
+    const rowHeight = 8;
     
     // Column widths
-    const col1 = 10;  // S.No
-    const col2 = 80;  // Name of Product/Service
-    const col3 = 20;  // HSN/SAC
-    const col4 = 15;  // Qty
-    const col5 = 25;  // Rate
-    const col6 = 30;  // Taxable Value
+    const col1 = 12;  // S.No
+    const col2 = 85;  // Product Name
+    const col3 = 18;  // HSN
+    const col4 = 18;  // Qty
+    const col5 = 23;  // Rate
+    const col6 = 24;  // Amount
     
-    // Table Header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
+    // Table Header with gradient effect
+    doc.setFillColor(...colors.primary);
+    doc.roundedRect(tableLeft, yPos, tableWidth, rowHeight, 1, 1, 'F');
     
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(8);
-    doc.text('S. No.', tableLeft + 2, yPos + 4);
-    doc.text('Name of Product / Service', tableLeft + col1 + 2, yPos + 4);
-    doc.text('HSN / SAC', tableLeft + col1 + col2 + 2, yPos + 4);
-    doc.text('Qty', tableLeft + col1 + col2 + col3 + 2, yPos + 4);
-    doc.text('Rate', tableLeft + col1 + col2 + col3 + col4 + 2, yPos + 4);
-    doc.text('Taxable Value', tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 4);
-    
-    // Draw header borders
-    doc.setLineWidth(0.3);
-    doc.rect(tableLeft, yPos, tableWidth, rowHeight);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('S.No', tableLeft + 3, yPos + 5.5);
+    doc.text('Product / Service', tableLeft + col1 + 3, yPos + 5.5);
+    doc.text('HSN', tableLeft + col1 + col2 + 2, yPos + 5.5);
+    doc.text('Qty', tableLeft + col1 + col2 + col3 + 2, yPos + 5.5);
+    doc.text('Rate', tableLeft + col1 + col2 + col3 + col4 + 2, yPos + 5.5);
+    doc.text('Amount', tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
     
     yPos += rowHeight;
     
-    // Items
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(8);
-    
-    // Parse items - handle both formats (JSON string or BillItems array)
+    // Parse items
     let items = [];
     if (typeof bill.items === 'string') {
       items = JSON.parse(bill.items);
     } else if (bill.BillItems && Array.isArray(bill.BillItems)) {
-      // Convert BillItems to items format
       items = bill.BillItems.map(item => ({
         name: item.Product?.product_name || 'Product',
         price: item.price,
@@ -277,238 +282,272 @@ const Invoice = () => {
     
     let subtotal = 0;
     
+    // Items rows with alternating colors
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(...colors.text);
+    
     items.forEach((item, index) => {
       const itemTotal = parseFloat(item.total || (item.price * item.quantity));
       subtotal += itemTotal;
       
-      // Draw row
-      doc.text(`${index + 1}`, tableLeft + 2, yPos + 4);
-      doc.text(item.name.substring(0, 40), tableLeft + col1 + 2, yPos + 4);
-      doc.text('-', tableLeft + col1 + col2 + 2, yPos + 4);
-      doc.text(item.quantity.toString(), tableLeft + col1 + col2 + col3 + 2, yPos + 4);
-      doc.text(`₹${parseFloat(item.price).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + 2, yPos + 4);
-      doc.text(`₹${itemTotal.toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 4);
+      // Alternating row colors
+      if (index % 2 === 0) {
+        doc.setFillColor(255, 255, 255);
+      } else {
+        doc.setFillColor(...colors.light);
+      }
+      doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
       
-      // Draw row borders
+      // Draw borders
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.1);
       doc.rect(tableLeft, yPos, tableWidth, rowHeight);
+      
+      // Item data
+      doc.text(`${index + 1}`, tableLeft + 5, yPos + 5.5);
+      const productName = item.name.length > 45 ? item.name.substring(0, 45) + '...' : item.name;
+      doc.text(productName, tableLeft + col1 + 3, yPos + 5.5);
+      doc.text('-', tableLeft + col1 + col2 + 5, yPos + 5.5);
+      doc.text(item.quantity.toString(), tableLeft + col1 + col2 + col3 + 5, yPos + 5.5);
+      doc.text(`₹${parseFloat(item.price).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + 2, yPos + 5.5);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`₹${itemTotal.toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
+      doc.setFont('helvetica', 'normal');
       
       yPos += rowHeight;
     });
     
+    // Subtotal Row
+    doc.setFillColor(...colors.light);
+    doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Subtotal', tableLeft + col1 + col2 + col3 + 2, yPos + 5.5);
+    doc.setTextColor(...colors.primary);
+    doc.text(`₹${subtotal.toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
+    doc.setTextColor(...colors.text);
+    
+    yPos += rowHeight;
+    
     // GST Row (if applicable)
     if (bill.gst_amount && bill.gst_percentage) {
-      doc.setFont(undefined, 'bold');
-      doc.text(`IGST (${bill.gst_percentage}%)`, tableLeft + col1 + 2, yPos + 4);
-      doc.setFont(undefined, 'normal');
-      doc.rect(tableLeft, yPos, tableWidth, rowHeight);
+      doc.setFillColor(255, 255, 255);
+      doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.text(`GST (${bill.gst_percentage}%)`, tableLeft + col1 + col2 + col3 + 2, yPos + 5.5);
+      doc.text(`₹${parseFloat(bill.gst_amount).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
       yPos += rowHeight;
     }
     
-    // Total Row
-    doc.setFont(undefined, 'bold');
-    doc.text('Total', tableLeft + col1 + col2 + 2, yPos + 4);
-    doc.text(`${items.reduce((sum, item) => sum + item.quantity, 0)}`, tableLeft + col1 + col2 + col3 + 2, yPos + 4);
-    doc.text(`₹${subtotal.toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 4);
-    doc.rect(tableLeft, yPos, tableWidth, rowHeight);
+    // Discount Row (if applicable)
+    if (bill.discount_amount && parseFloat(bill.discount_amount) > 0) {
+      doc.setFillColor(255, 255, 255);
+      doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(220, 38, 38); // Red color
+      doc.text(`Discount`, tableLeft + col1 + col2 + col3 + 2, yPos + 5.5);
+      doc.text(`-₹${parseFloat(bill.discount_amount).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
+      doc.setTextColor(...colors.text);
+      yPos += rowHeight;
+    }
     
-    yPos += rowHeight + 2;
+    // Grand Total Row - Premium style
+    doc.setFillColor(...colors.success);
+    doc.roundedRect(tableLeft, yPos, tableWidth, rowHeight + 2, 1, 1, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('GRAND TOTAL', tableLeft + col1 + col2 + col3 + 2, yPos + 6.5);
+    doc.setFontSize(13);
+    doc.text(`₹${parseFloat(bill.total_amount).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 6.5);
+    
+    yPos += rowHeight + 8;
+    doc.setTextColor(...colors.text);
     
     // ========================================
-    // AMOUNT IN WORDS
+    // AMOUNT IN WORDS - Premium Style
     // ========================================
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(8);
-    doc.text('Total in words:', tableLeft, yPos + 4);
-    doc.setFont(undefined, 'normal');
+    doc.setFillColor(...colors.light);
+    doc.roundedRect(tableLeft, yPos, tableWidth, 14, 1, 1, 'F');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...colors.primary);
+    doc.text('Amount in Words:', tableLeft + 3, yPos + 6);
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...colors.dark);
+    doc.setFontSize(10);
     const amountInWords = numberToWords(bill.total_amount);
-    doc.text(amountInWords.toUpperCase(), tableLeft, yPos + 8);
+    doc.text(amountInWords.toUpperCase(), tableLeft + 3, yPos + 11);
     
-    yPos += 15;
-    
-    // ========================================
-    // GST BREAKDOWN TABLE
-    // ========================================
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(8);
-    
-    // GST Table Header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(tableLeft, yPos, 90, rowHeight, 'F');
-    doc.text('HSN / SAC', tableLeft + 2, yPos + 4);
-    doc.text('Taxable Value', tableLeft + 30, yPos + 4);
-    
-    doc.rect(tableLeft + 90, yPos, 90, rowHeight, 'F');
-    doc.text('IGST', tableLeft + 92, yPos + 4);
-    doc.text('Amount', tableLeft + 120, yPos + 4);
-    doc.text('Total', tableLeft + 160, yPos + 4);
-    
-    doc.rect(tableLeft, yPos, 180, rowHeight);
-    yPos += rowHeight;
-    
-    // GST Table Data
-    doc.setFont(undefined, 'normal');
-    doc.text('-', tableLeft + 2, yPos + 4);
-    doc.text(`₹${subtotal.toFixed(2)}`, tableLeft + 30, yPos + 4);
-    
-    if (bill.gst_amount && bill.gst_percentage) {
-      doc.text(`${bill.gst_percentage}%`, tableLeft + 92, yPos + 4);
-      doc.text(`₹${parseFloat(bill.gst_amount).toFixed(2)}`, tableLeft + 120, yPos + 4);
-    }
-    doc.text(`₹${parseFloat(bill.total_amount).toFixed(2)}`, tableLeft + 160, yPos + 4);
-    
-    doc.rect(tableLeft, yPos, 180, rowHeight);
-    yPos += rowHeight;
-    
-    // Total Tax in words
-    doc.setFont(undefined, 'bold');
-    doc.text('Total Tax in words:', tableLeft, yPos + 4);
-    doc.setFont(undefined, 'normal');
-    if (bill.gst_amount) {
-      const taxInWords = numberToWords(bill.gst_amount);
-      doc.text(taxInWords.toUpperCase(), tableLeft, yPos + 8);
-    }
-    
-    yPos += 15;
+    yPos += 20;
+    doc.setTextColor(...colors.text);
     
     // ========================================
-    // BANK DETAILS & SIGNATURE SECTION
+    // PAYMENT & BANK DETAILS SECTION
     // ========================================
     
-    // Bank Details (Left side)
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(8);
-    doc.text('Bank Details', tableLeft, yPos);
-    yPos += 5;
+    // Two column layout
+    const leftColWidth = 90;
+    const rightColWidth = 85;
     
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(7);
+    // Left Column - Bank Details Card
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(...colors.primary);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(tableLeft, yPos, leftColWidth, 45, 2, 2, 'FD');
+    
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...colors.primary);
+    doc.text('BANK DETAILS', tableLeft + 3, yPos + 7);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...colors.text);
+    let bankYPos = yPos + 14;
     
     if (shop?.bank_name) {
-      doc.text(`Name: ${shop.bank_name}`, tableLeft, yPos);
-      yPos += 4;
-    }
-    
-    if (shop?.bank_branch) {
-      doc.text(`Branch: ${shop.bank_branch}`, tableLeft, yPos);
-      yPos += 4;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Bank Name:', tableLeft + 3, bankYPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(shop.bank_name, tableLeft + 27, bankYPos);
+      bankYPos += 6;
     }
     
     if (shop?.bank_account_number) {
-      doc.text(`Acc. Number: ${shop.bank_account_number}`, tableLeft, yPos);
-      yPos += 4;
+      doc.setFont('helvetica', 'bold');
+      doc.text('Account No:', tableLeft + 3, bankYPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(shop.bank_account_number, tableLeft + 27, bankYPos);
+      bankYPos += 6;
     }
     
     if (shop?.bank_ifsc) {
-      doc.text(`IFSC: ${shop.bank_ifsc}`, tableLeft, yPos);
-      yPos += 4;
+      doc.setFont('helvetica', 'bold');
+      doc.text('IFSC Code:', tableLeft + 3, bankYPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(shop.bank_ifsc, tableLeft + 27, bankYPos);
+      bankYPos += 6;
+    }
+    
+    if (shop?.bank_branch) {
+      doc.setFont('helvetica', 'bold');
+      doc.text('Branch:', tableLeft + 3, bankYPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(shop.bank_branch, tableLeft + 27, bankYPos);
+      bankYPos += 6;
     }
     
     if (shop?.upi_id) {
-      yPos += 4;
-      doc.text(`UPI ID: ${shop.upi_id}`, tableLeft, yPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text('UPI ID:', tableLeft + 3, bankYPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(shop.upi_id, tableLeft + 27, bankYPos);
     }
     
-    // QR Code (Right side) - Use actual QR code if available
-    const qrX = 140;
-    const qrY = yPos - 25;
+    // Right Column - QR Code & Signature
+    const rightColX = tableLeft + leftColWidth + 5;
+    doc.setFillColor(255, 255, 255);
+    doc.setDrawColor(...colors.primary);
+    doc.roundedRect(rightColX, yPos, rightColWidth, 45, 2, 2, 'FD');
     
+    // QR Code
     if (qrCodeDataUrl) {
-      // Add actual QR code
-      doc.addImage(qrCodeDataUrl, 'PNG', qrX, qrY, 30, 30);
-    } else {
-      // Fallback: Draw placeholder box
-      doc.setLineWidth(0.5);
-      doc.rect(qrX, qrY, 30, 30);
+      doc.addImage(qrCodeDataUrl, 'PNG', rightColX + 5, yPos + 5, 28, 28);
+      doc.setFontSize(8);
+      doc.setTextColor(...colors.primary);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Scan to Pay', rightColX + 12, yPos + 37);
     }
     
-    doc.setFontSize(6);
-    doc.text('Pay using UPI', qrX + 5, qrY + 35);
+    // Signature Section
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...colors.dark);
+    doc.text('Authorized Signatory', rightColX + 40, yPos + 41);
     
-    // Signature section (Right side)
-    doc.setFontSize(7);
-    doc.setFont(undefined, 'italic');
-    doc.text('This is a computer generated', 140, yPos + 15);
-    doc.text('invoice, no signature required.', 140, yPos + 19);
-    
-    yPos += 30;
-    
-    // ========================================
-    // TERMS AND CONDITIONS
-    // ========================================
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(8);
-    doc.text('Terms and Conditions', tableLeft, yPos);
-    yPos += 5;
-    
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(7);
-    
-    if (shop?.terms_and_conditions) {
-      // Use custom terms from settings
-      const termsLines = shop.terms_and_conditions.split('\n');
-      termsLines.forEach((line) => {
-        if (line.trim()) {
-          doc.text(line.trim(), tableLeft, yPos);
-          yPos += 3;
-        }
-      });
-    } else {
-      // Default terms
-      doc.text('Subject to Maharashtra Jurisdiction.', tableLeft, yPos);
-      yPos += 4;
-      doc.text('Our Responsibility Ceases as soon as goods leaves our Premises.', tableLeft, yPos);
-      yPos += 4;
-      doc.text('Goods once sold will not taken back.', tableLeft, yPos);
-      yPos += 4;
-      doc.text('Delivery Ex Premises.', tableLeft, yPos);
-    }
-    
-    // Signature section (Right side) - MOVED DOWN
-    yPos += 5; // Extra space
-    doc.setFont(undefined, 'bold');
-    if (shop?.authorized_signatory) {
-      doc.text(shop.authorized_signatory, 140, yPos);
-    } else {
-      doc.text('Authorized Signatory', 140, yPos);
-    }
-    
-    // Add signature image if available - POSITIONED ABOVE TEXT
+    // Add signature image if available
     if (shop?.signature_image) {
       try {
-        doc.addImage(shop.signature_image, 'PNG', 140, yPos - 18, 40, 15);
+        doc.addImage(shop.signature_image, 'PNG', rightColX + 40, yPos + 20, 35, 15);
       } catch (error) {
         console.error('Failed to add signature image:', error);
       }
     }
     
-    // Bottom line
-    yPos += 8;
-    doc.setLineWidth(0.3);
+    yPos += 54;
+    doc.setTextColor(...colors.text);
+    
+    // ========================================
+    // TERMS AND CONDITIONS - Premium Style
+    // ========================================
+    doc.setFillColor(...colors.light);
+    doc.roundedRect(tableLeft, yPos, 180, 24, 2, 2, 'F');
+    
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(...colors.primary);
+    doc.text('TERMS & CONDITIONS', tableLeft + 3, yPos + 7);
+    
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...colors.text);
+    let termsYPos = yPos + 13;
+    
+    if (shop?.terms_and_conditions) {
+      const termsLines = shop.terms_and_conditions.split('\n').filter(line => line.trim());
+      termsLines.slice(0, 3).forEach((line) => {
+        doc.text(`• ${line.trim()}`, tableLeft + 3, termsYPos);
+        termsYPos += 4;
+      });
+    } else {
+      doc.text('• Subject to local jurisdiction', tableLeft + 3, termsYPos);
+      termsYPos += 4;
+      doc.text('• Goods once sold will not be taken back', tableLeft + 3, termsYPos);
+      termsYPos += 4;
+      doc.text('• Payment terms as agreed', tableLeft + 3, termsYPos);
+    }
+    
+    yPos += 28;
+    
+    // ========================================
+    // FOOTER - Premium Thank You Message
+    // ========================================
+    doc.setDrawColor(...colors.primary);
+    doc.setLineWidth(0.5);
     doc.line(15, yPos, 195, yPos);
     
-    // Thank you message
-    yPos += 4;
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'italic');
-    doc.text('Thank you for shopping with us!', 105, yPos, { align: 'center' });
+    yPos += 6;
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...colors.primary);
+    doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
     
-    // Save PDF - Create blob and open in new tab
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.setTextColor(...colors.text);
+    doc.text('This is a computer-generated invoice', 105, yPos + 5, { align: 'center' });
+    
+    // Save PDF
     const pdfBlob = doc.output('blob');
     const pdfUrl = URL.createObjectURL(pdfBlob);
     
-    // Open PDF in new tab
-    const newWindow = window.open(pdfUrl, '_blank');
+    // Open in new tab
+    window.open(pdfUrl, '_blank');
     
-    // Also trigger download
+    // Trigger download
     const link = document.createElement('a');
     link.href = pdfUrl;
-    link.download = `Invoice_${bill.bill_number || bill.id}.pdf`;
+    link.download = `Invoice_${bill.bill_number || bill.id}_${new Date().getTime()}.pdf`;
     link.click();
     
-    // Clean up the URL after a delay
-    setTimeout(() => {
-      URL.revokeObjectURL(pdfUrl);
-    }, 100);
+    // Cleanup
+    setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
   };
 
   // Helper function to convert number to words (Indian format)
