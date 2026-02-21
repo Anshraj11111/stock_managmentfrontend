@@ -1,30 +1,45 @@
 import { useState, useEffect } from 'react'
 import { Download, X, Smartphone } from 'lucide-react'
 import { usePWA } from '../../store/PWAContext'
+import { useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
 export default function InstallPromptModal() {
   const { isInstallable, handleInstall, dismissInstallPrompt } = usePWA()
+  const location = useLocation()
   const [showModal, setShowModal] = useState(false)
   const [isInstalling, setIsInstalling] = useState(false)
 
   useEffect(() => {
-    // Show modal after 2 seconds if installable
-    if (isInstallable) {
+    // NEVER show popup - completely disabled
+    return
+    
+    // Old code commented out
+    /*
+    const hasInstalledBefore = localStorage.getItem('pwa-installed') === 'true'
+    const hasDismissed = localStorage.getItem('pwa-dismissed') === 'true'
+    const isAppInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+                          window.navigator.standalone === true
+    const isLandingPage = location.pathname === '/'
+    
+    if (isInstallable && isLandingPage && !isAppInstalled && !hasInstalledBefore && !hasDismissed) {
       const timer = setTimeout(() => {
         setShowModal(true)
-      }, 2000) // 2 second delay
-
+      }, 2000)
       return () => clearTimeout(timer)
     }
-  }, [isInstallable])
+    */
+  }, [isInstallable, location.pathname])
 
-  if (!showModal || !isInstallable) return null
+  // Never show modal
+  return null
 
   const handleInstallClick = async () => {
     setIsInstalling(true)
     try {
       await handleInstall()
+      // Mark as installed in localStorage
+      localStorage.setItem('pwa-installed', 'true')
       toast.success('🎉 App Installed Successfully!')
       setShowModal(false)
     } catch (error) {
@@ -37,6 +52,8 @@ export default function InstallPromptModal() {
 
   const handleClose = () => {
     setShowModal(false)
+    // Mark as dismissed permanently in localStorage
+    localStorage.setItem('pwa-dismissed', 'true')
     dismissInstallPrompt()
   }
 

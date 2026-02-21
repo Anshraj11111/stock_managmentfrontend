@@ -492,8 +492,23 @@ const Invoice = () => {
     doc.setFont(undefined, 'italic');
     doc.text('Thank you for shopping with us!', 105, yPos, { align: 'center' });
     
-    // Save PDF
-    doc.save(`Invoice_${bill.bill_number || bill.id}.pdf`);
+    // Save PDF - Create blob and open in new tab
+    const pdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    
+    // Open PDF in new tab
+    const newWindow = window.open(pdfUrl, '_blank');
+    
+    // Also trigger download
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = `Invoice_${bill.bill_number || bill.id}.pdf`;
+    link.click();
+    
+    // Clean up the URL after a delay
+    setTimeout(() => {
+      URL.revokeObjectURL(pdfUrl);
+    }, 100);
   };
 
   // Helper function to convert number to words (Indian format)

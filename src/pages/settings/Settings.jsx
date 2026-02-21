@@ -95,9 +95,9 @@ const Settings = () => {
       return;
     }
     
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Image size should be less than 2MB');
+    // Validate file size (max 1MB instead of 2MB)
+    if (file.size > 1 * 1024 * 1024) {
+      toast.error('Image size should be less than 1MB');
       return;
     }
     
@@ -354,7 +354,7 @@ const Settings = () => {
             </div>
           </div>
 
-          {/* Signature Section */}
+          {/* Signature Section - TEMPORARILY DISABLED 
           <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
             <h3 className="text-md font-semibold mb-4 text-secondary-900 dark:text-secondary-100">
               Invoice Signature
@@ -372,7 +372,6 @@ const Settings = () => {
               This name will appear as "Authorized Signatory" on invoices
             </p>
 
-            {/* Signature Image Upload */}
             <div className="mt-4">
               <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
                 Signature Image (Optional)
@@ -417,7 +416,7 @@ const Settings = () => {
                       </svg>
                       <p className="text-sm">Click to upload signature image</p>
                       <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
-                        PNG, JPG up to 2MB
+                        PNG, JPG up to 1MB
                       </p>
                     </div>
                   </label>
@@ -428,6 +427,7 @@ const Settings = () => {
               </p>
             </div>
           </div>
+          */}
 
           {/* UPI Section */}
           <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
