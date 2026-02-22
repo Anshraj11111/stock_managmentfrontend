@@ -99,27 +99,16 @@ const Invoice = () => {
   const generateProfessionalInvoice = async (bill) => {
     const doc = new jsPDF();
     
-    // Premium Color Palette
-    const colors = {
-      primary: [79, 70, 229],       // Indigo-600 (more professional)
-      secondary: [124, 58, 237],    // Violet-600
-      accent: [219, 39, 119],       // Pink-600
-      dark: [15, 23, 42],           // Slate-900
-      light: [248, 250, 252],       // Slate-50
-      success: [22, 163, 74],       // Green-600
-      text: [30, 41, 59]            // Slate-800
-    };
-    
     // Generate QR Code if UPI ID exists
     let qrCodeDataUrl = null;
     if (shop?.upi_id) {
       try {
         const upiString = `upi://pay?pa=${shop.upi_id}&pn=${encodeURIComponent(shop.shop_name || 'Shop')}&am=${bill.total_amount}&cu=INR`;
         qrCodeDataUrl = await QRCode.toDataURL(upiString, {
-          width: 120,
+          width: 100,
           margin: 1,
           color: {
-            dark: '#6366F1',
+            dark: '#000000',
             light: '#FFFFFF'
           }
         });
@@ -128,142 +117,125 @@ const Invoice = () => {
       }
     }
     
+    let yPos = 15;
+    
     // ========================================
-    // PREMIUM HEADER WITH GRADIENT EFFECT
+    // CLEAN PROFESSIONAL HEADER
     // ========================================
     
-    // Header background with gradient effect (simulated with rectangles)
-    doc.setFillColor(...colors.primary);
-    doc.rect(0, 0, 210, 48, 'F');
+    // Company Name - Large, Bold, Black
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, yPos, { align: 'center' });
+    yPos += 8;
     
-    // Company Name - Extra Large, Bold, White
+    // TAX INVOICE Badge - Right side
+    doc.setFillColor(0, 0, 0);
+    doc.rect(160, 10, 35, 8, 'F');
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(28);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 15, 20);
+    doc.text('TAX INVOICE', 177.5, 15, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
     
-    // Tagline - Medium, White
+    // Tagline
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
-    doc.text('Quality Products & Services', 15, 28);
+    doc.text('Quality Products & Excellent Service', 105, yPos, { align: 'center' });
+    yPos += 6;
     
-    // Company Details - White text
-    doc.setFontSize(9);
-    let yPos = 34;
+    // Company Details
+    doc.setFontSize(10);
     if (shop?.address) {
-      const addressLines = doc.splitTextToSize(shop.address, 85);
-      doc.text(addressLines[0], 15, yPos);
+      const addressLines = doc.splitTextToSize(shop.address, 140);
+      doc.text(addressLines[0], 105, yPos, { align: 'center' });
+      yPos += 5;
     }
     
-    // Contact info in header
     if (shop?.owner_phone) {
-      doc.text(`📞 ${shop.owner_phone}`, 15, 39);
+      doc.text(`Phone: ${shop.owner_phone}`, 105, yPos, { align: 'center' });
+      yPos += 5;
     }
+    
     if (shop?.gstin) {
-      doc.text(`GSTIN: ${shop.gstin}`, 15, 44);
+      doc.text(`GSTIN: ${shop.gstin}`, 105, yPos, { align: 'center' });
+      yPos += 5;
     }
     
-    // TAX INVOICE Badge - Right side with accent color
-    doc.setFillColor(...colors.accent);
-    doc.roundedRect(138, 10, 60, 14, 2, 2, 'F');
-    doc.setFontSize(16);
-    doc.setFont('helvetica', 'bold');
-    doc.text('TAX INVOICE', 168, 19, { align: 'center' });
-    
-    // Invoice Details Box - Premium card style
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(...colors.primary);
+    // Separator line
     doc.setLineWidth(0.5);
-    doc.roundedRect(138, 26, 60, 20, 2, 2, 'FD');
-    
-    doc.setTextColor(...colors.dark);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Invoice No:', 141, 31);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...colors.primary);
-    doc.setFontSize(10);
-    doc.text(`#${bill.bill_number || bill.id}`, 141, 36);
-    
-    doc.setTextColor(...colors.dark);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Date:', 141, 41);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.text(new Date(bill.createdAt).toLocaleDateString('en-IN'), 141, 45);
-    
-    // Reset text color
-    doc.setTextColor(...colors.text);
-    yPos = 55;
+    doc.line(15, yPos, 195, yPos);
+    yPos += 8;
     
     // ========================================
-    // CUSTOMER DETAILS - Premium Card Style
+    // INVOICE DETAILS - Clean Layout
+    // ========================================
+    
+    // Invoice Number
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Invoice No:', 15, yPos);
+    doc.setFontSize(13);
+    doc.text(`#${bill.bill_number || bill.id}`, 45, yPos);
+    
+    // Date - Right aligned
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date:', 150, yPos);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(new Date(bill.createdAt).toLocaleDateString('en-IN', { 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric' 
+    }), 165, yPos);
+    
+    yPos += 10;
+    
+    // ========================================
+    // CUSTOMER DETAILS
     // ========================================
     
     if (bill.customer_name || bill.customer_phone) {
-      // Customer card background
-      doc.setFillColor(...colors.light);
-      doc.setDrawColor(...colors.primary);
-      doc.setLineWidth(0.3);
-      doc.roundedRect(15, yPos, 180, 18, 2, 2, 'FD');
-      
-      yPos += 7;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...colors.primary);
-      doc.text('BILL TO:', 18, yPos);
+      doc.text('Bill To:', 15, yPos);
       
-      doc.setTextColor(...colors.dark);
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text(bill.customer_name || 'Walk-in Customer', 18, yPos + 6);
+      doc.setFont('helvetica', 'normal');
+      doc.text(bill.customer_name || 'Walk-in Customer', 35, yPos);
       
       if (bill.customer_phone) {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...colors.text);
-        doc.text(`📱 ${bill.customer_phone}`, 18, yPos + 11);
+        doc.text(`Phone: ${bill.customer_phone}`, 120, yPos);
       }
       
-      yPos += 22;
-    } else {
-      yPos += 6;
+      yPos += 8;
     }
     
-    doc.setTextColor(...colors.text);
+    // Separator line
+    doc.setLineWidth(0.5);
+    doc.line(15, yPos, 195, yPos);
+    yPos += 8;
     
     // ========================================
-    // PREMIUM ITEMS TABLE
+    // ITEMS TABLE - Clean & Readable
     // ========================================
     
-    const tableLeft = 15;
-    const tableWidth = 180;
-    const rowHeight = 8;
+    // Table Header
+    doc.setFillColor(240, 240, 240);
+    doc.rect(15, yPos, 180, 8, 'F');
     
-    // Column widths
-    const col1 = 12;  // S.No
-    const col2 = 85;  // Product Name
-    const col3 = 18;  // HSN
-    const col4 = 18;  // Qty
-    const col5 = 23;  // Rate
-    const col6 = 24;  // Amount
-    
-    // Table Header with gradient effect
-    doc.setFillColor(...colors.primary);
-    doc.roundedRect(tableLeft, yPos, tableWidth, rowHeight, 1, 1, 'F');
-    
-    doc.setTextColor(255, 255, 255);
+    doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.text('S.No', tableLeft + 3, yPos + 5.5);
-    doc.text('Product / Service', tableLeft + col1 + 3, yPos + 5.5);
-    doc.text('HSN', tableLeft + col1 + col2 + 2, yPos + 5.5);
-    doc.text('Qty', tableLeft + col1 + col2 + col3 + 2, yPos + 5.5);
-    doc.text('Rate', tableLeft + col1 + col2 + col3 + col4 + 2, yPos + 5.5);
-    doc.text('Amount', tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
+    doc.text('Product / Service', 18, yPos + 5.5);
+    doc.text('HSN', 110, yPos + 5.5);
+    doc.text('Qty', 130, yPos + 5.5);
+    doc.text('Rate', 150, yPos + 5.5);
+    doc.text('Amount', 175, yPos + 5.5);
     
-    yPos += rowHeight;
+    yPos += 8;
     
     // Parse items
     let items = [];
@@ -282,256 +254,224 @@ const Invoice = () => {
     
     let subtotal = 0;
     
-    // Items rows with alternating colors
+    // Items rows
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(...colors.text);
+    doc.setFontSize(10);
     
     items.forEach((item, index) => {
       const itemTotal = parseFloat(item.total || (item.price * item.quantity));
       subtotal += itemTotal;
       
-      // Alternating row colors
-      if (index % 2 === 0) {
-        doc.setFillColor(255, 255, 255);
-      } else {
-        doc.setFillColor(...colors.light);
+      // Check if we need a new page
+      if (yPos > 250) {
+        doc.addPage();
+        yPos = 20;
       }
-      doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
       
-      // Draw borders
-      doc.setDrawColor(220, 220, 220);
-      doc.setLineWidth(0.1);
-      doc.rect(tableLeft, yPos, tableWidth, rowHeight);
+      // Alternating row colors
+      if (index % 2 === 1) {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(15, yPos, 180, 8, 'F');
+      }
       
       // Item data
-      doc.text(`${index + 1}`, tableLeft + 5, yPos + 5.5);
-      const productName = item.name.length > 45 ? item.name.substring(0, 45) + '...' : item.name;
-      doc.text(productName, tableLeft + col1 + 3, yPos + 5.5);
-      doc.text('-', tableLeft + col1 + col2 + 5, yPos + 5.5);
-      doc.text(item.quantity.toString(), tableLeft + col1 + col2 + col3 + 5, yPos + 5.5);
-      doc.text(`₹${parseFloat(item.price).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + 2, yPos + 5.5);
+      const productName = item.name.length > 50 ? item.name.substring(0, 50) + '...' : item.name;
+      doc.text(productName, 18, yPos + 5.5);
+      doc.text('-', 112, yPos + 5.5);
+      doc.text(item.quantity.toString(), 133, yPos + 5.5, { align: 'center' });
+      doc.text(parseFloat(item.price).toFixed(2), 165, yPos + 5.5, { align: 'right' });
       doc.setFont('helvetica', 'bold');
-      doc.text(`₹${itemTotal.toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
+      doc.text(itemTotal.toFixed(2), 190, yPos + 5.5, { align: 'right' });
       doc.setFont('helvetica', 'normal');
       
-      yPos += rowHeight;
+      yPos += 8;
     });
     
-    // Subtotal Row
-    doc.setFillColor(...colors.light);
-    doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.text('Subtotal', tableLeft + col1 + col2 + col3 + 2, yPos + 5.5);
-    doc.setTextColor(...colors.primary);
-    doc.text(`₹${subtotal.toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
-    doc.setTextColor(...colors.text);
-    
-    yPos += rowHeight;
-    
-    // GST Row (if applicable)
-    if (bill.gst_amount && bill.gst_percentage) {
-      doc.setFillColor(255, 255, 255);
-      doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text(`GST (${bill.gst_percentage}%)`, tableLeft + col1 + col2 + col3 + 2, yPos + 5.5);
-      doc.text(`₹${parseFloat(bill.gst_amount).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
-      yPos += rowHeight;
-    }
-    
-    // Discount Row (if applicable)
-    if (bill.discount_amount && parseFloat(bill.discount_amount) > 0) {
-      doc.setFillColor(255, 255, 255);
-      doc.rect(tableLeft, yPos, tableWidth, rowHeight, 'F');
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.setTextColor(220, 38, 38); // Red color
-      doc.text(`Discount`, tableLeft + col1 + col2 + col3 + 2, yPos + 5.5);
-      doc.text(`-₹${parseFloat(bill.discount_amount).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 5.5);
-      doc.setTextColor(...colors.text);
-      yPos += rowHeight;
-    }
-    
-    // Grand Total Row - Premium style
-    doc.setFillColor(...colors.success);
-    doc.roundedRect(tableLeft, yPos, tableWidth, rowHeight + 2, 1, 1, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('GRAND TOTAL', tableLeft + col1 + col2 + col3 + 2, yPos + 6.5);
-    doc.setFontSize(13);
-    doc.text(`₹${parseFloat(bill.total_amount).toFixed(2)}`, tableLeft + col1 + col2 + col3 + col4 + col5 + 2, yPos + 6.5);
-    
-    yPos += rowHeight + 8;
-    doc.setTextColor(...colors.text);
+    // Separator line
+    doc.setLineWidth(0.5);
+    doc.line(15, yPos, 195, yPos);
+    yPos += 8;
     
     // ========================================
-    // AMOUNT IN WORDS - Premium Style
+    // TOTALS SECTION - Clean & Clear
     // ========================================
-    doc.setFillColor(...colors.light);
-    doc.roundedRect(tableLeft, yPos, tableWidth, 14, 1, 1, 'F');
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...colors.primary);
-    doc.text('Amount in Words:', tableLeft + 3, yPos + 6);
-    
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...colors.dark);
-    doc.setFontSize(10);
-    const amountInWords = numberToWords(bill.total_amount);
-    doc.text(amountInWords.toUpperCase(), tableLeft + 3, yPos + 11);
-    
-    yPos += 20;
-    doc.setTextColor(...colors.text);
-    
-    // ========================================
-    // PAYMENT & BANK DETAILS SECTION
-    // ========================================
-    
-    // Two column layout
-    const leftColWidth = 90;
-    const rightColWidth = 85;
-    
-    // Left Column - Bank Details Card
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(...colors.primary);
-    doc.setLineWidth(0.3);
-    doc.roundedRect(tableLeft, yPos, leftColWidth, 45, 2, 2, 'FD');
     
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...colors.primary);
-    doc.text('BANK DETAILS', tableLeft + 3, yPos + 7);
     
-    doc.setFontSize(9);
+    // Subtotal
     doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...colors.text);
-    let bankYPos = yPos + 14;
+    doc.text('Subtotal:', 130, yPos);
+    doc.setFont('helvetica', 'bold');
+    doc.text(subtotal.toFixed(2), 190, yPos, { align: 'right' });
+    yPos += 7;
+    
+    // GST (if applicable)
+    if (bill.gst_amount && bill.gst_percentage) {
+      doc.setFont('helvetica', 'normal');
+      doc.text(`GST (${bill.gst_percentage}%):`, 130, yPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(parseFloat(bill.gst_amount).toFixed(2), 190, yPos, { align: 'right' });
+      yPos += 7;
+    }
+    
+    // Discount (if applicable)
+    if (bill.discount_amount && parseFloat(bill.discount_amount) > 0) {
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Discount:`, 130, yPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`-${parseFloat(bill.discount_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
+      yPos += 7;
+    }
+    
+    // Separator line
+    doc.setLineWidth(0.8);
+    doc.line(130, yPos, 195, yPos);
+    yPos += 7;
+    
+    // Grand Total - Highlighted
+    doc.setFillColor(240, 240, 240);
+    doc.rect(130, yPos - 5, 65, 10, 'F');
+    
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GRAND TOTAL:', 133, yPos);
+    doc.setFontSize(14);
+    doc.text(parseFloat(bill.total_amount).toFixed(2), 190, yPos, { align: 'right' });
+    
+    yPos += 12;
+    
+    // ========================================
+    // AMOUNT IN WORDS
+    // ========================================
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Amount in Words:', 15, yPos);
+    
+    doc.setFont('helvetica', 'normal');
+    const amountInWords = numberToWords(bill.total_amount);
+    doc.text(amountInWords.toUpperCase(), 15, yPos + 6);
+    
+    yPos += 15;
+    
+    // ========================================
+    // BANK DETAILS & QR CODE SECTION
+    // ========================================
+    
+    // Bank Details - Left side
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Bank Details:', 15, yPos);
+    yPos += 6;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
     
     if (shop?.bank_name) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Bank Name:', tableLeft + 3, bankYPos);
+      doc.text('Bank:', 15, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(shop.bank_name, tableLeft + 27, bankYPos);
-      bankYPos += 6;
+      doc.text(shop.bank_name, 35, yPos);
+      yPos += 5;
     }
     
     if (shop?.bank_account_number) {
       doc.setFont('helvetica', 'bold');
-      doc.text('Account No:', tableLeft + 3, bankYPos);
+      doc.text('A/C:', 15, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(shop.bank_account_number, tableLeft + 27, bankYPos);
-      bankYPos += 6;
+      doc.text(shop.bank_account_number, 35, yPos);
+      yPos += 5;
     }
     
     if (shop?.bank_ifsc) {
       doc.setFont('helvetica', 'bold');
-      doc.text('IFSC Code:', tableLeft + 3, bankYPos);
+      doc.text('IFSC:', 15, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(shop.bank_ifsc, tableLeft + 27, bankYPos);
-      bankYPos += 6;
-    }
-    
-    if (shop?.bank_branch) {
-      doc.setFont('helvetica', 'bold');
-      doc.text('Branch:', tableLeft + 3, bankYPos);
-      doc.setFont('helvetica', 'normal');
-      doc.text(shop.bank_branch, tableLeft + 27, bankYPos);
-      bankYPos += 6;
+      doc.text(shop.bank_ifsc, 35, yPos);
+      yPos += 5;
     }
     
     if (shop?.upi_id) {
       doc.setFont('helvetica', 'bold');
-      doc.text('UPI ID:', tableLeft + 3, bankYPos);
+      doc.text('UPI:', 15, yPos);
       doc.setFont('helvetica', 'normal');
-      doc.text(shop.upi_id, tableLeft + 27, bankYPos);
+      doc.text(shop.upi_id, 35, yPos);
     }
     
-    // Right Column - QR Code & Signature
-    const rightColX = tableLeft + leftColWidth + 5;
-    doc.setFillColor(255, 255, 255);
-    doc.setDrawColor(...colors.primary);
-    doc.roundedRect(rightColX, yPos, rightColWidth, 45, 2, 2, 'FD');
+    // QR Code & Signature - Right side
+    const rightStartY = yPos - 25;
     
     // QR Code
     if (qrCodeDataUrl) {
-      doc.addImage(qrCodeDataUrl, 'PNG', rightColX + 5, yPos + 5, 28, 28);
-      doc.setFontSize(8);
-      doc.setTextColor(...colors.primary);
+      doc.addImage(qrCodeDataUrl, 'PNG', 125, rightStartY, 25, 25);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.text('Scan to Pay', rightColX + 12, yPos + 37);
+      doc.text('Scan to Pay', 132, rightStartY + 28);
     }
     
     // Signature Section
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...colors.dark);
-    doc.text('Authorized Signatory', rightColX + 40, yPos + 41);
+    doc.text('For ' + (shop?.shop_name?.toUpperCase() || 'YOUR SHOP'), 155, rightStartY + 5);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Authorized Signatory', 155, rightStartY + 25);
     
     // Add signature image if available
     if (shop?.signature_image) {
       try {
-        doc.addImage(shop.signature_image, 'PNG', rightColX + 40, yPos + 20, 35, 15);
+        doc.addImage(shop.signature_image, 'PNG', rightColX + 35, yPos + 12, 35, 15);
       } catch (error) {
         console.error('Failed to add signature image:', error);
       }
     }
     
-    yPos += 54;
-    doc.setTextColor(...colors.text);
+    yPos += 42;
+    
+    // Add signature image if available
+    if (shop?.signature_image) {
+      try {
+        doc.addImage(shop.signature_image, 'PNG', 155, rightStartY + 10, 30, 10);
+      } catch (error) {
+        console.error('Failed to add signature image:', error);
+      }
+    }
+    
+    yPos += 35;
     
     // ========================================
-    // TERMS AND CONDITIONS - Premium Style
+    // TERMS & CONDITIONS
     // ========================================
-    doc.setFillColor(...colors.light);
-    doc.roundedRect(tableLeft, yPos, 180, 24, 2, 2, 'F');
+    doc.setLineWidth(0.3);
+    doc.line(15, yPos, 195, yPos);
+    yPos += 5;
     
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.setTextColor(...colors.primary);
-    doc.text('TERMS & CONDITIONS', tableLeft + 3, yPos + 7);
+    doc.setFontSize(9);
+    doc.text('Terms & Conditions:', 15, yPos);
+    yPos += 5;
     
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setTextColor(...colors.text);
-    let termsYPos = yPos + 13;
-    
-    if (shop?.terms_and_conditions) {
-      const termsLines = shop.terms_and_conditions.split('\n').filter(line => line.trim());
-      termsLines.slice(0, 3).forEach((line) => {
-        doc.text(`• ${line.trim()}`, tableLeft + 3, termsYPos);
-        termsYPos += 4;
-      });
-    } else {
-      doc.text('• Subject to local jurisdiction', tableLeft + 3, termsYPos);
-      termsYPos += 4;
-      doc.text('• Goods once sold will not be taken back', tableLeft + 3, termsYPos);
-      termsYPos += 4;
-      doc.text('• Payment terms as agreed', tableLeft + 3, termsYPos);
-    }
-    
-    yPos += 28;
+    doc.text('• Goods once sold will not be taken back', 15, yPos);
+    yPos += 4;
+    doc.text('• Subject to local jurisdiction', 15, yPos);
+    yPos += 8;
     
     // ========================================
-    // FOOTER - Premium Thank You Message
+    // FOOTER
     // ========================================
-    doc.setDrawColor(...colors.primary);
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(0.3);
     doc.line(15, yPos, 195, yPos);
+    yPos += 5;
     
-    yPos += 6;
-    doc.setFontSize(11);
+    doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...colors.primary);
     doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
     
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
-    doc.setTextColor(...colors.text);
-    doc.text('This is a computer-generated invoice', 105, yPos + 5, { align: 'center' });
+    doc.text('This is a computer-generated invoice', 105, yPos + 4, { align: 'center' });
     
     // Save PDF
     const pdfBlob = doc.output('blob');

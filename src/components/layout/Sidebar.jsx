@@ -131,7 +131,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto max-h-[calc(100vh-16rem)]">
           {navigation.map((item, index) => {
             const Icon = item.icon;
             return (

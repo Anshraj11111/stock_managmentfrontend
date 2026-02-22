@@ -579,7 +579,7 @@ const Billing = () => {
   // ✅ NEW: Discount state
   const [discountEnabled, setDiscountEnabled] = useState(false);
   const [discountType, setDiscountType] = useState('percentage'); // 'percentage' or 'fixed'
-  const [discountValue, setDiscountValue] = useState(0);
+  const [discountValue, setDiscountValue] = useState(''); // Empty string instead of 0
 
   // ✅ REMOVED: Complex payment array - using simple state instead
 
@@ -834,7 +834,7 @@ const Billing = () => {
       setGstPercentage(18);
       setDiscountEnabled(false);
       setDiscountType('percentage');
-      setDiscountValue(0);
+      setDiscountValue(''); // Empty string instead of 0
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create bill';
       toast.error(errorMsg);
@@ -846,120 +846,119 @@ const Billing = () => {
   const printBill = (billData) => {
     const doc = new jsPDF();
     
+    let yPos = 15;
+    
     // ========================================
-    // HEADER SECTION - Professional Invoice Header
+    // CLEAN PROFESSIONAL HEADER
     // ========================================
     
-    // Shop Name (Bold, Large, Centered at top)
-    doc.setFontSize(20);
-    doc.setFont(undefined, 'bold');
-    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, 15, { align: 'center' });
+    // Company Name - Large, Bold, Black
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(22);
+    doc.setFont('helvetica', 'bold');
+    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, yPos, { align: 'center' });
+    yPos += 8;
     
-    // Shop Address and Contact (Centered, smaller font)
-    doc.setFontSize(9);
-    doc.setFont(undefined, 'normal');
-    let yPos = 22;
+    // Tagline
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Quality Products & Excellent Service', 105, yPos, { align: 'center' });
+    yPos += 6;
     
+    // Company Details
+    doc.setFontSize(10);
     if (shop?.address) {
-      const addressLines = doc.splitTextToSize(shop.address, 160);
-      addressLines.forEach(line => {
-        doc.text(line, 105, yPos, { align: 'center' });
-        yPos += 4;
-      });
+      const addressLines = doc.splitTextToSize(shop.address, 140);
+      doc.text(addressLines[0], 105, yPos, { align: 'center' });
+      yPos += 5;
     }
     
     if (shop?.owner_phone) {
-      doc.text(`Tel: ${shop.owner_phone}`, 105, yPos, { align: 'center' });
-      yPos += 4;
+      doc.text(`Phone: ${shop.owner_phone}`, 105, yPos, { align: 'center' });
+      yPos += 5;
     }
     
     if (shop?.gstin) {
       doc.text(`GSTIN: ${shop.gstin}`, 105, yPos, { align: 'center' });
-      yPos += 4;
+      yPos += 5;
     }
     
-    if (shop?.pan) {
-      doc.text(`PAN: ${shop.pan}`, 105, yPos, { align: 'center' });
-      yPos += 4;
-    }
-    
-    // TAX INVOICE heading
-    // yPos += 3;
-    // doc.setFontSize(14);
-    // doc.setFont(undefined, 'bold');
-    // doc.text('TAX INVOICE', 105, yPos, { align: 'center' });
-    
-    // Horizontal line
-    yPos += 3;
+    // Separator line
     doc.setLineWidth(0.5);
     doc.line(15, yPos, 195, yPos);
+    yPos += 8;
     
     // ========================================
-    // INVOICE DETAILS SECTION (Two columns)
+    // BILL DETAILS - Clean Layout
     // ========================================
-    yPos += 7;
-    doc.setFontSize(9);
-    doc.setFont(undefined, 'normal');
     
-    // Left column - Invoice details
-    doc.setFont(undefined, 'bold');
+    // Bill Number
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
     doc.text('Bill No:', 15, yPos);
-    doc.setFont(undefined, 'normal');
-    doc.text(`${billData.id || 'N/A'}`, 45, yPos);
+    doc.setFontSize(13);
+    doc.text(`#${billData.id || 'N/A'}`, 40, yPos);
     
-    // Right column - Date
-    doc.setFont(undefined, 'bold');
-    doc.text('Purchasing Date:', 130, yPos);
-    doc.setFont(undefined, 'normal');
-    doc.text(new Date().toLocaleDateString('en-IN'), 165, yPos);
+    // Date - Right aligned
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Date:', 150, yPos);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.text(new Date().toLocaleDateString('en-IN', { 
+      day: '2-digit', 
+      month: 'short', 
+      year: 'numeric' 
+    }), 165, yPos);
     
-    yPos += 6;
+    yPos += 10;
     
-    // Customer details (if provided)
+    // ========================================
+    // CUSTOMER DETAILS
+    // ========================================
+    
     if (billData.customer && (billData.customer.name || billData.customer.phone)) {
-      doc.setFont(undefined, 'bold');
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
       doc.text('Customer:', 15, yPos);
-      doc.setFont(undefined, 'normal');
-      doc.text(billData.customer.name || 'N/A', 45, yPos);
+      
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(billData.customer.name || 'Walk-in Customer', 40, yPos);
       
       if (billData.customer.phone) {
-        doc.setFont(undefined, 'bold');
-        doc.text('Ph:', 130, yPos);
-        doc.setFont(undefined, 'normal');
-        doc.text(billData.customer.phone, 145, yPos);
+        doc.text(`Phone: ${billData.customer.phone}`, 120, yPos);
       }
-      yPos += 6;
+      
+      yPos += 8;
     }
     
-    // Horizontal line before items
-    doc.setLineWidth(0.3);
+    // Separator line
+    doc.setLineWidth(0.5);
     doc.line(15, yPos, 195, yPos);
+    yPos += 8;
     
     // ========================================
-    // ITEMS TABLE
+    // ITEMS TABLE - Clean & Readable
     // ========================================
-    yPos += 6;
     
-    // Table header with background
+    // Table Header
     doc.setFillColor(240, 240, 240);
-    doc.rect(15, yPos - 4, 180, 6, 'F');
+    doc.rect(15, yPos, 180, 8, 'F');
     
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(9);
-    doc.text('S.No', 17, yPos);
-    doc.text('Particulars', 30, yPos);
-    doc.text('HSN/SAC', 95, yPos);
-    doc.text('Qty', 120, yPos, { align: 'center' });
-    doc.text('Rate', 150, yPos, { align: 'right' });
-    doc.text('Amount', 190, yPos, { align: 'right' });
+    doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Product / Service', 18, yPos + 5.5);
+    doc.text('Qty', 130, yPos + 5.5);
+    doc.text('Rate', 150, yPos + 5.5);
+    doc.text('Amount', 175, yPos + 5.5);
     
-    yPos += 2;
-    doc.line(15, yPos, 195, yPos);
-    yPos += 5;
+    yPos += 8;
     
-    // Items list
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(8);
+    // Items rows
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
     
     (billData.items || previewData?.items || []).forEach((item, index) => {
       // Check if we need a new page
@@ -968,126 +967,159 @@ const Billing = () => {
         yPos = 20;
       }
       
-      doc.text(`${index + 1}`, 17, yPos);
-      doc.text(item.name.substring(0, 35), 30, yPos);
-      doc.text('-', 95, yPos); // HSN code placeholder
-      doc.text(item.quantity.toString(), 120, yPos, { align: 'center' });
-      doc.text(`₹${parseFloat(item.price).toFixed(2)}`, 150, yPos, { align: 'right' });
-      doc.text(`₹${parseFloat(item.total).toFixed(2)}`, 190, yPos, { align: 'right' });
-      yPos += 5;
+      // Alternating row colors
+      if (index % 2 === 1) {
+        doc.setFillColor(250, 250, 250);
+        doc.rect(15, yPos, 180, 8, 'F');
+      }
+      
+      // Item data
+      const productName = item.name.length > 55 ? item.name.substring(0, 55) + '...' : item.name;
+      doc.text(productName, 18, yPos + 5.5);
+      doc.text(item.quantity.toString(), 133, yPos + 5.5, { align: 'center' });
+      doc.text(parseFloat(item.price).toFixed(2), 165, yPos + 5.5, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text(parseFloat(item.total).toFixed(2), 190, yPos + 5.5, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      
+      yPos += 8;
     });
     
-    // Line after items
-    yPos += 1;
+    // Separator line
+    doc.setLineWidth(0.5);
     doc.line(15, yPos, 195, yPos);
+    yPos += 8;
     
     // ========================================
-    // TOTALS SECTION
+    // TOTALS SECTION - Clean & Clear
     // ========================================
-    yPos += 6;
-    doc.setFontSize(9);
+    
+    doc.setFontSize(11);
     
     // Subtotal
-    doc.setFont(undefined, 'normal');
-    doc.text('Subtotal:', 140, yPos);
-    doc.text(`₹${(billData.subtotal || previewData?.subtotal || billData.total_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
-    yPos += 5;
+    doc.setFont('helvetica', 'normal');
+    doc.text('Subtotal:', 130, yPos);
+    doc.setFont('helvetica', 'bold');
+    doc.text((billData.subtotal || previewData?.subtotal || billData.total_amount).toFixed(2), 190, yPos, { align: 'right' });
+    yPos += 7;
     
     // GST (if applicable)
     if (billData.gst_amount && billData.gst_percentage) {
-      doc.text(`GST (${billData.gst_percentage}%):`, 140, yPos);
-      doc.text(`₹${parseFloat(billData.gst_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
-      yPos += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.text(`GST (${billData.gst_percentage}%):`, 130, yPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(parseFloat(billData.gst_amount).toFixed(2), 190, yPos, { align: 'right' });
+      yPos += 7;
     }
     
     // Discount (if applicable)
     if (billData.discount_amount && billData.discount_value) {
+      doc.setFont('helvetica', 'normal');
       const discountLabel = billData.discount_type === 'percentage' 
-        ? `Discount (${billData.discount_value}%)` 
-        : `Discount`;
-      doc.setTextColor(200, 0, 0);
-      doc.text(`${discountLabel}:`, 140, yPos);
-      doc.text(`-₹${parseFloat(billData.discount_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
-      doc.setTextColor(0, 0, 0);
-      yPos += 5;
+        ? `Discount (${billData.discount_value}%):` 
+        : `Discount:`;
+      doc.text(discountLabel, 130, yPos);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`-${parseFloat(billData.discount_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
+      yPos += 7;
     }
     
-    // Line before grand total
-    doc.setLineWidth(0.5);
-    doc.line(140, yPos, 195, yPos);
-    yPos += 6;
+    // Separator line
+    doc.setLineWidth(0.8);
+    doc.line(130, yPos, 195, yPos);
+    yPos += 7;
     
-    // Grand Total (Bold, larger)
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(11);
-    doc.text('Total Amount:', 140, yPos);
-    doc.text(`₹${parseFloat(billData.total_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
+    // Grand Total - Highlighted
+    doc.setFillColor(240, 240, 240);
+    doc.rect(130, yPos - 5, 65, 10, 'F');
+    
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('GRAND TOTAL:', 133, yPos);
+    doc.setFontSize(14);
+    doc.text(parseFloat(billData.total_amount).toFixed(2), 190, yPos, { align: 'right' });
+
+    
+    yPos += 12;
     
     // ========================================
     // AMOUNT IN WORDS
     // ========================================
-    yPos += 8;
-    doc.setFontSize(8);
-    doc.setFont(undefined, 'italic');
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Amount in Words:', 15, yPos);
+    
+    doc.setFont('helvetica', 'normal');
     const amountInWords = numberToWords(billData.total_amount);
-    doc.text(`Amount in words: ${amountInWords}`, 15, yPos);
+    doc.text(amountInWords.toUpperCase(), 15, yPos + 6);
+    
+    yPos += 15;
     
     // ========================================
-    // PAYMENT DETAILS
+    // PAYMENT DETAILS & SIGNATURE
     // ========================================
-    yPos += 8;
-    doc.setFont(undefined, 'bold');
-    doc.setFontSize(9);
-    doc.text('Payment Mode:', 15, yPos);
-    yPos += 5;
     
-    doc.setFont(undefined, 'normal');
-    doc.setFontSize(8);
-    (billData.payments || paymentData.payments).forEach(payment => {
-      doc.text(`${payment.mode.toUpperCase()}:`, 20, yPos);
-      doc.text(`₹${parseFloat(payment.amount).toFixed(2)}`, 60, yPos, { align: 'right' });
-      yPos += 4;
+    // Payment Details - Left side
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Payment Details:', 15, yPos);
+    yPos += 6;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    (billData.payments || []).forEach(payment => {
+      doc.text(`${payment.mode.toUpperCase()}: ₹${parseFloat(payment.amount).toFixed(2)}`, 15, yPos);
+      yPos += 5;
     });
     
-    // ========================================
-    // FOOTER SECTION
-    // ========================================
+    // Signature - Right side
+    const signYPos = yPos - 15;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('For ' + (shop?.shop_name?.toUpperCase() || 'YOUR SHOP'), 150, signYPos);
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Authorized Signatory', 150, signYPos + 15);
+    
     yPos += 10;
     
-    // Terms and conditions
-    doc.setFontSize(7);
-    doc.setFont(undefined, 'italic');
-    doc.text('Terms and Conditions:', 15, yPos);
-    yPos += 4;
-    doc.text('1. Goods once sold will not be taken back.', 15, yPos);
-    yPos += 3;
-    doc.text('2. Subject to local jurisdiction.', 15, yPos);
-    
-    // Signature section (right side)
-    doc.setFont(undefined, 'bold');
-    doc.text('For ' + (shop?.shop_name || 'Your Shop Name'), 140, yPos - 7);
-    yPos += 10;
-    doc.setFont(undefined, 'normal');
-    doc.text('Authorized Signatory', 140, yPos);
-    
-    // Bottom line
-    yPos += 5;
+    // ========================================
+    // TERMS & CONDITIONS
+    // ========================================
     doc.setLineWidth(0.3);
     doc.line(15, yPos, 195, yPos);
+    yPos += 5;
     
-    // Thank you message
-    yPos += 4;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.text('Terms & Conditions:', 15, yPos);
+    yPos += 5;
+    
+    doc.setFont('helvetica', 'normal');
     doc.setFontSize(8);
-    doc.setFont(undefined, 'italic');
+    doc.text('• Goods once sold will not be taken back', 15, yPos);
+    yPos += 4;
+    doc.text('• Subject to local jurisdiction', 15, yPos);
+    yPos += 8;
+    
+    // ========================================
+    // FOOTER
+    // ========================================
+    doc.setLineWidth(0.3);
+    doc.line(15, yPos, 195, yPos);
+    yPos += 5;
+    
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
     doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
     
-    // Computer generated invoice note
-    yPos += 3;
-    doc.setFontSize(6);
-    doc.text('This is a computer generated invoice', 105, yPos, { align: 'center' });
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'italic');
+    doc.text('This is a computer-generated bill', 105, yPos + 4, { align: 'center' });
     
     // Save PDF
-    doc.save(`Invoice_${billData.id || Date.now()}.pdf`);
+    doc.save(`Bill_${billData.id || Date.now()}.pdf`);
   };
 
   // Helper function to convert number to words (Indian format)
@@ -1133,16 +1165,17 @@ const Billing = () => {
 
   // ✅ Calculate discount amount
   const calculateDiscountAmount = () => {
-    if (!discountEnabled || discountValue === 0) return 0;
+    const discountVal = parseFloat(discountValue) || 0;
+    if (!discountEnabled || discountVal === 0) return 0;
     
     const subtotal = calculateTotal();
     const gstAmount = gstEnabled ? (subtotal * gstPercentage) / 100 : 0;
     const totalBeforeDiscount = subtotal + gstAmount;
     
     if (discountType === 'percentage') {
-      return (totalBeforeDiscount * discountValue) / 100;
+      return (totalBeforeDiscount * discountVal) / 100;
     } else {
-      return discountValue;
+      return discountVal;
     }
   };
 
@@ -1165,22 +1198,22 @@ const Billing = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4 sm:space-y-6 px-4 sm:px-6">
+      {/* Header - Premium Design */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 p-6 rounded-2xl border-2 border-indigo-200 dark:border-indigo-800 shadow-lg">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
             {t('billing.title')}
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 font-medium">
             {t('billing.subtitle')}
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-4 sm:px-6 py-2 sm:py-3 rounded-xl border border-emerald-200 dark:border-emerald-800">
-          <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+        <div className="flex items-center gap-4 bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 px-6 py-4 rounded-xl shadow-xl border-2 border-indigo-400 dark:border-indigo-800">
+          <ShoppingCart className="w-6 h-6 text-white" />
           <div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{t('billing.itemsInCart')}</p>
-            <p className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100">{selectedItems.length}</p>
+            <p className="text-xs text-white/90 font-semibold uppercase tracking-wide">{t('billing.itemsInCart')}</p>
+            <p className="text-2xl font-black text-white">{selectedItems.length}</p>
           </div>
         </div>
       </div>
@@ -1188,15 +1221,15 @@ const Billing = () => {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         {/* Products List */}
         <div className="xl:col-span-2 space-y-4 sm:space-y-6">
-          {/* Search */}
+          {/* Search - Premium Design */}
           <div className="relative">
-            <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-500 dark:text-indigo-400" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-sm sm:text-base"
+              className="w-full pl-12 pr-4 py-3.5 bg-gradient-to-br from-white to-indigo-50 dark:from-gray-800 dark:to-indigo-900/20 border-2 border-indigo-300 dark:border-indigo-700 rounded-xl focus:ring-4 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-base font-medium shadow-lg placeholder-gray-500 dark:placeholder-gray-400"
             />
           </div>
 
@@ -1359,7 +1392,7 @@ const Billing = () => {
               <button
                 onClick={() => setGstEnabled(!gstEnabled)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  gstEnabled ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'
+                  gstEnabled ? 'bg-indigo-600' : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               >
                 <span
@@ -1385,9 +1418,9 @@ const Billing = () => {
                     min="0"
                     max="28"
                     step="0.1"
-                    className="flex-1 px-3 py-2 border border-green-300 dark:border-green-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    className="flex-1 px-4 py-3 border-2 border-indigo-400 dark:border-indigo-500 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-indigo-600 dark:focus:border-indigo-400 font-bold text-lg shadow-lg transition-all"
                   />
-                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">%</span>
+                  <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">%</span>
                 </div>
                 {selectedItems.length > 0 && (
                   <div className="bg-white dark:bg-secondary-800 rounded-lg p-3 space-y-1 text-sm">
@@ -1467,29 +1500,34 @@ const Billing = () => {
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
-                    placeholder={discountType === 'percentage' ? 'Discount %' : 'Discount Amount'}
+                    placeholder={discountType === 'percentage' ? 'Enter discount %' : 'Enter discount amount'}
                     value={discountValue}
                     onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 0;
+                      const inputValue = e.target.value;
+                      if (inputValue === '') {
+                        setDiscountValue('');
+                        return;
+                      }
+                      const value = parseFloat(inputValue) || 0;
                       if (discountType === 'percentage' && value > 100) return;
                       const maxDiscount = gstEnabled 
                         ? calculateTotal() + (calculateTotal() * gstPercentage) / 100 
                         : calculateTotal();
                       if (discountType === 'fixed' && value > maxDiscount) return;
-                      setDiscountValue(value);
+                      setDiscountValue(inputValue);
                     }}
                     min="0"
                     max={discountType === 'percentage' ? '100' : (gstEnabled ? calculateTotal() + (calculateTotal() * gstPercentage) / 100 : calculateTotal())}
                     step={discountType === 'percentage' ? '1' : '0.01'}
-                    className="flex-1 px-3 py-2 border border-orange-300 dark:border-orange-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm sm:text-base"
+                    className="flex-1 px-4 py-3 border-2 border-orange-400 dark:border-orange-500 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-orange-400 dark:focus:ring-orange-600 focus:border-orange-600 dark:focus:border-orange-400 font-bold text-lg shadow-lg transition-all"
                   />
-                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400">
+                  <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
                     {discountType === 'percentage' ? '%' : '₹'}
                   </span>
                 </div>
 
                 {/* Discount Preview */}
-                {selectedItems.length > 0 && discountValue > 0 && (
+                {selectedItems.length > 0 && discountValue && parseFloat(discountValue) > 0 && (
                   <div className="bg-white dark:bg-secondary-800 rounded-lg p-3 space-y-1 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
@@ -1714,8 +1752,8 @@ const Billing = () => {
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-gray-50 dark:bg-gray-900">
               
-              {/* Total Amount Display - Premium Design */}
-              <div className="text-center p-8 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 dark:from-emerald-600 dark:via-teal-600 dark:to-cyan-700 rounded-2xl shadow-2xl border-2 border-emerald-300 dark:border-emerald-800">
+              {/* Total Amount Display - Indigo/Purple Theme */}
+              <div className="text-center p-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700 rounded-2xl shadow-2xl border-2 border-indigo-400 dark:border-indigo-800">
                 <p className="text-sm text-white/90 font-bold mb-2 tracking-wide uppercase">Total Amount</p>
                 <p className="text-6xl font-black text-white drop-shadow-2xl tracking-tight">
                   ₹{previewData.total_amount}
@@ -1750,24 +1788,29 @@ const Billing = () => {
                   Paid Amount (₹)
                 </label>
                 <input
-                  type="number"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                   value={paidAmount}
                   onChange={(e) => {
                     const inputValue = e.target.value;
+                    // Allow only numbers and decimal point
+                    if (inputValue !== '' && !/^\d*\.?\d*$/.test(inputValue)) {
+                      return;
+                    }
                     setPaidAmount(inputValue);
-                    
-                    // Only calculate due if input is not empty
-                    if (inputValue === '' || inputValue === null) {
+                  }}
+                  onBlur={() => {
+                    // Calculate due amount only on blur (when user finishes typing)
+                    if (paidAmount === '' || paidAmount === null) {
                       setDueAmount('');
                     } else {
-                      const paid = parseFloat(inputValue) || 0;
+                      const paid = parseFloat(paidAmount) || 0;
                       const due = Math.max(0, previewData.total_amount - paid);
-                      setDueAmount(due.toString());
+                      setDueAmount(due.toFixed(2));
                     }
                   }}
                   placeholder="Enter paid amount"
-                  className="w-full px-4 py-3 border-2 border-emerald-400 dark:border-emerald-500 rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-emerald-400 dark:focus:ring-emerald-600 focus:border-emerald-600 dark:focus:border-emerald-400 font-bold text-xl shadow-lg transition-all"
+                  className="w-full px-4 py-3 border-2 border-indigo-400 dark:border-indigo-500 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-indigo-600 dark:focus:border-indigo-400 font-bold text-xl shadow-lg transition-all"
                 />
               </div>
 
@@ -1777,20 +1820,25 @@ const Billing = () => {
                   Due Amount (₹)
                 </label>
                 <input
-                  type="number"
-                  step="any"
+                  type="text"
+                  inputMode="decimal"
                   value={dueAmount}
                   onChange={(e) => {
                     const inputValue = e.target.value;
+                    // Allow only numbers and decimal point
+                    if (inputValue !== '' && !/^\d*\.?\d*$/.test(inputValue)) {
+                      return;
+                    }
                     setDueAmount(inputValue);
-                    
-                    // Only calculate paid if input is not empty
-                    if (inputValue === '' || inputValue === null) {
+                  }}
+                  onBlur={() => {
+                    // Calculate paid amount only on blur (when user finishes typing)
+                    if (dueAmount === '' || dueAmount === null) {
                       setPaidAmount('');
                     } else {
-                      const due = parseFloat(inputValue) || 0;
+                      const due = parseFloat(dueAmount) || 0;
                       const paid = Math.max(0, previewData.total_amount - due);
-                      setPaidAmount(paid.toString());
+                      setPaidAmount(paid.toFixed(2));
                     }
                   }}
                   placeholder="Enter due amount"
