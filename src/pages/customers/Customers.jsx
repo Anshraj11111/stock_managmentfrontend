@@ -91,64 +91,128 @@ const Customers = () => {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Phone
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Address
-                  </th>
-                  <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Total Due
-                  </th>
-                  <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-secondary-200 dark:divide-secondary-800">
-                {filteredCustomers.map((customer) => (
-                  <tr
-                    key={customer.id}
-                    className="hover:bg-gray-50 dark:hover:bg-secondary-800 transition-colors"
-                  >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                          {customer.name.charAt(0).toUpperCase()}
+          <>
+            {/* Desktop Table View - Hidden on Mobile */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Phone
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Address
+                    </th>
+                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Total Due
+                    </th>
+                    <th className="px-6 py-4 text-center text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-secondary-200 dark:divide-secondary-800">
+                  {filteredCustomers.map((customer) => (
+                    <tr
+                      key={customer.id}
+                      className="hover:bg-gray-50 dark:hover:bg-secondary-800 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                            {customer.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-secondary-900 dark:text-secondary-100">
+                              {customer.name}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Since {new Date(customer.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-secondary-900 dark:text-secondary-100">
-                            {customer.name}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Since {new Date(customer.createdAt).toLocaleDateString()}
-                          </p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <Phone className="w-4 h-4 text-gray-400" />
+                          {customer.phone}
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <Phone className="w-4 h-4 text-gray-400" />
-                        {customer.phone}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                        <MapPin className="w-4 h-4 text-gray-400" />
-                        <span className="truncate max-w-xs">
-                          {customer.address || 'N/A'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                          <MapPin className="w-4 h-4 text-gray-400" />
+                          <span className="truncate max-w-xs">
+                            {customer.address || 'N/A'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg font-semibold ${
+                          parseFloat(customer.total_due) > 0
+                            ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                            : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        }`}>
+                          <IndianRupee className="w-4 h-4" />
+                          {parseFloat(customer.total_due).toFixed(2)}
                         </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg font-semibold ${
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => viewCustomerDetails(customer.id)}
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View - Visible on Mobile Only */}
+            <div className="md:hidden divide-y divide-secondary-200 dark:divide-secondary-800">
+              {filteredCustomers.map((customer) => (
+                <div
+                  key={customer.id}
+                  className="p-4 hover:bg-gray-50 dark:hover:bg-secondary-800 transition-colors"
+                >
+                  {/* Customer Header */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                      {customer.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-base text-secondary-900 dark:text-secondary-100">
+                        {customer.name}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        Since {new Date(customer.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Customer Details */}
+                  <div className="space-y-2 mb-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span>{customer.phone}</span>
+                    </div>
+                    <div className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                      <MapPin className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                      <span className="break-words">{customer.address || 'N/A'}</span>
+                    </div>
+                  </div>
+
+                  {/* Due Amount & Action */}
+                  <div className="flex items-center justify-between gap-3 pt-3 border-t border-secondary-200 dark:border-secondary-700">
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Due</p>
+                      <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-bold text-sm ${
                         parseFloat(customer.total_due) > 0
                           ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                           : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
@@ -156,21 +220,19 @@ const Customers = () => {
                         <IndianRupee className="w-4 h-4" />
                         {parseFloat(customer.total_due).toFixed(2)}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => viewCustomerDetails(customer.id)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                    <button
+                      onClick={() => viewCustomerDetails(customer.id)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg text-sm"
+                    >
+                      <Eye className="w-4 h-4" />
+                      View
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 

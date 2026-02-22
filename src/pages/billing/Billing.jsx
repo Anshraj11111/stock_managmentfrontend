@@ -662,6 +662,14 @@ const Billing = () => {
         total: product.selling_price,
       }]);
     }
+    
+    // Auto-scroll to preview bill section
+    setTimeout(() => {
+      const previewSection = document.getElementById('preview-bill-section');
+      if (previewSection) {
+        previewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
   };
 
   const updateQuantity = (productId, newQuantity) => {
@@ -1564,7 +1572,7 @@ const Billing = () => {
           </div>
 
           {/* Current Bill */}
-          <div className="bg-white dark:bg-secondary-900 rounded-xl sm:rounded-2xl border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 sticky top-4 sm:top-20">
+          <div id="preview-bill-section" className="bg-white dark:bg-secondary-900 rounded-xl sm:rounded-2xl border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 sticky top-4 sm:top-20">
             <h2 className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
               <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
               {t('billing.currentBill')}
@@ -1752,10 +1760,10 @@ const Billing = () => {
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-gray-50 dark:bg-gray-900">
               
-              {/* Total Amount Display - Indigo/Purple Theme */}
-              <div className="text-center p-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700 rounded-2xl shadow-2xl border-2 border-indigo-400 dark:border-indigo-800">
-                <p className="text-sm text-white/90 font-bold mb-2 tracking-wide uppercase">Total Amount</p>
-                <p className="text-6xl font-black text-white drop-shadow-2xl tracking-tight">
+              {/* Total Amount Display - Indigo/Purple Theme - Mobile Responsive */}
+              <div className="text-center p-4 sm:p-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-700 dark:via-purple-700 dark:to-pink-700 rounded-2xl shadow-2xl border-2 border-indigo-400 dark:border-indigo-800">
+                <p className="text-xs sm:text-sm text-white/90 font-bold mb-1 sm:mb-2 tracking-wide uppercase">Total Amount</p>
+                <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white drop-shadow-2xl tracking-tight break-all">
                   ₹{previewData.total_amount}
                 </p>
               </div>
