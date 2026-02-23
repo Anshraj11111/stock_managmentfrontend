@@ -458,7 +458,7 @@ const Settings = () => {
           {/* Terms and Conditions Section */}
           <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
             <h3 className="text-md font-semibold mb-4 text-secondary-900 dark:text-secondary-100">
-              Invoice Terms and Conditions
+              Bill & Invoice Terms and Conditions
             </h3>
             <div>
               <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
@@ -467,15 +467,30 @@ const Settings = () => {
               <textarea
                 name="terms_and_conditions"
                 value={shopData.terms_and_conditions}
-                onChange={handleChange}
+                onChange={(e) => {
+                  if (!isOwner) return;
+                  // ✅ Added: Input validation for terms & conditions
+                  const value = e.target.value;
+                  if (value.length <= 2000) {
+                    setShopData({ ...shopData, terms_and_conditions: value });
+                  } else {
+                    toast.error('Terms & conditions cannot exceed 2000 characters');
+                  }
+                }}
                 disabled={!isOwner}
                 rows="5"
+                maxLength="2000"
                 placeholder="Enter terms and conditions (e.g., Subject to Maharashtra Jurisdiction, Goods once sold will not be taken back, etc.)"
                 className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg disabled:bg-secondary-100 dark:disabled:bg-secondary-800 disabled:cursor-not-allowed focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
               />
-              <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
-                These terms will be printed at the bottom of all invoices. Use line breaks for multiple points.
-              </p>
+              <div className="flex justify-between items-center mt-1">
+                <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                  These terms will be printed at the bottom of all bills and invoices. Use line breaks for multiple points.
+                </p>
+                <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                  {shopData.terms_and_conditions.length}/2000
+                </p>
+              </div>
             </div>
           </div>
 

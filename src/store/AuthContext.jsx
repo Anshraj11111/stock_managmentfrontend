@@ -123,9 +123,10 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
+        console.log("Decoded token:", decoded); // Debug log
         setUser(decoded);
       } catch (err) {
-        console.error("Invalid token");
+        console.error("Invalid token:", err);
         localStorage.removeItem("token");
       }
     }

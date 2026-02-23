@@ -860,16 +860,16 @@ const Billing = () => {
     // CLEAN PROFESSIONAL HEADER
     // ========================================
     
-    // Company Name - Large, Bold, Black
+    // Company Name - Large, Bold, Professional Font
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(22);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold'); // ✅ Changed to Times for more professional look
     doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, yPos, { align: 'center' });
     yPos += 8;
     
     // Tagline
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal'); // ✅ Changed to Times
     doc.text('Quality Products & Excellent Service', 105, yPos, { align: 'center' });
     yPos += 6;
     
@@ -902,17 +902,17 @@ const Billing = () => {
     
     // Bill Number
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold'); // ✅ Professional font
     doc.text('Bill No:', 15, yPos);
     doc.setFontSize(13);
     doc.text(`#${billData.id || 'N/A'}`, 40, yPos);
     
     // Date - Right aligned
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold'); // ✅ Professional font
     doc.text('Date:', 150, yPos);
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal'); // ✅ Professional font
     doc.text(new Date().toLocaleDateString('en-IN', { 
       day: '2-digit', 
       month: 'short', 
@@ -927,15 +927,17 @@ const Billing = () => {
     
     if (billData.customer && (billData.customer.name || billData.customer.phone)) {
       doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bold'); // ✅ Professional font
       doc.text('Customer:', 15, yPos);
       
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal'); // ✅ Professional font
       doc.text(billData.customer.name || 'Walk-in Customer', 40, yPos);
       
+      // ✅ Fixed: Move phone to next line, aligned under date
       if (billData.customer.phone) {
-        doc.text(`Phone: ${billData.customer.phone}`, 120, yPos);
+        yPos += 5; // Move to next line
+        doc.text(`Phone: ${billData.customer.phone}`, 150, yPos); // Align under date
       }
       
       yPos += 8;
@@ -955,7 +957,7 @@ const Billing = () => {
     doc.rect(15, yPos, 180, 8, 'F');
     
     doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold'); // ✅ Professional font
     doc.setFontSize(10);
     doc.text('Product / Service', 18, yPos + 5.5);
     doc.text('Qty', 130, yPos + 5.5);
@@ -965,7 +967,7 @@ const Billing = () => {
     yPos += 8;
     
     // Items rows
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal'); // ✅ Professional font
     doc.setFontSize(10);
     
     (billData.items || previewData?.items || []).forEach((item, index) => {
@@ -986,9 +988,9 @@ const Billing = () => {
       doc.text(productName, 18, yPos + 5.5);
       doc.text(item.quantity.toString(), 133, yPos + 5.5, { align: 'center' });
       doc.text(parseFloat(item.price).toFixed(2), 165, yPos + 5.5, { align: 'right' });
-      doc.setFont('helvetica', 'bold');
-      doc.text(parseFloat(item.total).toFixed(2), 190, yPos + 5.5, { align: 'right' });
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'bold'); // ✅ Professional font
+      doc.text(parseFloat(item.total).toFixed(2), 192, yPos + 5.5, { align: 'right' }); // ✅ Moved right for better alignment
+      doc.setFont('times', 'normal'); // ✅ Professional font
       
       yPos += 8;
     });
@@ -1005,30 +1007,30 @@ const Billing = () => {
     doc.setFontSize(11);
     
     // Subtotal
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal'); // ✅ Professional font
     doc.text('Subtotal:', 130, yPos);
-    doc.setFont('helvetica', 'bold');
-    doc.text((billData.subtotal || previewData?.subtotal || billData.total_amount).toFixed(2), 190, yPos, { align: 'right' });
+    doc.setFont('times', 'bold'); // ✅ Professional font
+    doc.text((billData.subtotal || previewData?.subtotal || billData.total_amount).toFixed(2), 192, yPos, { align: 'right' }); // ✅ Moved right for better alignment
     yPos += 7;
     
     // GST (if applicable)
     if (billData.gst_amount && billData.gst_percentage) {
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal'); // ✅ Professional font
       doc.text(`GST (${billData.gst_percentage}%):`, 130, yPos);
-      doc.setFont('helvetica', 'bold');
-      doc.text(parseFloat(billData.gst_amount).toFixed(2), 190, yPos, { align: 'right' });
+      doc.setFont('times', 'bold'); // ✅ Professional font
+      doc.text(parseFloat(billData.gst_amount).toFixed(2), 192, yPos, { align: 'right' }); // ✅ Moved right for better alignment
       yPos += 7;
     }
     
     // Discount (if applicable)
     if (billData.discount_amount && billData.discount_value) {
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('times', 'normal'); // ✅ Professional font
       const discountLabel = billData.discount_type === 'percentage' 
         ? `Discount (${billData.discount_value}%):` 
         : `Discount:`;
       doc.text(discountLabel, 130, yPos);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`-${parseFloat(billData.discount_amount).toFixed(2)}`, 190, yPos, { align: 'right' });
+      doc.setFont('times', 'bold'); // ✅ Professional font
+      doc.text(`-${parseFloat(billData.discount_amount).toFixed(2)}`, 192, yPos, { align: 'right' }); // ✅ Moved right for better alignment
       yPos += 7;
     }
     
@@ -1037,15 +1039,18 @@ const Billing = () => {
     doc.line(130, yPos, 195, yPos);
     yPos += 7;
     
-    // Grand Total - Highlighted
+    // Grand Total - Highlighted with proper alignment and professional font
     doc.setFillColor(240, 240, 240);
-    doc.rect(130, yPos - 5, 65, 10, 'F');
+    doc.rect(125, yPos - 5, 70, 10, 'F'); // ✅ Made box wider and moved left
     
     doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
-    doc.text('GRAND TOTAL:', 133, yPos);
+    doc.setFont('times', 'bold'); // ✅ Professional font
+    doc.text('GRAND TOTAL:', 128, yPos); // ✅ Moved text left to give more space
     doc.setFontSize(14);
-    doc.text(parseFloat(billData.total_amount).toFixed(2), 190, yPos, { align: 'right' });
+    doc.setFont('times', 'bold'); // ✅ Ensure consistent font
+    // ✅ Fixed: Better right alignment with more space for large numbers, removed potential character issues
+    const grandTotalText = '₹' + parseFloat(billData.total_amount).toFixed(2);
+    doc.text(grandTotalText, 192, yPos, { align: 'right' }); // ✅ Moved further right
 
     
     yPos += 12;
@@ -1054,62 +1059,89 @@ const Billing = () => {
     // AMOUNT IN WORDS
     // ========================================
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold'); // ✅ Professional font
     doc.text('Amount in Words:', 15, yPos);
     
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal'); // ✅ Professional font
     const amountInWords = numberToWords(billData.total_amount);
     doc.text(amountInWords.toUpperCase(), 15, yPos + 6);
     
     yPos += 15;
     
     // ========================================
-    // PAYMENT DETAILS & SIGNATURE
+    // PAYMENT DETAILS & SIGNATURE - Fixed Layout
     // ========================================
     
-    // Payment Details - Left side
+    const paymentStartY = yPos;
+    
+    // Payment Details - Left side with better alignment and professional fonts
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold'); // ✅ Professional font
     doc.text('Payment Details:', 15, yPos);
     yPos += 6;
     
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal'); // ✅ Professional font
     (billData.payments || []).forEach(payment => {
-      doc.text(`${payment.mode.toUpperCase()}: ₹${parseFloat(payment.amount).toFixed(2)}`, 15, yPos);
+      // ✅ Fixed: Better alignment for payment details, clean formatting
+      const paymentMode = payment.mode.toUpperCase();
+      const paymentAmount = '₹' + parseFloat(payment.amount).toFixed(2);
+      
+      doc.text(paymentMode + ':', 15, yPos); // Clean colon formatting
+      doc.text(paymentAmount, 60, yPos); // ✅ Fixed position for amount alignment
       yPos += 5;
     });
     
-    // Signature - Right side
-    const signYPos = yPos - 15;
+    // Signature - Right side (aligned with payment details)
+    const signYPos = paymentStartY;
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('For ' + (shop?.shop_name?.toUpperCase() || 'YOUR SHOP'), 150, signYPos);
+    doc.setFont('times', 'bold'); // ✅ Professional font
+    doc.text('For ' + (shop?.shop_name?.toUpperCase() || 'YOUR SHOP'), 130, signYPos);
+    
+    // Add signature image if available
+    if (shop?.signature_image) {
+      try {
+        doc.addImage(shop.signature_image, 'PNG', 130, signYPos + 5, 30, 10);
+      } catch (error) {
+        console.error('Failed to add signature image:', error);
+      }
+    }
     
     doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Authorized Signatory', 150, signYPos + 15);
+    doc.setFont('times', 'normal'); // ✅ Professional font
+    doc.text('Authorized Signatory', 130, signYPos + 20);
     
-    yPos += 10;
+    // Ensure consistent bottom spacing
+    yPos = Math.max(yPos, signYPos + 25);
     
     // ========================================
-    // TERMS & CONDITIONS
+    // TERMS & CONDITIONS - Dynamic from Settings
     // ========================================
     doc.setLineWidth(0.3);
     doc.line(15, yPos, 195, yPos);
     yPos += 5;
     
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold'); // ✅ Professional font
     doc.setFontSize(9);
     doc.text('Terms & Conditions:', 15, yPos);
     yPos += 5;
     
-    doc.setFont('helvetica', 'normal');
+    doc.setFont('times', 'normal'); // ✅ Professional font
     doc.setFontSize(8);
-    doc.text('• Goods once sold will not be taken back', 15, yPos);
+    
+    // ✅ Fixed: Use dynamic terms & conditions from shop settings
+    const termsText = shop?.terms_and_conditions || 
+      'Goods once sold will not be taken back\nSubject to local jurisdiction';
+    
+    const termsLines = termsText.split('\n');
+    termsLines.forEach((line, index) => {
+      if (line.trim()) {
+        doc.text(`• ${line.trim()}`, 15, yPos);
+        yPos += 4;
+      }
+    });
+    
     yPos += 4;
-    doc.text('• Subject to local jurisdiction', 15, yPos);
-    yPos += 8;
     
     // ========================================
     // FOOTER
@@ -1119,11 +1151,11 @@ const Billing = () => {
     yPos += 5;
     
     doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont('times', 'bold'); // ✅ Professional font
     doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
     
     doc.setFontSize(8);
-    doc.setFont('helvetica', 'italic');
+    doc.setFont('times', 'italic'); // ✅ Professional font
     doc.text('This is a computer-generated bill', 105, yPos + 4, { align: 'center' });
     
     // Save PDF

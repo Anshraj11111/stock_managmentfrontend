@@ -38,6 +38,8 @@ const Products = () => {
     stock_unit: 'pieces',
     low_stock_threshold: 10,
     storage_location: '',
+    expiry_date: '',
+    date_added: '', // ✅ Empty by default - owner will set manually
   });
 
   useEffect(() => {
@@ -114,6 +116,8 @@ const Products = () => {
         stock_unit: product.stock_unit || 'pieces',
         low_stock_threshold: product.low_stock_threshold || 10,
         storage_location: product.storage_location || '',
+        expiry_date: product.expiry_date || '',
+        date_added: product.date_added || '', // ✅ Load existing or empty
       });
     } else {
       setEditingProduct(null);
@@ -125,6 +129,8 @@ const Products = () => {
         stock_unit: 'pieces',
         low_stock_threshold: 10,
         storage_location: '',
+        expiry_date: '',
+        date_added: '', // ✅ Empty for new products - owner will set manually
       });
     }
     setShowModal(true);
@@ -289,6 +295,8 @@ const Products = () => {
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.sellingPrice')}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.stock')}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">Storage Location</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">Date Added</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">Expiry Date</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.status')}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.actions')}</th>
               </tr>
@@ -297,7 +305,7 @@ const Products = () => {
             <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="px-6 py-12 text-center">
+                  <td colSpan="9" className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Package className="w-12 h-12 text-secondary-400 dark:text-secondary-600" />
                       <p className="text-lg font-semibold text-secondary-700 dark:text-secondary-300">
@@ -330,6 +338,12 @@ const Products = () => {
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
                         {product.storage_location || '-'}
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
+                        {product.date_added ? new Date(product.date_added).toLocaleDateString('en-GB') : '-'}
+                      </td>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
+                        {product.expiry_date ? new Date(product.expiry_date).toLocaleDateString('en-GB') : '-'}
                       </td>
                       <td className="px-3 sm:px-6 py-3 sm:py-4">
                         <span className={`inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${status.color}`}>
@@ -471,6 +485,42 @@ const Products = () => {
                 />
                 <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
                   Where is this product stored? (Rack/Godown/Section)
+                </p>
+              </div>
+
+              {/* ✅ Expiry Date (Optional) */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                  Expiry Date (Optional)
+                </label>
+                <input
+                  type="date"
+                  value={formData.expiry_date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, expiry_date: e.target.value })
+                  }
+                  className="w-full border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
+                />
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                  ⏰ For products with expiration dates (food, medicine, etc.)
+                </p>
+              </div>
+
+              {/* ✅ Date Added (Optional - Manual Entry - Any Date) */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                  Date Added (Optional)
+                </label>
+                <input
+                  type="date"
+                  value={formData.date_added}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date_added: e.target.value })
+                  }
+                  className="w-full border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
+                />
+                <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                  📅 Optionally select when this product was added to inventory
                 </p>
               </div>
 
