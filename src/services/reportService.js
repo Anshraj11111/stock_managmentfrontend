@@ -17,7 +17,7 @@ export const reportService = {
 
   // Get report by date range
   getReportByDateRange: async (startDate, endDate) => {
-    const response = await api.get('/reports/daily');
+    const response = await api.get(`/reports/date-range?startDate=${startDate}&endDate=${endDate}`);
     return response.data;
   },
 };
