@@ -41,19 +41,20 @@ const AdminShops = () => {
     }
   };
 
-  const handleSuspend = async (id) => {
-    if (!window.confirm('Are you sure you want to suspend this shop?')) {
+  const handleSuspend = async (id, currentSuspendStatus) => {
+    const action = currentSuspendStatus ? 'unsuspend' : 'suspend';
+    if (!window.confirm(`Are you sure you want to ${action} this shop?`)) {
       return;
     }
 
     try {
       const response = await adminService.suspendShop(id);
       if (response.success) {
-        toast.success('Shop suspended successfully');
+        toast.success(response.message || `Shop ${action}ed successfully`);
         fetchShops();
       }
     } catch (error) {
-      toast.error('Failed to suspend shop');
+      toast.error(`Failed to ${action} shop`);
     }
   };
 
@@ -70,7 +71,7 @@ const AdminShops = () => {
   };
 
   const handleExtendTrial = async () => {
-    if (!selectedShop || !extendDays || extendDays <= 0) {
+    if (!selectedShop || extendDays === 0) {
       toast.error('Please enter valid number of days');
       return;
     }
@@ -78,14 +79,18 @@ const AdminShops = () => {
     try {
       const response = await adminService.extendTrial(selectedShop.id, extendDays);
       if (response.success) {
-        toast.success(`Trial extended by ${extendDays} days`);
+        if (extendDays > 0) {
+          toast.success(`Trial extended by ${extendDays} days`);
+        } else {
+          toast.success(`Trial reduced by ${Math.abs(extendDays)} days`);
+        }
         setShowExtendModal(false);
         setSelectedShop(null);
         setExtendDays(30);
         fetchShops();
       }
     } catch (error) {
-      toast.error('Failed to extend trial');
+      toast.error('Failed to update trial period');
     }
   };
 
@@ -293,9 +298,13 @@ const AdminShops = () => {
                               <Clock className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => handleSuspend(shop.id)}
-                              className="p-2 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                              title="Suspend"
+                              onClick={() => handleSuspend(shop.id, shop.isSuspended)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                shop.isSuspended
+                                  ? 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                                  : 'text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+                              }`}
+                              title={shop.isSuspended ? 'Unsuspend' : 'Suspend'}
                             >
                               <Ban className="w-4 h-4" />
                             </button>
@@ -414,27 +423,80 @@ const AdminShops = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl max-w-md w-full p-6">
             <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-4">
-              Extend Trial Period
+              Manage Trial Period
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
               Shop: <span className="font-semibold text-secondary-900 dark:text-secondary-100">{selectedShop?.shop_name}</span>
             </p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Current Trial End: <span className="font-medium text-secondary-900 dark:text-secondary-100">{formatDate(selectedShop?.trial_end_date)}</span>
+            </p>
+
+            {/* Quick Action Buttons */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-3">
+                Quick Actions
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setExtendDays(7)}
+                  className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium"
+                >
+                  +7 Days
+                </button>
+                <button
+                  onClick={() => setExtendDays(15)}
+                  className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium"
+                >
+                  +15 Days
+                </button>
+                <button
+                  onClick={() => setExtendDays(30)}
+                  className="px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors font-medium"
+                >
+                  +30 Days
+                </button>
+                <button
+                  onClick={() => setExtendDays(60)}
+                  className="px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors font-medium"
+                >
+                  +60 Days
+                </button>
+                <button
+                  onClick={() => setExtendDays(-7)}
+                  className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium"
+                >
+                  -7 Days
+                </button>
+                <button
+                  onClick={() => setExtendDays(-15)}
+                  className="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium"
+                >
+                  -15 Days
+                </button>
+              </div>
+            </div>
+
+            {/* Custom Days Input */}
             <div className="mb-6">
               <label className="block text-sm font-medium text-secondary-900 dark:text-secondary-100 mb-2">
-                Number of Days
+                Custom Days (use negative for reduction)
               </label>
               <div className="relative">
                 <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="number"
                   value={extendDays}
-                  onChange={(e) => setExtendDays(parseInt(e.target.value))}
-                  min="1"
+                  onChange={(e) => setExtendDays(parseInt(e.target.value) || 0)}
                   className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Enter days"
+                  placeholder="Enter days (e.g., 30 or -7)"
                 />
               </div>
+              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                {extendDays > 0 ? `Trial will be extended by ${extendDays} days` : extendDays < 0 ? `Trial will be reduced by ${Math.abs(extendDays)} days` : 'Enter number of days'}
+              </p>
             </div>
+
             <div className="flex gap-3">
               <button
                 onClick={() => {
@@ -448,9 +510,10 @@ const AdminShops = () => {
               </button>
               <button
                 onClick={handleExtendTrial}
-                className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all"
+                disabled={extendDays === 0}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Extend Trial
+                {extendDays > 0 ? 'Extend Trial' : 'Reduce Trial'}
               </button>
             </div>
           </div>

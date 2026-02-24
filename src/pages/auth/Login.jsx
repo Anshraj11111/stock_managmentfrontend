@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,15 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // ✅ Check for trial expired message from sessionStorage
+  useEffect(() => {
+    const loginError = sessionStorage.getItem('loginError');
+    if (loginError) {
+      toast.error(loginError, { duration: 6000 });
+      sessionStorage.removeItem('loginError');
+    }
+  }, []);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -40,7 +49,10 @@ const Login = () => {
     if (result?.success) {
       navigate('/dashboard');
     } else {
-      toast.error("Invalid credentials");
+      // Show specific error message from backend
+      toast.error(result?.error || "Invalid credentials", {
+        duration: 6000, // Show for 6 seconds for trial expired message
+      });
     }
   };
 

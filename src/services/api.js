@@ -32,6 +32,39 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+    
+    // ✅ Handle suspended account (403 with suspended flag)
+    if (error.response?.status === 403 && error.response?.data?.suspended) {
+      // Clear auth data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Show error message
+      const message = error.response.data.message || 'Your account has been suspended.';
+      
+      // Redirect to login with error message
+      window.location.href = '/login';
+      
+      // Store message to show on login page
+      sessionStorage.setItem('loginError', message);
+    }
+    
+    // ✅ Handle trial expiry (403 with trialExpired flag)
+    if (error.response?.status === 403 && error.response?.data?.trialExpired) {
+      // Clear auth data
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Show error message
+      const message = error.response.data.message || 'Trial expired. Please purchase subscription.';
+      
+      // Redirect to login with error message
+      window.location.href = '/login';
+      
+      // Store message to show on login page
+      sessionStorage.setItem('loginError', message);
+    }
+    
     return Promise.reject(error);
   }
 );
