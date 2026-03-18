@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api", // backend port check kar lena
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://stock-managmenta5x.onrender.com/api",
   withCredentials: true,
 });
 
