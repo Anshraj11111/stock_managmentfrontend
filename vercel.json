@@ -4,5 +4,15 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_BASE_URL": "https://stock-managmenta5x.onrender.com/api",
+    "VITE_API_URL": "https://stock-managmenta5x.onrender.com/api"
+  },
+  "build": {
+    "env": {
+      "VITE_API_BASE_URL": "https://stock-managmenta5x.onrender.com/api",
+      "VITE_API_URL": "https://stock-managmenta5x.onrender.com/api"
+    }
+  }
 }
