@@ -1049,7 +1049,7 @@ const Billing = () => {
     doc.setFontSize(14);
     doc.setFont('times', 'bold'); // ✅ Ensure consistent font
     // ✅ Fixed: Better right alignment with more space for large numbers, removed potential character issues
-    const grandTotalText = '₹' + parseFloat(billData.total_amount).toFixed(2);
+    const grandTotalText = 'Rs.' + parseFloat(billData.total_amount).toFixed(2);
     doc.text(grandTotalText, 192, yPos, { align: 'right' }); // ✅ Moved further right
 
     
@@ -1085,7 +1085,7 @@ const Billing = () => {
     (billData.payments || []).forEach(payment => {
       // ✅ Fixed: Better alignment for payment details, clean formatting
       const paymentMode = payment.mode.toUpperCase();
-      const paymentAmount = '₹' + parseFloat(payment.amount).toFixed(2);
+      const paymentAmount = 'Rs.' + parseFloat(payment.amount).toFixed(2);
       
       doc.text(paymentMode + ':', 15, yPos); // Clean colon formatting
       doc.text(paymentAmount, 60, yPos); // ✅ Fixed position for amount alignment

@@ -1,4 +1,4 @@
-import { Menu, LogOut, User, Search, Moon, Sun, MapPin } from "lucide-react";
+import { Menu, LogOut, User, Search, Moon, Sun, MapPin, Settings } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../store/AuthContext";
@@ -173,6 +173,14 @@ const Navbar = ({ onMenuClick }) => {
               </p>
             </div>
           </div>
+
+          <button
+            onClick={() => navigate('/settings')}
+            className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group"
+            title="Settings"
+          >
+            <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
+          </button>
 
           <button
             onClick={logout}
