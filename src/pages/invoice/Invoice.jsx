@@ -314,7 +314,7 @@ const Invoice = () => {
     doc.text('GRAND TOTAL:', 128, yPos);
     doc.setFontSize(14);
     doc.setFont('times', 'bold');
-    const grandTotalText = 'Rs.' + parseFloat(bill.total_amount).toFixed(2);
+    const grandTotalText = parseFloat(bill.total_amount).toFixed(2);
     doc.text(grandTotalText, 192, yPos, { align: 'right' });
     
     yPos += 12;
@@ -366,7 +366,7 @@ const Invoice = () => {
     
     payments.forEach(payment => {
       const paymentMode = payment.mode.toUpperCase();
-      const paymentAmount = 'Rs.' + parseFloat(payment.amount).toFixed(2);
+      const paymentAmount = parseFloat(payment.amount).toFixed(2);
       
       doc.text(paymentMode + ':', 15, yPos);
       doc.text(paymentAmount, 60, yPos);
@@ -699,7 +699,7 @@ const Invoice = () => {
     doc.setFontSize(14);
     doc.setFont('times', 'bold'); // ✅ Ensure consistent font
     // ✅ Fixed: Better right alignment with more space for large numbers, removed potential character issues
-    const grandTotalText = 'Rs.' + parseFloat(bill.total_amount).toFixed(2);
+    const grandTotalText = parseFloat(bill.total_amount).toFixed(2);
     doc.text(grandTotalText, 192, yPos, { align: 'right' }); // ✅ Moved further right
     
     yPos += 12;

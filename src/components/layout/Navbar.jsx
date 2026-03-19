@@ -155,6 +155,15 @@ const Navbar = ({ onMenuClick }) => {
           )}
         </button>
 
+        {/* Settings Icon */}
+        <button
+          onClick={() => navigate('/settings')}
+          className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group"
+          title="Settings"
+        >
+          <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
+        </button>
+
         {/* User menu */}
         <div className="flex items-center gap-3 pl-3 border-l border-secondary-200 dark:border-secondary-700">
           <div className="flex items-center gap-3">
@@ -173,14 +182,6 @@ const Navbar = ({ onMenuClick }) => {
               </p>
             </div>
           </div>
-
-          <button
-            onClick={() => navigate('/settings')}
-            className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
-          </button>
 
           <button
             onClick={logout}
