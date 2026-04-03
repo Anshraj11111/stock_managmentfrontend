@@ -5,7 +5,6 @@ import { PWAProvider } from './store/PWAContext';
 import { Toaster } from 'react-hot-toast';
 import AppRoutes from './routes/AppRoutes';
 import OfflineIndicator from './components/common/OfflineIndicator';
-import InstallPromptModal from './components/common/InstallPromptModal';
 import ScrollToTop from './components/common/ScrollToTop';
 import './index.css';
 
@@ -18,7 +17,6 @@ function App() {
             <ScrollToTop />
             <div className="min-h-screen bg-secondary-50 dark:bg-secondary-950">
               <OfflineIndicator />
-              <InstallPromptModal />
               <AppRoutes />
               <Toaster
                 position="top-right"

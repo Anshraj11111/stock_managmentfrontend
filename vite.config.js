@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'inline', // Changed from 'auto' to 'inline' to avoid registerSW.js 404
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
         name: 'Stock Management SaaS - A5x',
@@ -36,8 +37,11 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
-        // DON'T cache JSON translation files - always fetch fresh
-        globIgnores: ['**/locales/**/*.json'],
+        // DON'T cache JSON translation files or service worker files
+        globIgnores: [
+          '**/locales/**/*.json',
+          '**/node_modules/**/*'
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\/api\/.*/,
@@ -67,12 +71,12 @@ export default defineConfig({
           },
           {
             urlPattern: /\.(?:js|css)$/,
-            handler: 'StaleWhileRevalidate', // Changed from CacheFirst
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'static-assets',
               expiration: {
                 maxEntries: 100,
-                maxAgeSeconds: 24 * 60 * 60 // 1 day instead of 30
+                maxAgeSeconds: 24 * 60 * 60 // 1 day
               }
             }
           }
@@ -85,7 +89,8 @@ export default defineConfig({
       },
       devOptions: {
         enabled: true,
-        type: 'module'
+        type: 'module',
+        navigateFallback: 'index.html'
       }
     })
   ],

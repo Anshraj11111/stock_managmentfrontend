@@ -1,99 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Moon, Sun, Download, X, Smartphone } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../../store/ThemeContext";
 import LanguageSelector from "../../components/common/LanguageSelector";
 import Footer from "../../components/common/Footer";
-import { useState, useEffect } from "react";
-import toast from "react-hot-toast";
 
 const Landing = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
-  const [showInstallPopup, setShowInstallPopup] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
-
-  useEffect(() => {
-    // Show popup after 2 seconds
-    const timer = setTimeout(() => {
-      setShowInstallPopup(true);
-    }, 2000);
-
-    // Capture install prompt event
-    const handleBeforeInstall = (e) => {
-      console.log('✅ beforeinstallprompt event fired!');
-      e.preventDefault();
-      setDeferredPrompt(e);
-      console.log('✅ Install prompt captured and stored');
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    
-    // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('ℹ️ App is already installed');
-    } else {
-      console.log('ℹ️ App is not installed yet');
-    }
-
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-    };
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      // Browser supports install - show native dialog
-      try {
-        // Show the browser's native install prompt
-        await deferredPrompt.prompt();
-        
-        // Wait for the user's response
-        const { outcome } = await deferredPrompt.userChoice;
-        
-        console.log(`User response to install prompt: ${outcome}`);
-        
-        if (outcome === 'accepted') {
-          toast.success('🎉 App is installing...', { duration: 3000 });
-          setShowInstallPopup(false);
-        } else {
-          toast('You can install later from browser menu', { duration: 3000 });
-        }
-        
-        // Clear the deferred prompt
-        setDeferredPrompt(null);
-      } catch (error) {
-        console.error('Error showing install prompt:', error);
-        toast.error('Installation failed. Please try again.');
-      }
-    } else {
-      // Fallback - show instructions for manual installation
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-      const isAndroid = /Android/.test(navigator.userAgent);
-      
-      if (isIOS) {
-        toast('Tap Share button, then "Add to Home Screen"', { 
-          duration: 6000,
-          icon: '📱'
-        });
-      } else if (isAndroid) {
-        toast('Tap menu (⋮) then "Add to Home Screen"', { 
-          duration: 6000,
-          icon: '📱'
-        });
-      } else {
-        toast('Click menu (⋮) then "Install app"', { 
-          duration: 6000,
-          icon: '💻'
-        });
-      }
-      
-      setShowInstallPopup(false);
-    }
-  };
+  // PWA install popup completely disabled - users can install from navbar button
 
   const goToTrial = () => navigate("/signup?plan=trial");
 
@@ -410,101 +327,6 @@ const Landing = () => {
 
       {/* ================= FOOTER ================= */}
       <Footer />
-
-      {/* ================= INSTALL PWA POPUP ================= */}
-      {showInstallPopup && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
-            onClick={() => setShowInstallPopup(false)}
-          />
-
-          {/* Popup Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 50 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ type: "spring", duration: 0.5 }}
-            className="fixed inset-0 z-[101] flex items-center justify-center p-4 pointer-events-none"
-          >
-            <div
-              className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl max-w-md w-full p-8 pointer-events-auto relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setShowInstallPopup(false)}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <X size={20} className="text-gray-500" />
-              </button>
-
-              {/* Icon */}
-              <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-lg">
-                  <Smartphone size={40} className="text-white" />
-                </div>
-              </div>
-
-              {/* Title */}
-              <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-white mb-3">
-                📱 Install StockSaaS App
-              </h2>
-
-              {/* Description */}
-              <p className="text-center text-gray-600 dark:text-gray-400 mb-6">
-                Get instant access! Install our app for faster loading, offline access, and a native app experience.
-              </p>
-
-              {/* Features */}
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                  <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-green-600 dark:text-green-400 font-bold">✓</span>
-                  </div>
-                  <span>⚡ Lightning fast - Works offline</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                  <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-green-600 dark:text-green-400 font-bold">✓</span>
-                  </div>
-                  <span>📱 Native app feel - No app store needed</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                  <div className="w-6 h-6 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                    <span className="text-green-600 dark:text-green-400 font-bold">✓</span>
-                  </div>
-                  <span>🔔 Instant updates - Always latest version</span>
-                </div>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowInstallPopup(false)}
-                  className="flex-1 px-6 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  Maybe Later
-                </button>
-                <button
-                  onClick={handleInstallClick}
-                  className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-                >
-                  <Download size={20} />
-                  Install Now
-                </button>
-              </div>
-
-              {/* Footer Note */}
-              <p className="text-xs text-center text-gray-500 dark:text-gray-500 mt-4">
-                ⚡ Free • Takes 2 seconds • No credit card required
-              </p>
-            </div>
-          </motion.div>
-        </>
-      )}
     </div>
   );
 };

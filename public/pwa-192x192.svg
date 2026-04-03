@@ -1,48 +1,42 @@
-<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background gradient -->
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4F46E5;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#7C3AED;stop-opacity:1" />
-    </linearGradient>
-  </defs>
-  <rect width="192" height="192" fill="url(#grad)"/>
+<svg width="192" height="192" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Black Background -->
+  <rect width="1024" height="1024" fill="#000000"/>
   
   <!-- A5x Logo -->
-  <g transform="translate(96, 96)">
-    <!-- A shape background -->
-    <path d="M-28.799999999999997,-28.799999999999997 L0,-48 L28.799999999999997,-28.799999999999997 L23.04,-7.68 L-23.04,-7.68 Z" 
-          fill="rgba(255,255,255,0.2)"/>
+  <g transform="translate(512, 512)">
+    <!-- Large A with gradient -->
+    <defs>
+      <linearGradient id="aGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#a0a0a0;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#606060;stop-opacity:1" />
+      </linearGradient>
+    </defs>
     
-    <!-- A text -->
-    <text x="0" y="-15.36" 
-          font-family="Arial, sans-serif" 
-          font-size="34.56" 
-          font-weight="bold" 
-          fill="#FFFFFF" 
-          text-anchor="middle" 
-          dominant-baseline="middle">A</text>
+    <!-- Main A shape -->
+    <path d="M-150,-200 L0,-350 L150,-200 L100,-50 L-100,-50 Z" fill="url(#aGradient)" opacity="0.9"/>
     
-    <!-- 5x text -->
-    <text x="0" y="23.04" 
-          font-family="Arial, sans-serif" 
-          font-size="42.24" 
-          font-weight="bold" 
-          fill="#FFFFFF" 
-          text-anchor="middle" 
-          dominant-baseline="middle">5x</text>
+    <!-- Large A letter -->
+    <text x="0" y="-80" font-family="Arial, sans-serif" font-size="280" font-weight="bold" fill="#808080" text-anchor="middle" dominant-baseline="middle">A</text>
     
-    <!-- Decorative circles -->
-    <circle cx="-44.160000000000004" cy="-36.480000000000004" r="4.416" fill="rgba(255,255,255,0.4)"/>
-    <circle cx="44.160000000000004" cy="-36.480000000000004" r="4.416" fill="rgba(255,255,255,0.4)"/>
-    <circle cx="-51.84" cy="28.799999999999997" r="4.416" fill="rgba(255,255,255,0.4)"/>
-    <circle cx="51.84" cy="28.799999999999997" r="4.416" fill="rgba(255,255,255,0.4)"/>
+    <!-- 5x Text with horizontal lines -->
+    <g transform="translate(0, 120)">
+      <!-- Horizontal lines through 5x -->
+      <line x1="-80" y1="-20" x2="80" y2="-20" stroke="#606060" stroke-width="8"/>
+      <line x1="-80" y1="0" x2="80" y2="0" stroke="#606060" stroke-width="8"/>
+      <line x1="-80" y1="20" x2="80" y2="20" stroke="#606060" stroke-width="8"/>
+      
+      <!-- 5x text -->
+      <text x="0" y="0" font-family="Arial, sans-serif" font-size="180" font-weight="bold" fill="#808080" text-anchor="middle" dominant-baseline="middle">5x</text>
+    </g>
     
-    <!-- Orbital ring -->
-    <ellipse cx="0" cy="-7.68" rx="55.67999999999999" ry="67.19999999999999" 
-             fill="none" 
-             stroke="rgba(255,255,255,0.2)" 
-             stroke-width="2.3040000000000003" 
-             stroke-dasharray="5.76,3.84"/>
+    <!-- Orbital Rings -->
+    <ellipse cx="0" cy="-50" rx="280" ry="350" fill="none" stroke="#707070" stroke-width="12" stroke-dasharray="30,15" opacity="0.7"/>
+    
+    <!-- Orbital dots -->
+    <circle cx="-220" cy="-200" r="18" fill="#808080"/>
+    <circle cx="220" cy="-200" r="18" fill="#808080"/>
+    <circle cx="-260" cy="150" r="18" fill="#808080"/>
+    <circle cx="260" cy="150" r="18" fill="#808080"/>
+    <circle cx="0" cy="-380" r="18" fill="#808080"/>
   </g>
 </svg>
