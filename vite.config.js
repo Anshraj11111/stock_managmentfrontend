@@ -22,15 +22,15 @@ export default defineConfig({
         orientation: 'any',
         icons: [
           {
-            src: '/pwa-192x192.svg',
+            src: '/pwa-192X192.jpg',
             sizes: '192x192',
-            type: 'image/svg+xml',
+            type: 'image/jpeg',
             purpose: 'any maskable'
           },
           {
-            src: '/pwa-512x512.svg',
+            src: '/pwa-512X512.jpg',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/jpeg',
             purpose: 'any maskable'
           }
         ]
