@@ -8,28 +8,33 @@ export function PWAProvider({ children }) {
   const [isInstalled, setIsInstalled] = useState(false)
 
   useEffect(() => {
+    console.log('🔧 PWAContext: Initializing...')
+    
+    let promptCaptured = false
+    
     // Listen for beforeinstallprompt event
     const handleBeforeInstall = (e) => {
       e.preventDefault()
-      console.log('beforeinstallprompt event fired')
+      console.log('✅ PWAContext: beforeinstallprompt event fired!')
       setInstallPromptEvent(e)
+      promptCaptured = true
     }
 
     // Listen for successful installation
     const handleAppInstalled = () => {
-      console.log('App installed successfully')
+      console.log('✅ PWAContext: App installed successfully')
       setIsInstalled(true)
       setInstallPromptEvent(null)
     }
 
     // Listen for online/offline events
     const handleOnline = () => {
-      console.log('Network status: online')
+      console.log('🌐 PWAContext: Network status - online')
       setIsOnline(true)
     }
 
     const handleOffline = () => {
-      console.log('Network status: offline')
+      console.log('📴 PWAContext: Network status - offline')
       setIsOnline(false)
     }
 
@@ -40,9 +45,33 @@ export function PWAProvider({ children }) {
     window.addEventListener('offline', handleOffline)
 
     // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('App is running in standalone mode')
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    const isIOSStandalone = window.navigator.standalone === true
+    
+    if (isStandalone || isIOSStandalone) {
+      console.log('ℹ️ PWAContext: App is running in standalone mode (already installed)')
       setIsInstalled(true)
+    } else {
+      console.log('ℹ️ PWAContext: App is NOT installed yet')
+      
+      // Force check after 3 seconds if event hasn't fired
+      setTimeout(() => {
+        if (!promptCaptured && !isStandalone && !isIOSStandalone) {
+          console.warn('⚠️ PWAContext: beforeinstallprompt event did not fire after 3 seconds')
+          console.log('💡 PWAContext: This is normal in some cases. User can still install from browser menu.')
+        }
+      }, 3000)
+    }
+
+    // Check if service worker is registered
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then((registration) => {
+        console.log('✅ PWAContext: Service Worker is ready', registration)
+      }).catch((error) => {
+        console.error('❌ PWAContext: Service Worker error', error)
+      })
+    } else {
+      console.warn('⚠️ PWAContext: Service Worker not supported')
     }
 
     // Cleanup event listeners
