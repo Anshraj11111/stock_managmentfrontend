@@ -197,6 +197,7 @@ const Settings = () => {
               <option value="grocery">{t('settings.grocery')}</option>
               <option value="electronics">{t('settings.electronics')}</option>
               <option value="clothing">{t('settings.clothing')}</option>
+              <option value="clothes">{t('categories.clothes')}</option>
               <option value="pharmacy">{t('settings.pharmacy')}</option>
               <option value="other">{t('settings.other')}</option>
             </select>

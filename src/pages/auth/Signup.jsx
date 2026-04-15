@@ -296,6 +296,7 @@ const Signup = () => {
                 <option value="retail">{t('categories.retail')}</option>
                 <option value="electronics">{t('categories.electronics')}</option>
                 <option value="pharmacy">{t('categories.pharmacy')}</option>
+                <option value="clothes">{t('categories.clothes')}</option>
                 <option value="others">Others</option>
               </select>
             </div>

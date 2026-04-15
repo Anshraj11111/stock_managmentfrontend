@@ -7,10 +7,19 @@ export default function InstallPWA() {
   const { isInstallable, handleInstall } = usePWA()
   const [isLoading, setIsLoading] = useState(false)
 
-  // Don't render if not installable
-  if (!isInstallable) return null
-
+  // Always show button for better UX
   const onInstallClick = async () => {
+    if (!isInstallable) {
+      // Show helpful message for non-installable state
+      toast.error(
+        'App installation not available. Please:\n' +
+        '1. Access via HTTPS (deploy to production), or\n' +
+        '2. Use Chrome menu → Install StockSaaS',
+        { duration: 5000 }
+      )
+      return
+    }
+    
     setIsLoading(true)
     try {
       await handleInstall()
@@ -29,6 +38,7 @@ export default function InstallPWA() {
       disabled={isLoading}
       className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       aria-label="Install app"
+      title={!isInstallable ? 'Click for installation instructions' : 'Install app'}
     >
       <Download size={20} />
       <span>{isLoading ? 'Installing...' : 'Install App'}</span>

@@ -1,27 +1,18 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,jpg,jpeg,svg,woff,woff2}'],
-        cleanupOutdatedCaches: true,
-        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024 // 10 MB limit
-      },
-      includeAssets: ['pwa-192x192.png', 'pwa-512x512.png'],
+      includeAssets: ['apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
-        name: 'Stock Management SaaS - A5x',
-        short_name: 'A5x Stock',
-        description: 'Complete stock and billing management solution',
-        theme_color: '#4F46E5',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/',
+        name: 'StockSaaS',
+        short_name: 'StockSaaS',
+        description: 'Smart Inventory & Billing Platform',
+        theme_color: '#4f46e5',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -34,14 +25,12 @@ export default defineConfig({
             type: 'image/png'
           }
         ]
-      },
-      devOptions: {
-        enabled: true
       }
     })
   ],
-  server: {
-    port: 3000,
-    host: true
-  }
-})
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/tests/setup.js',
+  },
+});

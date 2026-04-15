@@ -104,7 +104,23 @@
     "productDeleted": "उत्पाद सफलतापूर्वक हटाया गया",
     "fetchFailed": "उत्पाद प्राप्त करने में विफल",
     "operationFailed": "ऑपरेशन विफल",
-    "saving": "सहेजा जा रहा है..."
+    "saving": "सहेजा जा रहा है...",
+    "subCategory": "उप-श्रेणी",
+    "selectSubCategory": "उप-श्रेणी चुनें",
+    "women": "महिला",
+    "men": "पुरुष",
+    "child": "बच्चा",
+    "girl": "लड़की",
+    "boy": "लड़का",
+    "size": "आकार",
+    "selectSize": "आकार चुनें",
+    "customSize": "कस्टम आकार",
+    "enterCustomSize": "कस्टम आकार दर्ज करें",
+    "brandName": "ब्रांड नाम",
+    "enterBrandName": "ब्रांड नाम दर्ज करें",
+    "subCategoryRequired": "कपड़ों के उत्पादों के लिए उप-श्रेणी आवश्यक है",
+    "sizeRequired": "कपड़ों के उत्पादों के लिए आकार आवश्यक है",
+    "validationFailed": "कृपया सभी आवश्यक फ़ील्ड भरें"
   },
   "billing": {
     "title": "नया बिल बनाएं",
@@ -255,6 +271,7 @@
     "wholesale": "थोक",
     "electronics": "इलेक्ट्रॉनिक्स",
     "pharmacy": "फार्मेसी",
+    "clothes": "कपड़े",
     "clothing": "कपड़े",
     "other": "अन्य"
   },

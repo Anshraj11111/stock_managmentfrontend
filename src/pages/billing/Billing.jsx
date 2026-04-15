@@ -1049,7 +1049,7 @@ const Billing = () => {
     doc.setFontSize(14);
     doc.setFont('times', 'bold'); // ✅ Ensure consistent font
     // ✅ Fixed: Better right alignment with more space for large numbers, removed potential character issues
-    const grandTotalText = parseFloat(billData.total_amount).toFixed(2);
+    const grandTotalText = 'Rs.' + parseFloat(billData.total_amount).toFixed(2);
     doc.text(grandTotalText, 192, yPos, { align: 'right' }); // ✅ Moved further right
 
     
@@ -1085,7 +1085,7 @@ const Billing = () => {
     (billData.payments || []).forEach(payment => {
       // ✅ Fixed: Better alignment for payment details, clean formatting
       const paymentMode = payment.mode.toUpperCase();
-      const paymentAmount = parseFloat(payment.amount).toFixed(2);
+      const paymentAmount = 'Rs.' + parseFloat(payment.amount).toFixed(2);
       
       doc.text(paymentMode + ':', 15, yPos); // Clean colon formatting
       doc.text(paymentAmount, 60, yPos); // ✅ Fixed position for amount alignment
@@ -1238,57 +1238,57 @@ const Billing = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-4 sm:px-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-900 space-y-6 px-4 sm:px-6 py-6">
       {/* Header - Premium Design */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 p-6 rounded-2xl border-2 border-indigo-200 dark:border-indigo-800 shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent mb-2">
             {t('billing.title')}
           </h1>
-          <p className="text-sm sm:text-base text-gray-700 dark:text-gray-300 font-medium">
+          <p className="text-base text-gray-600 dark:text-gray-400 font-medium">
             {t('billing.subtitle')}
           </p>
         </div>
-        <div className="flex items-center gap-4 bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-700 dark:to-purple-700 px-6 py-4 rounded-xl shadow-xl border-2 border-indigo-400 dark:border-indigo-800">
-          <ShoppingCart className="w-6 h-6 text-white" />
+        <div className="flex items-center gap-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 px-8 py-5 rounded-xl shadow-xl">
+          <ShoppingCart className="w-7 h-7 text-white" />
           <div>
-            <p className="text-xs text-white/90 font-semibold uppercase tracking-wide">{t('billing.itemsInCart')}</p>
-            <p className="text-2xl font-black text-white">{selectedItems.length}</p>
+            <p className="text-xs text-white/90 font-bold uppercase tracking-wider">{t('billing.itemsInCart')}</p>
+            <p className="text-3xl font-black text-white">{selectedItems.length}</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
-        {/* Products List */}
-        <div className="xl:col-span-2 space-y-4 sm:space-y-6">
+      <div className="grid grid-cols-1 gap-6">
+        {/* Products List - Full Width */}
+        <div className="space-y-6">
           {/* Search - Premium Design */}
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-500 dark:text-indigo-400" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-indigo-500" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3.5 bg-gradient-to-br from-white to-indigo-50 dark:from-gray-800 dark:to-indigo-900/20 border-2 border-indigo-300 dark:border-indigo-700 rounded-xl focus:ring-4 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-indigo-500 dark:focus:border-indigo-400 transition-all text-base font-medium shadow-lg placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full pl-14 pr-6 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-4 focus:ring-indigo-400 focus:border-indigo-500 transition-all text-lg font-medium shadow-xl placeholder-gray-400"
             />
           </div>
 
           {/* Products Grid */}
-          <div className="bg-white dark:bg-secondary-900 rounded-xl sm:rounded-2xl border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-              <Package className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600" />
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-2xl">
+            <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+              <Package className="w-6 h-6 text-indigo-600" />
               {t('billing.availableProducts')}
             </h2>
 
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <Package className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+              <div className="text-center py-16">
+                <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+                <p className="text-lg text-gray-500">
                   {searchTerm ? t('billing.noProductsFound') : t('billing.noProductsAvailable')}
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-3 sm:gap-4 max-h-[500px] sm:max-h-[600px] overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {filteredProducts.map((product, index) => (
                   <div
                     key={product.id}

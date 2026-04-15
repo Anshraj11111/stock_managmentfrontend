@@ -104,7 +104,23 @@
     "productDeleted": "Product deleted successfully",
     "fetchFailed": "Failed to fetch products",
     "operationFailed": "Operation failed",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "subCategory": "Sub-Category",
+    "selectSubCategory": "Select Sub-Category",
+    "women": "Women",
+    "men": "Men",
+    "child": "Child",
+    "girl": "Girl",
+    "boy": "Boy",
+    "size": "Size",
+    "selectSize": "Select Size",
+    "customSize": "Custom Size",
+    "enterCustomSize": "Enter custom size",
+    "brandName": "Brand Name",
+    "enterBrandName": "Enter brand name",
+    "subCategoryRequired": "Sub-Category is required for clothes products",
+    "sizeRequired": "Size is required for clothes products",
+    "validationFailed": "Please fill in all required fields"
   },
   "billing": {
     "title": "Create New Bill",
@@ -255,6 +271,7 @@
     "wholesale": "Wholesale",
     "electronics": "Electronics",
     "pharmacy": "Pharmacy",
+    "clothes": "Clothes",
     "clothing": "Clothing",
     "other": "Other"
   },

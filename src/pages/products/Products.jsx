@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { productService } from '../../services/productService';
+import { shopService } from '../../services/shopService';
 import Loader from '../../components/common/Loader';
 import { useAuth } from '../../store/AuthContext';
 import toast from 'react-hot-toast';
@@ -29,6 +30,7 @@ const Products = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [showValueTooltip, setShowValueTooltip] = useState(false);
+  const [shopCategory, setShopCategory] = useState('');
 
   const [formData, setFormData] = useState({
     product_name: '',
@@ -40,10 +42,19 @@ const Products = () => {
     storage_location: '',
     expiry_date: '',
     date_added: '', // ✅ Empty by default - owner will set manually
+    sub_category: '',
+    size: '',
+    brand_name: '',
+  });
+
+  const [validationErrors, setValidationErrors] = useState({
+    sub_category: '',
+    size: '',
   });
 
   useEffect(() => {
     fetchProducts();
+    fetchShopCategory();
   }, []);
 
   // Filter products based on search query from URL
@@ -73,9 +84,50 @@ const Products = () => {
     }
   };
 
+  const fetchShopCategory = async () => {
+    try {
+      const shopData = await shopService.getShopDetails();
+      setShopCategory(shopData.category || '');
+    } catch (error) {
+      console.error('Failed to fetch shop category:', error);
+      // Don't show error toast as this is a background operation
+      // Products page will still work without category info
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+
+    // Validate clothes-specific required fields
+    if (shopCategory === 'clothes') {
+      const errors = {
+        sub_category: '',
+        size: '',
+      };
+
+      if (!formData.sub_category) {
+        errors.sub_category = t('products.subCategoryRequired');
+      }
+
+      if (!formData.size) {
+        errors.size = t('products.sizeRequired');
+      }
+
+      // If there are validation errors, display them and prevent submission
+      if (errors.sub_category || errors.size) {
+        setValidationErrors(errors);
+        setSubmitting(false);
+        toast.error(t('products.validationFailed'));
+        return;
+      }
+    }
+
+    // Clear validation errors if validation passes
+    setValidationErrors({
+      sub_category: '',
+      size: '',
+    });
 
     try {
       if (editingProduct) {
@@ -117,10 +169,18 @@ const Products = () => {
         low_stock_threshold: product.low_stock_threshold || 10,
         storage_location: product.storage_location || '',
         expiry_date: product.expiry_date || '',
-        date_added: product.date_added || '', // ✅ Load existing or empty
+        date_added: product.date_added || '', // ✅ Load existing date
+        sub_category: product.sub_category || '',
+        size: product.size || '',
+        brand_name: product.brand_name || '',
       });
     } else {
       setEditingProduct(null);
+      // Auto-populate date_added with current date for new clothes products
+      const currentDate = shopCategory === 'clothes' 
+        ? new Date().toISOString().split('T')[0] 
+        : '';
+      
       setFormData({
         product_name: '',
         purchase_price: '',
@@ -130,7 +190,10 @@ const Products = () => {
         low_stock_threshold: 10,
         storage_location: '',
         expiry_date: '',
-        date_added: '', // ✅ Empty for new products - owner will set manually
+        date_added: currentDate, // ✅ Auto-populate for new clothes products
+        sub_category: '',
+        size: '',
+        brand_name: '',
       });
     }
     setShowModal(true);
@@ -139,6 +202,10 @@ const Products = () => {
   const closeModal = () => {
     setShowModal(false);
     setEditingProduct(null);
+    setValidationErrors({
+      sub_category: '',
+      size: '',
+    });
   };
 
   const getStockStatus = (quantity, threshold = 10) => {
@@ -294,8 +361,16 @@ const Products = () => {
                 {isOwner && <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.purchasePrice')}</th>}
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.sellingPrice')}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.stock')}</th>
+                {shopCategory === 'clothes' && (
+                  <>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.subCategory')}</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.size')}</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.brandName')}</th>
+                    <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">Date Added</th>
+                  </>
+                )}
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">Storage Location</th>
-                <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">Date Added</th>
+                {shopCategory !== 'clothes' && <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">Date Added</th>}
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">Expiry Date</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.status')}</th>
                 <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold uppercase text-secondary-700 dark:text-secondary-300">{t('products.actions')}</th>
@@ -305,7 +380,7 @@ const Products = () => {
             <tbody className="divide-y divide-secondary-200 dark:divide-secondary-700">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="px-6 py-12 text-center">
+                  <td colSpan={shopCategory === 'clothes' ? (isOwner ? 13 : 12) : (isOwner ? 9 : 8)} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <Package className="w-12 h-12 text-secondary-400 dark:text-secondary-600" />
                       <p className="text-lg font-semibold text-secondary-700 dark:text-secondary-300">
@@ -336,12 +411,30 @@ const Products = () => {
                       <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-900 dark:text-secondary-100 text-sm sm:text-base">
                         {product.stock_quantity} {product.stock_unit || ''}
                       </td>
+                      {shopCategory === 'clothes' && (
+                        <>
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
+                            {product.sub_category ? t(`products.${product.sub_category}`) : '-'}
+                          </td>
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
+                            {product.size || '-'}
+                          </td>
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
+                            {product.brand_name || '-'}
+                          </td>
+                          <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
+                            {product.date_added ? new Date(product.date_added).toLocaleDateString('en-GB') : '-'}
+                          </td>
+                        </>
+                      )}
                       <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
                         {product.storage_location || '-'}
                       </td>
-                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
-                        {product.date_added ? new Date(product.date_added).toLocaleDateString('en-GB') : '-'}
-                      </td>
+                      {shopCategory !== 'clothes' && (
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
+                          {product.date_added ? new Date(product.date_added).toLocaleDateString('en-GB') : '-'}
+                        </td>
+                      )}
                       <td className="px-3 sm:px-6 py-3 sm:py-4 text-secondary-600 dark:text-secondary-400 text-sm sm:text-base">
                         {product.expiry_date ? new Date(product.expiry_date).toLocaleDateString('en-GB') : '-'}
                       </td>
@@ -506,23 +599,146 @@ const Products = () => {
                 </p>
               </div>
 
-              {/* ✅ Date Added (Optional - Manual Entry - Any Date) */}
-              <div>
-                <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
-                  Date Added (Optional)
-                </label>
-                <input
-                  type="date"
-                  value={formData.date_added}
-                  onChange={(e) =>
-                    setFormData({ ...formData, date_added: e.target.value })
-                  }
-                  className="w-full border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
-                />
-                <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
-                  📅 Optionally select when this product was added to inventory
-                </p>
-              </div>
+              {/* ✅ Date Added - Conditional for Clothes Category */}
+              {shopCategory === 'clothes' && (
+                <div>
+                  <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                    Date Added
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.date_added}
+                    readOnly
+                    disabled
+                    className="w-full border border-secondary-300 dark:border-secondary-700 bg-secondary-100 dark:bg-secondary-800 text-secondary-600 dark:text-secondary-400 px-3 sm:px-4 py-2 sm:py-3 rounded-xl cursor-not-allowed text-sm sm:text-base"
+                  />
+                  <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                    📅 {editingProduct 
+                      ? 'Date when this product was originally added (read-only)' 
+                      : 'Auto-populated with current date (read-only)'}
+                  </p>
+                </div>
+              )}
+
+              {/* Clothes-specific fields - Conditional rendering */}
+              {shopCategory === 'clothes' && (
+                <>
+                  {/* Sub-category dropdown */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                      {t('products.subCategory')} <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="sub_category"
+                      value={formData.sub_category}
+                      onChange={(e) => {
+                        setFormData({ ...formData, sub_category: e.target.value });
+                        // Clear validation error when user selects a value
+                        if (e.target.value) {
+                          setValidationErrors({ ...validationErrors, sub_category: '' });
+                        }
+                      }}
+                      className={`w-full border ${validationErrors.sub_category ? 'border-red-500 dark:border-red-500' : 'border-secondary-300 dark:border-secondary-700'} bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base`}
+                    >
+                      <option value="">{t('products.selectSubCategory')}</option>
+                      <option value="women">{t('products.women')}</option>
+                      <option value="men">{t('products.men')}</option>
+                      <option value="child">{t('products.child')}</option>
+                      <option value="girl">{t('products.girl')}</option>
+                      <option value="boy">{t('products.boy')}</option>
+                    </select>
+                    {validationErrors.sub_category && (
+                      <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                        {validationErrors.sub_category}
+                      </p>
+                    )}
+                    {!validationErrors.sub_category && (
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                        Required for clothes products
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Size dropdown with custom option */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                      {t('products.size')} <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      name="size"
+                      value={formData.size === '' || ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].includes(formData.size) ? formData.size : 'custom'}
+                      onChange={(e) => {
+                        if (e.target.value === 'custom') {
+                          setFormData({ ...formData, size: '' });
+                        } else {
+                          setFormData({ ...formData, size: e.target.value });
+                          // Clear validation error when user selects a value
+                          if (e.target.value) {
+                            setValidationErrors({ ...validationErrors, size: '' });
+                          }
+                        }
+                      }}
+                      className={`w-full border ${validationErrors.size ? 'border-red-500 dark:border-red-500' : 'border-secondary-300 dark:border-secondary-700'} bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base`}
+                    >
+                      <option value="">{t('products.selectSize')}</option>
+                      <option value="XS">XS</option>
+                      <option value="S">S</option>
+                      <option value="M">M</option>
+                      <option value="L">L</option>
+                      <option value="XL">XL</option>
+                      <option value="XXL">XXL</option>
+                      <option value="XXXL">XXXL</option>
+                      <option value="custom">{t('products.customSize')}</option>
+                    </select>
+                    {(formData.size === '' || (formData.size !== '' && !['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].includes(formData.size))) && (
+                      <input
+                        type="text"
+                        placeholder={t('products.enterCustomSize')}
+                        value={['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'].includes(formData.size) ? '' : formData.size}
+                        onChange={(e) => {
+                          setFormData({ ...formData, size: e.target.value });
+                          // Clear validation error when user enters custom size
+                          if (e.target.value) {
+                            setValidationErrors({ ...validationErrors, size: '' });
+                          }
+                        }}
+                        className={`w-full border ${validationErrors.size ? 'border-red-500 dark:border-red-500' : 'border-secondary-300 dark:border-secondary-700'} bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base mt-2`}
+                      />
+                    )}
+                    {validationErrors.size && (
+                      <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                        {validationErrors.size}
+                      </p>
+                    )}
+                    {!validationErrors.size && (
+                      <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                        Required for clothes products
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Brand Name input */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-secondary-700 dark:text-secondary-300">
+                      {t('products.brandName')}
+                    </label>
+                    <input
+                      type="text"
+                      name="brand_name"
+                      value={formData.brand_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, brand_name: e.target.value })
+                      }
+                      placeholder={t('products.enterBrandName')}
+                      maxLength={255}
+                      className="w-full border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 px-3 sm:px-4 py-2 sm:py-3 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm sm:text-base"
+                    />
+                    <p className="text-xs text-secondary-500 dark:text-secondary-400 mt-1">
+                      Optional - Brand or manufacturer name
+                    </p>
+                  </div>
+                </>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-3 pt-4">
                 <button
