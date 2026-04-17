@@ -11,15 +11,37 @@ import {
   Sparkles,
   Plus,
   Wallet,
+  CreditCard,
+  Lock,
 } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../../store/AuthContext";
 import { cn } from "../../utils/cn";
+import { useState, useEffect } from "react";
+import { getCurrentSubscription } from "../../services/subscriptionService";
 
 const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
   const { t } = useTranslation();
   const { isOwner } = useAuth();
+  const [lockedFeatures, setLockedFeatures] = useState([]);
+
+  useEffect(() => {
+    fetchSubscription();
+  }, []);
+
+  const fetchSubscription = async () => {
+    try {
+      const response = await getCurrentSubscription();
+      setLockedFeatures(response.subscription.features_locked || []);
+    } catch (error) {
+      console.error('Error fetching subscription:', error);
+    }
+  };
+
+  const isFeatureLocked = (feature) => {
+    return lockedFeatures.includes(feature);
+  };
 
   const navigation = [
     {
@@ -49,6 +71,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
       icon: Wallet,
       current: location.pathname.startsWith("/customers"),
       gradient: "from-red-500 to-orange-600",
+      feature: "customers",
     },
   
     
@@ -62,6 +85,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             icon: Users,
             current: location.pathname === "/staff",
             gradient: "from-orange-500 to-red-600",
+            feature: "staff",
           },
           {
             name: t('sidebar.addStaff'),
@@ -71,6 +95,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
               location.pathname === "/staff" &&
               location.search.includes("add=true"),
             gradient: "from-pink-500 to-rose-600",
+            feature: "staff",
           },
           {
             name: t('sidebar.reports'),
@@ -78,6 +103,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             icon: BarChart3,
             current: location.pathname === "/reports",
             gradient: "from-emerald-500 to-teal-600",
+            feature: "reports",
           },
           {
             name: t('sidebar.invoices'),
@@ -88,6 +114,14 @@ const Sidebar = ({ isOpen, onToggle }) => {
           },
         ]
       : []),
+
+    {
+      name: "Subscription",
+      href: "/subscription",
+      icon: CreditCard,
+      current: location.pathname === "/subscription",
+      gradient: "from-yellow-500 to-orange-600",
+    },
 
     {
       name: t('sidebar.settings'),
@@ -134,6 +168,8 @@ const Sidebar = ({ isOpen, onToggle }) => {
         <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto max-h-[calc(100vh-16rem)]">
           {navigation.map((item, index) => {
             const Icon = item.icon;
+            const locked = item.feature && isFeatureLocked(item.feature);
+            
             return (
               <Link
                 key={item.name}
@@ -144,7 +180,8 @@ const Sidebar = ({ isOpen, onToggle }) => {
                     ? "bg-gradient-to-r " +
                         item.gradient +
                         " text-white shadow-lg transform scale-[1.02]"
-                    : "text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-secondary-800 hover:transform hover:scale-[1.02]"
+                    : "text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-secondary-800 hover:transform hover:scale-[1.02]",
+                  locked && "opacity-75"
                 )}
                 onClick={() => onToggle()}
                 style={{ animationDelay: `${index * 40}ms` }}
@@ -172,6 +209,10 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 </div>
 
                 <span className="flex-1 text-sm font-medium">{item.name}</span>
+                
+                {locked && (
+                  <Lock className="w-4 h-4 text-yellow-500" />
+                )}
               </Link>
             );
           })}

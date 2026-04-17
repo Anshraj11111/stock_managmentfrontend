@@ -11,6 +11,7 @@ import AdminDashboard from "../admin/pages/AdminDashboard";
 import AdminUsers from "../admin/pages/AdminUsers";
 import AdminShops from "../admin/pages/AdminShops";
 import AdminAnalytics from "../admin/pages/AdminAnalytics";
+import AdminSubscription from "../admin/pages/AdminSubscription";
 
 // Auth pages
 import Login from "../pages/auth/Login";
@@ -27,6 +28,8 @@ import Settings from "../pages/settings/Settings";
 import Landing from "../pages/auth/Landing";
 import Customers from "../pages/customers/Customers";
 import CustomerDetail from "../pages/customers/CustomerDetail";
+import Subscription from "../pages/subscription/Subscription";
+import FeatureLock from "../components/common/FeatureLock";
 
 const ProtectedRoute = ({ children, requireOwner = false }) => {
   const { isAuthenticated, isOwner, loading } = useAuth();
@@ -119,6 +122,14 @@ const AppRoutes = () => {
         </AdminAuthProvider>
       } />
 
+      <Route path="/admin/subscription" element={
+        <AdminAuthProvider>
+          <AdminRoute>
+            <AdminSubscription />
+          </AdminRoute>
+        </AdminAuthProvider>
+      } />
+
       {/* Redirect /admin to /admin/dashboard */}
       <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
 
@@ -169,7 +180,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <Customers />
+              <FeatureLock feature="customers">
+                <Customers />
+              </FeatureLock>
             </Layout>
           </ProtectedRoute>
         }
@@ -180,7 +193,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <CustomerDetail />
+              <FeatureLock feature="customers">
+                <CustomerDetail />
+              </FeatureLock>
             </Layout>
           </ProtectedRoute>
         }
@@ -191,7 +206,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <Reports />
+              <FeatureLock feature="reports">
+                <Reports />
+              </FeatureLock>
             </Layout>
           </ProtectedRoute>
         }
@@ -213,7 +230,20 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requireOwner>
             <Layout>
-              <Staff />
+              <FeatureLock feature="staff">
+                <Staff />
+              </FeatureLock>
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/subscription"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Subscription />
             </Layout>
           </ProtectedRoute>
         }

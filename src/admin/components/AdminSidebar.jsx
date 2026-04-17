@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { X, LayoutDashboard, Users, Store, BarChart3, Shield } from 'lucide-react';
+import { X, LayoutDashboard, Users, Store, BarChart3, Shield, CreditCard } from 'lucide-react';
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navItems = [
@@ -7,6 +7,7 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/shops', icon: Store, label: 'Shops' },
     { to: '/admin/analytics', icon: BarChart3, label: 'Analytics' },
+    { to: '/admin/subscription', icon: CreditCard, label: 'Subscription' },
   ];
 
   return (

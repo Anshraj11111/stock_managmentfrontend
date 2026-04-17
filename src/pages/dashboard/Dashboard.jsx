@@ -170,6 +170,8 @@ const Dashboard = () => {
     bgGradient: 'from-blue-50 to-indigo-50',
     iconBg: 'bg-blue-100',
     iconColor: 'text-blue-600',
+    clickable: true,
+    onClick: () => navigate('/reports'),
   },
 
   {
@@ -320,7 +322,8 @@ const quickActions = [
           return (
             <div
               key={index}
-              className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 hover:border-transparent transition-all duration-500 hover:shadow-2xl hover:scale-105 cursor-pointer`}
+              onClick={stat.clickable ? stat.onClick : undefined}
+              className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 hover:border-transparent transition-all duration-500 hover:shadow-2xl hover:scale-105 ${stat.clickable ? 'cursor-pointer' : ''}`}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {/* Animated gradient overlay */}
@@ -345,7 +348,7 @@ const quickActions = [
                 
                 <div className="flex items-center gap-1 text-xs text-secondary-500 dark:text-secondary-400 mt-2">
                   <Activity className="w-3 h-3" />
-                  <span>{t('dashboard.vsLastMonth')}</span>
+                  <span>{stat.clickable ? 'Click to view details' : t('dashboard.vsLastMonth')}</span>
                 </div>
               </div>
 

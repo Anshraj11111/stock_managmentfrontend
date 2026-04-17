@@ -77,28 +77,28 @@ const Navbar = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 bg-white/80 dark:bg-secondary-950/80 backdrop-blur-md border-b border-secondary-200 dark:border-secondary-800 flex items-center justify-between px-4 lg:px-6 z-40 shadow-sm">
+    <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 bg-white/80 dark:bg-secondary-950/80 backdrop-blur-md border-b border-secondary-200 dark:border-secondary-800 flex items-center justify-between px-3 sm:px-4 lg:px-6 z-40 shadow-sm">
       {/* Left section */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
         {/* Mobile menu */}
         <button
           onClick={onMenuClick}
-          className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 lg:hidden transition-colors"
+          className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 lg:hidden transition-colors flex-shrink-0"
         >
           <Menu className="w-5 h-5 text-secondary-700 dark:text-secondary-300" />
         </button>
 
         {/* Search bar */}
-        <div ref={searchRef} className="hidden md:block relative">
-          <form onSubmit={handleSearch} className="flex items-center gap-2 bg-secondary-100 dark:bg-secondary-900 rounded-xl px-4 py-2 w-64 lg:w-96 transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500">
-            <Search className="w-4 h-4 text-secondary-500" />
+        <div ref={searchRef} className="hidden md:block relative flex-1 max-w-md">
+          <form onSubmit={handleSearch} className="flex items-center gap-2 bg-secondary-100 dark:bg-secondary-900 rounded-xl px-3 sm:px-4 py-2 w-full transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500">
+            <Search className="w-4 h-4 text-secondary-500 flex-shrink-0" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchQuery}
               onChange={handleSearchChange}
               onFocus={() => searchQuery.trim() && suggestions.length > 0 && setShowSuggestions(true)}
-              className="flex-1 bg-transparent border-none outline-none text-sm text-secondary-700 dark:text-secondary-300 placeholder-secondary-500"
+              className="flex-1 bg-transparent border-none outline-none text-sm text-secondary-700 dark:text-secondary-300 placeholder-secondary-500 min-w-0"
             />
           </form>
 
@@ -135,17 +135,21 @@ const Navbar = ({ onMenuClick }) => {
       </div>
 
       {/* Right section */}
-      <div className="flex items-center gap-3">
-        {/* PWA Install Button */}
-        <InstallPWA />
+      <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+        {/* PWA Install Button - Hidden on small mobile */}
+        <div className="hidden sm:block">
+          <InstallPWA />
+        </div>
 
-        {/* Language Selector */}
-        <LanguageSelector />
+        {/* Language Selector - Hidden on small mobile */}
+        <div className="hidden sm:block">
+          <LanguageSelector />
+        </div>
 
         {/* Dark Mode Toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-all duration-300 group"
+          className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 transition-all duration-300 group flex-shrink-0"
           title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {theme === 'dark' ? (
@@ -155,26 +159,26 @@ const Navbar = ({ onMenuClick }) => {
           )}
         </button>
 
-        {/* Settings Icon */}
+        {/* Settings Icon - Hidden on small mobile */}
         <button
           onClick={() => navigate('/settings')}
-          className="p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group"
+          className="hidden sm:block p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group flex-shrink-0"
           title="Settings"
         >
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
         </button>
 
         {/* User menu */}
-        <div className="flex items-center gap-3 pl-3 border-l border-secondary-200 dark:border-secondary-700">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <User className="w-5 h-5 text-white" />
+        <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-secondary-200 dark:border-secondary-700">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="relative flex-shrink-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
+              <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
             </div>
-            <div className="hidden sm:block">
-              <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100">
+            <div className="hidden md:block">
+              <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100 truncate max-w-[100px]">
                 {user?.name}
               </p>
               <p className="text-xs text-secondary-500 dark:text-secondary-400 capitalize">
@@ -185,10 +189,10 @@ const Navbar = ({ onMenuClick }) => {
 
           <button
             onClick={logout}
-            className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-secondary-600 dark:text-secondary-400 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 group"
+            className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-secondary-600 dark:text-secondary-400 hover:text-red-600 dark:hover:text-red-400 transition-all duration-300 group flex-shrink-0"
             title="Logout"
           >
-            <LogOut className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <LogOut className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" />
           </button>
         </div>
       </div>
