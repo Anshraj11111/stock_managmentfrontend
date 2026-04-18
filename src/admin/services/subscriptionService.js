@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://stock-managmenta5x.onrender.com/api';
+const API_URL = 'https://stock-managmenta5x.onrender.com/api';
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('admin_token');
