@@ -150,6 +150,20 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       const message =
         error.response?.data?.message || "Login failed";
+      
+      // Check if trial expired or subscription expired
+      const errorData = error.response?.data;
+      if (errorData?.trialExpired || errorData?.subscriptionExpired) {
+        toast.error(message, { duration: 6000 });
+        return { 
+          success: false, 
+          error: message,
+          redirectTo: '/subscription',
+          trialExpired: errorData?.trialExpired,
+          subscriptionExpired: errorData?.subscriptionExpired
+        };
+      }
+      
       toast.error(message);
       return { success: false, error: message };
     }

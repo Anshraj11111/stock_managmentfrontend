@@ -48,6 +48,9 @@ const Login = () => {
 
     if (result?.success) {
       navigate('/dashboard');
+    } else if (result?.redirectTo) {
+      // Redirect to subscription page if trial/subscription expired
+      navigate(result.redirectTo);
     } else {
       // Show specific error message from backend
       toast.error(result?.error || "Invalid credentials", {
