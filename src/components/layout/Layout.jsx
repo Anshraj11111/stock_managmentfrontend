@@ -50,7 +50,7 @@ import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import Footer from '../common/Footer';
-import VoiceButton from '../common/Voicebutton';
+import VoiceButton from '../common/VoiceButton';
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
