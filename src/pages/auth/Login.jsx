@@ -46,22 +46,26 @@ const Login = () => {
     const result = await login(formData);
     setLoading(false);
 
-    console.log('Login result:', result); // Debug log
-
     if (result?.success) {
       // Check if redirect is needed (trial/subscription expired)
       if (result.redirectTo) {
-        console.log('Redirecting to:', result.redirectTo); // Debug log
-        navigate(result.redirectTo);
+        // Show toaster for trial expiry
+        if (result.trialExpired) {
+          toast.error(
+            '⚠️ Your trial has expired! Please pay ₹100 deposit to continue. This deposit is fully refundable after 2 months!',
+            { duration: 8000 }
+          );
+          navigate('/trial-expired');
+        } else if (result.subscriptionExpired) {
+          toast.error(
+            '⚠️ Your subscription has expired! Please renew your subscription.',
+            { duration: 8000 }
+          );
+          navigate('/trial-expired');
+        }
       } else {
-        console.log('Redirecting to dashboard'); // Debug log
         navigate('/dashboard');
       }
-    } else {
-      // Show specific error message from backend
-      toast.error(result?.error || "Invalid credentials", {
-        duration: 6000, // Show for 6 seconds for trial expired message
-      });
     }
   };
 

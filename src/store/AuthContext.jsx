@@ -123,7 +123,6 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log("Decoded token:", decoded); // Debug log
         setUser(decoded);
       } catch (err) {
         console.error("Invalid token:", err);
@@ -138,7 +137,6 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await authService.login(credentials);
-      console.log('Auth service response:', response); // Debug log
       const { token, trialExpired, subscriptionExpired, warningMessage } = response;
 
       localStorage.setItem("token", token);
@@ -148,13 +146,12 @@ export const AuthProvider = ({ children }) => {
 
       // Check if trial or subscription expired
       if (trialExpired || subscriptionExpired) {
-        console.log('Trial/Subscription expired, redirecting...'); // Debug log
-        toast.error(warningMessage || "Please renew your subscription", { duration: 6000 });
         return { 
           success: true, 
           redirectTo: '/subscription',
           trialExpired,
-          subscriptionExpired
+          subscriptionExpired,
+          warningMessage
         };
       }
 

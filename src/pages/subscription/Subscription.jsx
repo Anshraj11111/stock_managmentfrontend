@@ -35,15 +35,44 @@ const Subscription = () => {
   const fetchData = async () => {
     try {
       setError(null);
-      const [plansData, subData] = await Promise.all([
-        getPlans(),
-        getCurrentSubscription()
-      ]);
-      setPlans(plansData.plans);
-      setCurrentSub(subData.subscription);
+      
+      // Try to fetch plans from backend
+      try {
+        const plansData = await getPlans();
+        setPlans(plansData.plans);
+      } catch (error) {
+        // Silently use default plans if backend fails
+        setPlans({
+          basic: [
+            { duration: 7, months: 7, price: 7999 },
+            { duration: 9, months: 9, price: 6899 },
+            { duration: 12, months: 12, price: 9999 }
+          ],
+          premium: [
+            { duration: 7, months: 7, price: 9499 },
+            { duration: 9, months: 9, price: 8399 },
+            { duration: 12, months: 12, price: 11499 }
+          ]
+        });
+      }
+      
+      // Check if user is authenticated before fetching current subscription
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        try {
+          const subData = await getCurrentSubscription();
+          setCurrentSub(subData.subscription);
+        } catch (error) {
+          // Silently ignore if can't fetch subscription
+          setCurrentSub(null);
+        }
+      } else {
+        setCurrentSub(null);
+      }
     } catch (error) {
-      console.error('Error fetching data:', error);
-      setError('Failed to load subscription data');
+      // Silently handle any errors
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -51,16 +80,26 @@ const Subscription = () => {
 
   const handleSelectPlan = async (planType, duration) => {
     try {
+      // Check if user is authenticated
+      const token = localStorage.getItem('token');
+      if (!token) {
+        // Show message to contact for payment
+        alert('To make payment, please contact us:\n\n📞 +91-8269858259\n\nCall or WhatsApp for payment details and account activation.');
+        return;
+      }
+
       setLoading(true);
-      console.log('Initiating payment for:', planType, duration);
       const payment = await initiatePayment(planType, duration);
-      console.log('Payment data received:', payment);
       setPaymentData(payment);
       setSelectedPlan({ planType, duration });
       setShowPaymentModal(true);
     } catch (error) {
-      console.error('Error initiating payment:', error);
-      alert(`Failed to initiate payment: ${error.response?.data?.error || error.message}`);
+      // If 403 error, user needs to login or contact admin
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        alert('To make payment, please contact us:\n\n📞 +91-8269858259\n\nCall or WhatsApp for payment details and account activation.');
+      } else {
+        alert(`Failed to initiate payment. Please contact: +91-8269858259`);
+      }
     } finally {
       setLoading(false);
     }
@@ -144,7 +183,7 @@ const Subscription = () => {
           </p>
         </div>
 
-        {/* Current Subscription Card */}
+        {/* Current Subscription Card - only show if user is authenticated */}
         {currentSub && (
           <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8 border border-gray-200 dark:border-gray-700 transition-colors duration-200">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
@@ -222,8 +261,8 @@ const Subscription = () => {
           </div>
         )}
 
-        {/* Deposit Section */}
-        {!currentSub?.deposit_paid && (
+        {/* Deposit Section - only show if user is authenticated and deposit not paid */}
+        {currentSub && !currentSub?.deposit_paid && (
           <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-yellow-400 to-orange-500 p-6 sm:p-8 mb-6 sm:mb-8 text-white shadow-xl">
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="relative z-10">

@@ -1,21 +1,16 @@
 import axios from 'axios';
 
-// Automatically detect environment
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_URL = isLocalhost 
-  ? 'http://localhost:5000/api' 
-  : 'https://stock-managmenta5x.onrender.com/api';
+// Use environment variable or fallback to production
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://stock-managmenta5x.onrender.com/api';
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('token');
   return { Authorization: `Bearer ${token}` };
 };
 
-// Get available plans
+// Get available plans (no auth required)
 export const getPlans = async () => {
-  const response = await axios.get(`${API_URL}/subscription/plans`, {
-    headers: getAuthHeader()
-  });
+  const response = await axios.get(`${API_URL}/subscription/plans`);
   return response.data;
 };
 

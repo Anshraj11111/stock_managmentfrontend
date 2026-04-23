@@ -29,6 +29,7 @@ import Landing from "../pages/auth/Landing";
 import Customers from "../pages/customers/Customers";
 import CustomerDetail from "../pages/customers/CustomerDetail";
 import Subscription from "../pages/subscription/Subscription";
+import TrialExpired from "../pages/subscription/TrialExpired";
 import FeatureLock from "../components/common/FeatureLock";
 
 const ProtectedRoute = ({ children, requireOwner = false }) => {
@@ -238,16 +239,11 @@ const AppRoutes = () => {
         }
       />
 
-      <Route
-        path="/subscription"
-        element={
-          <ProtectedRoute>
-            <Layout>
-              <Subscription />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
+      {/* Trial Expired page - no authentication required */}
+      <Route path="/trial-expired" element={<TrialExpired />} />
+
+      {/* Subscription page - accessible without authentication or layout */}
+      <Route path="/subscription" element={<Subscription />} />
 
       <Route
         path="/settings"
