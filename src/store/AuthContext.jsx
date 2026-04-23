@@ -138,32 +138,31 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       const response = await authService.login(credentials);
-      const { token } = response;
+      console.log('Auth service response:', response); // Debug log
+      const { token, trialExpired, subscriptionExpired, warningMessage } = response;
 
       localStorage.setItem("token", token);
 
       const decoded = jwtDecode(token);
       setUser(decoded);
 
+      // Check if trial or subscription expired
+      if (trialExpired || subscriptionExpired) {
+        console.log('Trial/Subscription expired, redirecting...'); // Debug log
+        toast.error(warningMessage || "Please renew your subscription", { duration: 6000 });
+        return { 
+          success: true, 
+          redirectTo: '/subscription',
+          trialExpired,
+          subscriptionExpired
+        };
+      }
+
       toast.success("Login successful!");
       return { success: true };
     } catch (error) {
       const message =
         error.response?.data?.message || "Login failed";
-      
-      // Check if trial expired or subscription expired
-      const errorData = error.response?.data;
-      if (errorData?.trialExpired || errorData?.subscriptionExpired) {
-        toast.error(message, { duration: 6000 });
-        return { 
-          success: false, 
-          error: message,
-          redirectTo: '/subscription',
-          trialExpired: errorData?.trialExpired,
-          subscriptionExpired: errorData?.subscriptionExpired
-        };
-      }
-      
       toast.error(message);
       return { success: false, error: message };
     }

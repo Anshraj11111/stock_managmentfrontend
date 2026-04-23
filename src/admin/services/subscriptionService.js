@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const API_URL = 'https://stock-managmenta5x.onrender.com/api';
+// Automatically detect environment
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_URL = isLocalhost 
+  ? 'http://localhost:5000/api' 
+  : 'https://stock-managmenta5x.onrender.com/api';
 
 const getAuthHeader = () => {
   const token = localStorage.getItem('admin_token');

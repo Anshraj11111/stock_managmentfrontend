@@ -46,11 +46,17 @@ const Login = () => {
     const result = await login(formData);
     setLoading(false);
 
+    console.log('Login result:', result); // Debug log
+
     if (result?.success) {
-      navigate('/dashboard');
-    } else if (result?.redirectTo) {
-      // Redirect to subscription page if trial/subscription expired
-      navigate(result.redirectTo);
+      // Check if redirect is needed (trial/subscription expired)
+      if (result.redirectTo) {
+        console.log('Redirecting to:', result.redirectTo); // Debug log
+        navigate(result.redirectTo);
+      } else {
+        console.log('Redirecting to dashboard'); // Debug log
+        navigate('/dashboard');
+      }
     } else {
       // Show specific error message from backend
       toast.error(result?.error || "Invalid credentials", {
