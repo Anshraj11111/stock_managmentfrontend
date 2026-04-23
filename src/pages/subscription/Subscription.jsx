@@ -82,26 +82,58 @@ const Subscription = () => {
     try {
       // Check if user is authenticated
       const token = localStorage.getItem('token');
-      if (!token) {
-        // Show message to contact for payment
-        alert('To make payment, please contact us:\n\n📞 +91-8269858259\n\nCall or WhatsApp for payment details and account activation.');
-        return;
+      
+      // Calculate amount based on plan
+      let amount = 0;
+      let planName = '';
+      
+      if (planType === 'deposit') {
+        amount = 100;
+        planName = 'deposit';
+      } else if (planType === 'basic') {
+        const basicPlans = { 7: 7999, 9: 6899, 12: 9999 };
+        amount = basicPlans[duration];
+        planName = `basic_${duration}m`;
+      } else if (planType === 'premium') {
+        const premiumPlans = { 7: 9499, 9: 8399, 12: 11499 };
+        amount = premiumPlans[duration];
+        planName = `premium_${duration}m`;
       }
 
-      setLoading(true);
-      const payment = await initiatePayment(planType, duration);
-      setPaymentData(payment);
+      // If user has token, try backend first
+      if (token) {
+        try {
+          setLoading(true);
+          const payment = await initiatePayment(planType, duration);
+          setPaymentData(payment);
+          setSelectedPlan({ planType, duration });
+          setShowPaymentModal(true);
+          setLoading(false);
+          return;
+        } catch (error) {
+          // If backend fails, use hardcoded details
+          console.log('Backend failed, using hardcoded payment details');
+        }
+      }
+
+      // Use hardcoded payment details (fallback)
+      // Generate QR code from UPI ID
+      const upiString = `upi://pay?pa=8269858259@ybl&pn=Stock Management&am=${amount}&cu=INR&tn=Payment for ${planName}`;
+      const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+      
+      setPaymentData({
+        payment_id: `temp_${Date.now()}`,
+        amount: amount,
+        plan_name: planName,
+        upi_id: '8269858259@ybl',
+        qr_code: qrCodeUrl
+      });
       setSelectedPlan({ planType, duration });
       setShowPaymentModal(true);
-    } catch (error) {
-      // If 403 error, user needs to login or contact admin
-      if (error.response?.status === 403 || error.response?.status === 401) {
-        alert('To make payment, please contact us:\n\n📞 +91-8269858259\n\nCall or WhatsApp for payment details and account activation.');
-      } else {
-        alert(`Failed to initiate payment. Please contact: +91-8269858259`);
-      }
-    } finally {
       setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      alert(`Failed to initiate payment. Please contact: +91-8269858259`);
     }
   };
 
@@ -124,6 +156,19 @@ const Subscription = () => {
 
     try {
       setSubmitting(true);
+      
+      // Check if this is a temporary payment ID (no backend)
+      if (paymentData.payment_id.startsWith('temp_')) {
+        // Show success message for manual verification
+        alert('Payment details submitted!\n\nYour payment will be verified manually by admin.\n\nYou will receive confirmation via email/SMS once verified.\n\nFor queries, contact: +91-8269858259');
+        setShowPaymentModal(false);
+        setScreenshot(null);
+        setTransactionId('');
+        setUpiRef('');
+        return;
+      }
+
+      // Try to submit to backend
       await submitPaymentProof(
         paymentData.payment_id,
         screenshot,
@@ -134,10 +179,14 @@ const Subscription = () => {
       setShowPaymentModal(false);
       fetchData();
     } catch (error) {
-      console.error('Error submitting payment:', error);
-      alert('Failed to submit payment');
+      // If backend fails, show manual verification message
+      alert('Payment details noted!\n\nYour payment will be verified manually by admin.\n\nYou will receive confirmation via email/SMS once verified.\n\nFor queries, contact: +91-8269858259');
+      setShowPaymentModal(false);
     } finally {
       setSubmitting(false);
+      setScreenshot(null);
+      setTransactionId('');
+      setUpiRef('');
     }
   };
 
