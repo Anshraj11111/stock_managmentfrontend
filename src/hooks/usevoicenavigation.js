@@ -29,9 +29,24 @@ const useVoiceNavigation = () => {
   const handleCommand = useCallback((transcript) => {
     console.log("Processing command:", transcript);
     
-    // Check for mic off command first
+    // Check for wake word again - if user says "hey stock" during listening, respond
+    const hasWakeWord = 
+      transcript.includes("hey") ||
+      transcript.includes("stock") ||
+      transcript.includes("ok") ||
+      transcript.includes("hello");
+    
+    if (hasWakeWord && continuousListeningRef.current) {
+      speak("Yes Boss, I'm listening");
+      setTimeout(() => {
+        startListening();
+      }, 1000);
+      return;
+    }
+    
+    // Check for mic off command
     if (transcript.includes("mic off") || transcript.includes("stop") || transcript.includes("band karo") || transcript.includes("close")) {
-      speak("Mic off");
+      speak("Mic off, goodbye");
       continuousListeningRef.current = false;
       setListening(false);
       if (recognitionRef.current) {
@@ -82,11 +97,11 @@ const useVoiceNavigation = () => {
       console.log("No command matched for:", transcript);
     }
 
-    // Continue listening if continuous mode is active
+    // ALWAYS continue listening if continuous mode is active
     if (continuousListeningRef.current) {
       setTimeout(() => {
         startListening();
-      }, 1200);
+      }, 1000);
     }
   }, [navigate, logout]);
 
