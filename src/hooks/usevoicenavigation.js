@@ -38,9 +38,7 @@ const useVoiceNavigation = () => {
     
     if (hasWakeWord && continuousListeningRef.current) {
       speak("Yes Boss, I'm listening");
-      setTimeout(() => {
-        startListening();
-      }, 1000);
+      // Don't restart - already in continuous mode
       return;
     }
     
@@ -97,12 +95,7 @@ const useVoiceNavigation = () => {
       console.log("No command matched for:", transcript);
     }
 
-    // ALWAYS continue listening if continuous mode is active
-    if (continuousListeningRef.current) {
-      setTimeout(() => {
-        startListening();
-      }, 1000);
-    }
+    // No need to restart - continuous mode handles it automatically
   }, [navigate, logout]);
 
   // Wake word detection (continuous listening for "Hey Stock")
@@ -217,7 +210,7 @@ const useVoiceNavigation = () => {
 
     const recognition = new SpeechRecognition();
     recognition.lang = "en-IN";
-    recognition.continuous = false;
+    recognition.continuous = true; // Changed to TRUE for continuous listening
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -226,14 +219,14 @@ const useVoiceNavigation = () => {
     try {
       recognition.start();
       setListening(true);
-      console.log("Command listening started");
+      console.log("Command listening started - CONTINUOUS MODE");
     } catch (error) {
       console.error("Failed to start listening:", error);
       setListening(false);
     }
 
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript
+      const transcript = event.results[event.results.length - 1][0].transcript
         .toLowerCase()
         .trim();
 
@@ -243,30 +236,30 @@ const useVoiceNavigation = () => {
 
     recognition.onerror = (event) => {
       console.error("Speech recognition error:", event.error);
-      setListening(false);
       
-      if (event.error === 'no-speech') {
-        console.log("No speech detected, continuing to listen...");
-        if (continuousListeningRef.current) {
-          setTimeout(() => {
-            startListening();
-          }, 1000);
-        }
-      } else if (event.error === 'not-allowed') {
+      if (event.error === 'not-allowed') {
         speak("Microphone access denied");
         continuousListeningRef.current = false;
-      } else if (event.error !== 'aborted') {
-        if (continuousListeningRef.current) {
-          setTimeout(() => {
-            startListening();
-          }, 1000);
-        }
+        setListening(false);
+      } else if (event.error === 'aborted') {
+        console.log("Recognition aborted");
+      } else {
+        // For other errors, keep listening flag true
+        console.log("Error occurred but continuing...");
       }
     };
 
     recognition.onend = () => {
-      console.log("Command listening ended");
+      console.log("Recognition ended");
       setListening(false);
+      
+      // Auto-restart if continuous mode is still active
+      if (continuousListeningRef.current) {
+        console.log("Auto-restarting listening...");
+        setTimeout(() => {
+          startListening();
+        }, 500);
+      }
     };
   };
 

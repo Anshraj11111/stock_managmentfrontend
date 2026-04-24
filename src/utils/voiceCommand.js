@@ -1,17 +1,17 @@
 const voiceCommands = [
-  { keywords: ["dashboard", "dash", "home", "dashboard kholo", "open dashboard"], route: "/dashboard" },
+  { keywords: ["dashboard", "dash", "home", "dashboard kholo", "open dashboard page"], route: "/dashboard" },
 
-  { keywords: ["product", "products", "products kholo", "open products"], route: "/products" },
+  { keywords: ["product", "products", "products kholo", "open products page"], route: "/products" },
 
-  { keywords: ["bill", "billing", "billing kholo", "open billing"], route: "/billing" },
+  { keywords: ["bill", "billing", "billing kholo", "open billing page"], route: "/billing" },
 
-  { keywords: ["report", "reports", "reports kholo", "open reports"], route: "/reports" },
+  { keywords: ["report", "reports", "reports kholo", "open reports page"], route: "/reports" },
 
-  { keywords: ["setting", "settings", "settings kholo", "open settings"], route: "/settings" },
+  { keywords: ["setting", "settings", "settings kholo", "open settings page"], route: "/settings" },
 
-  { keywords: ["staff", "staff kholo", "open staff"], route: "/staff" },
+  { keywords: ["staff", "staff kholo", "open staff page"], route: "/staff" },
 
-  { keywords: ["customer", "customers", "open customer", "customer page", "customers kholo"], route: "/customers" },
+  { keywords: ["customer", "customers", "open customer page", "customer page", "customers kholo"], route: "/customers" },
 
   { keywords: ["back", "go back", "peeche", "peeche jao", "back jao"], action: "back" },
 
