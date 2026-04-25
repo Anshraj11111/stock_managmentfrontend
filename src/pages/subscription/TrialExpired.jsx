@@ -5,11 +5,11 @@ const TrialExpired = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
         {/* Icon */}
         <div className="flex justify-center mb-6">
-          <div className="bg-gradient-to-br from-red-500 to-orange-500 w-24 h-24 rounded-full flex items-center justify-center">
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-500 w-24 h-24 rounded-full flex items-center justify-center">
             <AlertCircle className="text-white" size={56} />
           </div>
         </div>
@@ -20,12 +20,12 @@ const TrialExpired = () => {
         </h1>
 
         {/* Message */}
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-500 p-6 rounded-lg mb-6">
+        <div className="bg-emerald-50 dark:bg-emerald-500/10 border-l-4 border-emerald-500 p-6 rounded-lg mb-6">
           <p className="text-lg text-gray-800 dark:text-gray-200 mb-4">
             Your 31-day free trial has ended. To continue using the app, please pay a refundable deposit of <span className="font-bold text-2xl text-green-600">₹100</span>.
           </p>
           
-          <div className="bg-white dark:bg-gray-700 rounded-lg p-4 mb-4">
+          <div className="bg-white dark:bg-slate-800 rounded-lg p-4 mb-4 border border-slate-200 dark:border-slate-700">
             <h3 className="font-bold text-gray-900 dark:text-white mb-2">Important Information:</h3>
             <ul className="space-y-2 text-gray-700 dark:text-gray-300">
               <li className="flex items-start gap-2">
@@ -45,11 +45,11 @@ const TrialExpired = () => {
         </div>
 
         {/* Contact Information */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 mb-6">
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 rounded-xl p-6 mb-6 border border-emerald-200 dark:border-emerald-500">
           <h3 className="font-bold text-gray-900 dark:text-white mb-3 text-center">
             Contact Us to Make Payment
           </h3>
-          <div className="flex items-center justify-center gap-3 text-blue-600 dark:text-blue-400">
+          <div className="flex items-center justify-center gap-3 text-emerald-600 dark:text-emerald-300">
             <Phone size={24} />
             <a 
               href="tel:+918269858259" 
@@ -67,13 +67,13 @@ const TrialExpired = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={() => navigate('/subscription')}
-            className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 rounded-xl font-bold text-lg hover:from-green-700 hover:to-emerald-700 transition shadow-lg"
+            className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-xl font-bold text-lg hover:from-emerald-700 hover:to-teal-700 transition shadow-lg"
           >
             View Subscription Plans
           </button>
           <button
             onClick={() => navigate('/login')}
-            className="flex-1 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 py-4 rounded-xl font-bold text-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+            className="flex-1 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 py-4 rounded-xl font-bold text-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition"
           >
             Back to Login
           </button>

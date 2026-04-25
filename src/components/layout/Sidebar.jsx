@@ -49,28 +49,28 @@ const Sidebar = ({ isOpen, onToggle }) => {
       href: "/dashboard",
       icon: LayoutDashboard,
       current: location.pathname === "/dashboard",
-      gradient: "from-blue-500 to-indigo-600",
+      gradient: "from-emerald-500 to-teal-600",
     },
     {
       name: t('sidebar.products'),
       href: "/products",
       icon: Package,
       current: location.pathname === "/products",
-      gradient: "from-purple-500 to-pink-600",
+      gradient: "from-emerald-500 to-teal-600",
     },
     {
       name: t('sidebar.billing'),
       href: "/billing",
       icon: Receipt,
       current: location.pathname === "/billing",
-      gradient: "from-violet-500 to-purple-600",
+      gradient: "from-emerald-500 to-teal-600",
     },
     {
       name: "Customers (Udhar)",
       href: "/customers",
       icon: Wallet,
       current: location.pathname.startsWith("/customers"),
-      gradient: "from-red-500 to-orange-600",
+      gradient: "from-emerald-500 to-teal-600",
       feature: "customers",
     },
   
@@ -84,7 +84,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             href: "/staff",
             icon: Users,
             current: location.pathname === "/staff",
-            gradient: "from-orange-500 to-red-600",
+            gradient: "from-emerald-500 to-teal-600",
             feature: "staff",
           },
           {
@@ -94,7 +94,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             current:
               location.pathname === "/staff" &&
               location.search.includes("add=true"),
-            gradient: "from-pink-500 to-rose-600",
+            gradient: "from-emerald-500 to-teal-600",
             feature: "staff",
           },
           {
@@ -110,7 +110,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             href: "/invoices",
             icon: FileText,
             current: location.pathname === "/invoices",
-            gradient: "from-cyan-500 to-blue-600",
+            gradient: "from-emerald-500 to-teal-600",
           },
         ]
       : []),
@@ -120,7 +120,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
       href: "/subscription",
       icon: CreditCard,
       current: location.pathname === "/subscription",
-      gradient: "from-yellow-500 to-orange-600",
+      gradient: "from-emerald-500 to-teal-600",
     },
 
     {
@@ -128,7 +128,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
       href: "/settings",
       icon: Settings,
       current: location.pathname === "/settings",
-      gradient: "from-gray-500 to-slate-600",
+      gradient: "from-slate-500 to-slate-600",
     },
   ];
 
@@ -149,7 +149,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-secondary-200 dark:border-secondary-800 bg-gradient-to-r from-indigo-600 to-purple-600">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-secondary-200 dark:border-secondary-800 bg-emerald-600 dark:bg-emerald-600">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
@@ -211,7 +211,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 <span className="flex-1 text-sm font-medium">{item.name}</span>
                 
                 {locked && (
-                  <Lock className="w-4 h-4 text-yellow-500" />
+                  <Lock className="w-4 h-4 text-emerald-500 dark:text-emerald-300" />
                 )}
               </Link>
             );
@@ -220,7 +220,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
         {/* Bottom section */}
         <div className="p-6 border-t border-secondary-200 dark:border-secondary-800">
-          <div className="rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-5 text-white text-sm shadow-lg">
+          <div className="rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-500 p-5 text-white text-sm shadow-lg">
             <div className="font-semibold mb-1">{t('sidebar.premiumPlan')}</div>
             <div className="text-xs opacity-90 leading-relaxed">
               {t('sidebar.unlimitedAccess')}

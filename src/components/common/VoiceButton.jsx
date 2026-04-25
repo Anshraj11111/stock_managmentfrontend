@@ -20,7 +20,7 @@ const VoiceButton = () => {
           ? "bg-red-500 text-white scale-110 animate-pulse"
           : wakeWordActive
           ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-          : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+          : "bg-emerald-600 hover:bg-emerald-700 text-white"
       }`}
     >
       {listening ? (

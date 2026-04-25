@@ -1,4 +1,5 @@
 import { BrowserRouter as Router } from 'react-router-dom';
+import { useEffect } from 'react';
 import { AuthProvider } from './store/AuthContext';
 import { ThemeProvider } from './store/ThemeContext';
 import { PWAProvider } from './store/PWAContext';
@@ -6,9 +7,15 @@ import { Toaster } from 'react-hot-toast';
 import AppRoutes from './routes/AppRoutes';
 import OfflineIndicator from './components/common/OfflineIndicator';
 import ScrollToTop from './components/common/ScrollToTop';
+import { initGA } from './utils/analytics';
 import './index.css';
 
 function App() {
+  // Initialize Google Analytics
+  useEffect(() => {
+    initGA();
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>

@@ -1159,7 +1159,7 @@ const Invoice = () => {
         <div className="space-y-4">
           <div className="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
-              <FileCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+              <FileCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-300" />
               <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
                 Recent Invoices
               </h2>
@@ -1200,7 +1200,7 @@ const Invoice = () => {
                 filteredInvoices.map((invoice, index) => (
                   <div
                     key={index}
-                    className="p-3 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-emerald-50 dark:bg-emerald-900/10"
+                    className="p-3 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-emerald-50 dark:bg-emerald-500/10"
                   >
                     <div className="flex justify-between items-start mb-1">
                       <div>
@@ -1221,7 +1221,7 @@ const Invoice = () => {
                         <p className="text-sm font-bold text-emerald-600">
                           ₹{parseFloat(invoice.amount).toFixed(2)}
                         </p>
-                        <span className="text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 rounded-full">
                           PAID
                         </span>
                       </div>

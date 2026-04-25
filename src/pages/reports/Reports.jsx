@@ -295,12 +295,12 @@ const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full -mr-16 -mt-16"></div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-500">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/15 rounded-xl flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-emerald-600" />
               </div>
               <span className="flex items-center gap-1 text-sm font-semibold text-green-600">
                 <ArrowUpRight className="w-4 h-4" />
@@ -314,12 +314,12 @@ const Reports = () => {
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-400/10 rounded-full -mr-16 -mt-16"></div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900/20 dark:to-slate-800/20 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-slate-400/10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
-                <Receipt className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-slate-100 dark:bg-slate-900/30 rounded-xl flex items-center justify-center">
+                <Receipt className="w-6 h-6 text-slate-600" />
               </div>
               <span className="flex items-center gap-1 text-sm font-semibold text-green-600">
                 <ArrowUpRight className="w-4 h-4" />
@@ -333,11 +333,11 @@ const Reports = () => {
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-800">
+        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-500">
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/15 rounded-xl flex items-center justify-center">
                 <Activity className="w-6 h-6 text-emerald-600" />
               </div>
               <span className="flex items-center gap-1 text-sm font-semibold text-green-600">
@@ -355,7 +355,7 @@ const Reports = () => {
 
       <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-indigo-600" />
+          <Filter className="w-5 h-5 text-emerald-600" />
           <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">{t('reports.filterReports')}</h2>
         </div>
         
@@ -367,7 +367,7 @@ const Reports = () => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
             >
               <option value="daily">{t('reports.dailyReport')}</option>
               <option value="singleDay">Single Day Report</option>
@@ -387,7 +387,7 @@ const Reports = () => {
                   type="date"
                   value={singleDate}
                   onChange={(e) => setSingleDate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -405,7 +405,7 @@ const Reports = () => {
                     type="date"
                     value={dateRange.startDate}
                     onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -419,7 +419,7 @@ const Reports = () => {
                     type="date"
                     value={dateRange.endDate}
                     onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -433,7 +433,7 @@ const Reports = () => {
           <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 overflow-hidden">
             <div className="p-6 border-b border-secondary-200 dark:border-secondary-800">
               <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-indigo-600" />
+                <BarChart3 className="w-5 h-5 text-emerald-600" />
                 {t('reports.detailedReports')}
               </h2>
             </div>
@@ -493,7 +493,7 @@ const Reports = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   Sales Analytics Dashboard
@@ -552,7 +552,7 @@ const Reports = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                  <div className="text-center p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500">
                     <p className="text-xs text-secondary-600 dark:text-secondary-400 mb-1 font-medium">Received</p>
                     <p className="text-lg font-bold text-emerald-600">₹{totals.totalReceived.toLocaleString()}</p>
                     <p className="text-xs text-emerald-600 mt-1">
@@ -610,10 +610,10 @@ const Reports = () => {
                     />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="mt-4 text-center p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                <div className="mt-4 text-center p-3 bg-slate-50 dark:bg-slate-900/20 rounded-lg border border-slate-200 dark:border-slate-800">
                   <p className="text-xs text-secondary-600 dark:text-secondary-400 mb-1 font-medium">Total Bills</p>
-                  <p className="text-2xl font-bold text-purple-600">{totals.totalBills}</p>
-                  <p className="text-xs text-purple-600 mt-1">Across {reports.length} {reports.length === 1 ? 'day' : 'days'}</p>
+                  <p className="text-2xl font-bold text-slate-600">{totals.totalBills}</p>
+                  <p className="text-xs text-slate-600 mt-1">Across {reports.length} {reports.length === 1 ? 'day' : 'days'}</p>
                 </div>
               </div>
             </div>

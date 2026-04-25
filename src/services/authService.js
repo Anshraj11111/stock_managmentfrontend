@@ -12,4 +12,13 @@ export const authService = {
     const response = await api.post('/auth/signup', userData);
     return response.data;
   },
+
+  // Google OAuth
+  googleAuth: async (credential, shopData = null) => {
+    const response = await api.post('/auth/google', {
+      credential,
+      shop_data: shopData
+    });
+    return response.data;
+  },
 };

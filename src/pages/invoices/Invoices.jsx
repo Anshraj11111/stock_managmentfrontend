@@ -112,8 +112,8 @@ const Invoices = () => {
         <div className="xl:col-span-1">
           <div className="rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6 bg-white dark:bg-secondary-900 shadow-lg hover:shadow-xl transition-shadow">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-secondary-900 dark:text-secondary-100">
-              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                <FileText className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-500/15 rounded-lg">
+                <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
               </div>
               {t('invoices.generateInvoice')}
             </h2>
@@ -125,14 +125,14 @@ const Invoices = () => {
                   value={billId}
                   onChange={(e) => setBillId(e.target.value)}
                   placeholder="Enter Bill ID"
-                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 dark:placeholder-secondary-400 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 dark:placeholder-secondary-400 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <button
                 disabled={loading}
                 onClick={() => generateInvoice()}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
               >
                 <Download className="w-5 h-5" />
                 {loading ? t('invoices.generating') : t('invoices.downloadInvoice')}
@@ -145,15 +145,15 @@ const Invoices = () => {
         <div className="xl:col-span-2">
           <div className="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-secondary-900 dark:text-secondary-100">
-              <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-                <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-500/15 rounded-lg">
+                <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
               </div>
               {t('invoices.recentInvoices')}
             </h2>
 
             {loadingData ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 dark:border-t-indigo-400"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-200 dark:border-emerald-500 border-t-emerald-600 dark:border-t-emerald-400"></div>
                 <span className="mt-4 text-secondary-500 dark:text-secondary-400 font-medium">Loading invoices...</span>
               </div>
             ) : recentInvoices.length === 0 ? (
@@ -169,7 +169,7 @@ const Invoices = () => {
                 {recentInvoices.map((inv) => (
                   <div
                     key={inv.id}
-                    className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-secondary-200 dark:border-secondary-700 bg-gradient-to-r from-secondary-50 to-white dark:from-secondary-800 dark:to-secondary-850 rounded-xl hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 transition-all"
+                    className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-secondary-200 dark:border-secondary-700 bg-gradient-to-r from-secondary-50 to-white dark:from-secondary-800 dark:to-secondary-850 rounded-xl hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-500 transition-all"
                   >
                     {/* LEFT SIDE - Bill Info */}
                     <div className="flex-1 min-w-0">
@@ -206,7 +206,7 @@ const Invoices = () => {
                       {/* RIGHT SIDE - Download Button */}
                       <button
                         onClick={() => generateInvoice(inv.id)}
-                        className="p-3 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all transform hover:scale-110 active:scale-95"
+                        className="p-3 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 rounded-lg transition-all transform hover:scale-110 active:scale-95"
                         title="Download Invoice"
                       >
                         <Download className="w-5 h-5" />

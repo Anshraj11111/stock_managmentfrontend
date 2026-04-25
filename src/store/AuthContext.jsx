@@ -186,6 +186,47 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // 🔵 GOOGLE OAUTH
+  const googleLogin = async (credential, shopData = null) => {
+    try {
+      const response = await authService.googleAuth(credential, shopData);
+      const { token, trialExpired, subscriptionExpired, warningMessage, requiresShopData } = response;
+
+      // If shop data is required (new user signup)
+      if (requiresShopData) {
+        return { 
+          success: false, 
+          requiresShopData: true,
+          message: "Please provide shop information to complete signup"
+        };
+      }
+
+      localStorage.setItem("token", token);
+
+      const decoded = jwtDecode(token);
+      setUser(decoded);
+
+      // Check if trial or subscription expired
+      if (trialExpired || subscriptionExpired) {
+        return { 
+          success: true, 
+          redirectTo: '/subscription',
+          trialExpired,
+          subscriptionExpired,
+          warningMessage
+        };
+      }
+
+      toast.success("Login successful!");
+      return { success: true };
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Google authentication failed";
+      toast.error(message);
+      return { success: false, error: message };
+    }
+  };
+
   // 🚪 LOGOUT
   const logout = () => {
     localStorage.removeItem("token");
@@ -198,6 +239,7 @@ export const AuthProvider = ({ children }) => {
   loading,
   login,
   signup,
+  googleLogin,
   logout,
   isAuthenticated: !!user,
   isOwner: user?.role === "owner",

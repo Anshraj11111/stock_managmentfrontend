@@ -297,7 +297,7 @@ const Products = () => {
           {isOwner && (
             <button
               onClick={() => openModal()}
-              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
+              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="hidden sm:inline">{t('products.addProduct')}</span>
@@ -333,15 +333,15 @@ const Products = () => {
             className="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 cursor-pointer hover:shadow-lg transition-all relative"
             onClick={() => setShowValueTooltip(!showValueTooltip)}
           >
-            <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 dark:text-emerald-400 mb-2" />
+            <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 dark:text-emerald-300 mb-2" />
             <p className="text-xl sm:text-3xl font-bold text-secondary-900 dark:text-secondary-100 truncate">
               ₹{Math.round(stats.totalValue).toLocaleString()}
             </p>
             <p className="text-xs sm:text-sm text-secondary-600 dark:text-secondary-400 mt-1">{t('products.inventoryValue')}</p>
             
             {showValueTooltip && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-secondary-900 border-2 border-emerald-300 dark:border-emerald-600 rounded-xl p-4 shadow-xl z-10 animate-in slide-in-from-top-2">
-                <p className="text-sm text-emerald-700 dark:text-emerald-400 font-semibold mb-1">{t('products.exactInventoryValue')}:</p>
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-secondary-900 border-2 border-emerald-300 dark:border-emerald-500 rounded-xl p-4 shadow-xl z-10 animate-in slide-in-from-top-2">
+                <p className="text-sm text-emerald-700 dark:text-emerald-300 font-semibold mb-1">{t('products.exactInventoryValue')}:</p>
                 <p className="text-xl sm:text-2xl font-bold text-emerald-900 dark:text-emerald-300 break-all">
                   ₹{Math.round(stats.totalValue).toLocaleString()}
                 </p>
@@ -751,7 +751,7 @@ const Products = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:from-indigo-700 hover:to-purple-700 transition-colors disabled:opacity-50 text-sm sm:text-base"
+                  className="flex-1 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 transition-colors disabled:opacity-50 text-sm sm:text-base"
                 >
                   {submitting ? t('products.saving') : (editingProduct ? t('common.update') : t('products.addProduct'))}
                 </button>

@@ -166,8 +166,8 @@ const Dashboard = () => {
     change: '+8.2%',
     changeType: 'positive',
     icon: ShoppingCart,
-    gradient: 'from-blue-500 to-indigo-600',
-    bgGradient: 'from-blue-50 to-indigo-50',
+    gradient: 'from-blue-500 to-cyan-600',
+    bgGradient: 'from-blue-50 to-cyan-50',
     iconBg: 'bg-blue-100',
     iconColor: 'text-blue-600',
     clickable: true,
@@ -180,10 +180,10 @@ const Dashboard = () => {
     change: '+3.1%',
     changeType: 'positive',
     icon: Package,
-    gradient: 'from-purple-500 to-pink-600',
-    bgGradient: 'from-purple-50 to-pink-50',
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
+    gradient: 'from-emerald-500 to-teal-600',
+    bgGradient: 'from-emerald-50 to-teal-50',
+    iconBg: 'bg-emerald-100',
+    iconColor: 'text-emerald-600',
   },
 
   ...(isOwner
@@ -244,16 +244,16 @@ const quickActions = [
     title: t('dashboard.createBill'),
     description: t('dashboard.generateInvoice'),
     icon: Receipt,
-    color: 'from-violet-500 to-purple-600',
-    hoverColor: 'hover:from-violet-600 hover:to-purple-700',
+    color: 'from-blue-500 to-cyan-600',
+    hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
     route: '/billing',
   },
   {
     title: t('dashboard.manageProducts'),
     description: t('dashboard.updateInventory'),
     icon: Package,
-    color: 'from-blue-500 to-cyan-600',
-    hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
+    color: 'from-emerald-500 to-teal-600',
+    hoverColor: 'hover:from-emerald-600 hover:to-teal-700',
     route: '/products',
   },
 
@@ -283,7 +283,7 @@ const quickActions = [
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Premium Header Section */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 p-6 sm:p-8 shadow-2xl">
+      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-600 p-6 sm:p-8 shadow-2xl">
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-1/2 -right-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
@@ -363,7 +363,7 @@ const quickActions = [
       <div>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h2 className="text-xl sm:text-2xl font-bold text-secondary-900 dark:text-secondary-100">{t('dashboard.quickActions')}</h2>
-          <div className="h-1 flex-1 ml-0 sm:ml-6 bg-gradient-to-r from-purple-500 via-pink-500 to-transparent rounded-full"></div>
+          <div className="h-1 flex-1 ml-0 sm:ml-6 bg-gradient-to-r from-emerald-500 via-teal-500 to-transparent rounded-full"></div>
         </div>
         
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -432,8 +432,8 @@ const quickActions = [
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full -mr-16 -mt-16"></div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-xl">
-                  <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <div className="bg-emerald-100 dark:bg-emerald-500/15 p-3 rounded-xl">
+                  <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
                 </div>
                 <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{t('dashboard.todaysSales')}</h3>
               </div>
@@ -443,7 +443,7 @@ const quickActions = [
               <p className="text-sm text-secondary-600 dark:text-secondary-400">{t('dashboard.fromTransactions', { count: stats.totalBills })}</p>
               <button 
                 onClick={() => navigate('/reports')}
-                className="mt-4 text-emerald-600 dark:text-emerald-400 font-medium text-sm hover:text-emerald-700 dark:hover:text-emerald-300 flex items-center gap-1 group"
+                className="mt-4 text-emerald-600 dark:text-emerald-300 font-medium text-sm hover:text-emerald-700 dark:hover:text-emerald-200 flex items-center gap-1 group"
               >
                 {t('dashboard.viewReports')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -453,11 +453,11 @@ const quickActions = [
 
           {/* Product Count */}
           <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 hover:shadow-xl transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full -mr-16 -mt-16"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full -mr-16 -mt-16"></div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
-                <div className="bg-blue-100 dark:bg-blue-900/30 p-3 rounded-xl">
-                  <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="bg-emerald-100 dark:bg-emerald-500/15 p-3 rounded-xl">
+                  <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
                 </div>
                 <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{t('dashboard.totalProducts')}</h3>
               </div>
@@ -467,7 +467,7 @@ const quickActions = [
               <p className="text-sm text-secondary-600 dark:text-secondary-400">{t('dashboard.activeInInventory')}</p>
               <button 
                 onClick={() => navigate('/products')}
-                className="mt-4 text-blue-600 dark:text-blue-400 font-medium text-sm hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 group"
+                className="mt-4 text-emerald-600 dark:text-emerald-300 font-medium text-sm hover:text-emerald-700 dark:hover:text-emerald-200 flex items-center gap-1 group"
               >
                 {t('dashboard.manageProducts')}
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

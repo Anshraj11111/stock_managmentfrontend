@@ -13,6 +13,7 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "axios": "^1.6.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.2",
@@ -26,6 +27,7 @@
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-ga4": "^3.0.1",
     "react-hot-toast": "^2.4.1",
     "react-i18next": "^16.5.4",
     "react-router-dom": "^6.15.0",

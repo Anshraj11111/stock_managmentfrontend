@@ -29,32 +29,32 @@ const FeatureLock = ({ feature, children }) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 dark:border-emerald-400"></div>
       </div>
     );
   }
 
   if (!hasAccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-6">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full text-center">
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-8 max-w-md w-full text-center">
+          <div className="bg-emerald-600 dark:bg-emerald-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
             <Lock className="text-white" size={40} />
           </div>
           
-          <h2 className="text-3xl font-bold text-gray-800 mb-4">
+          <h2 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-4">
             Feature Locked
           </h2>
           
-          <p className="text-gray-600 mb-6">
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
             {reason || `Upgrade to Premium to access ${feature}`}
           </p>
 
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-700 mb-2">
+          <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-600 rounded-lg p-4 mb-6">
+            <p className="text-sm text-slate-700 dark:text-slate-300 mb-2">
               <strong>Premium Features Include:</strong>
             </p>
-            <ul className="text-sm text-gray-600 space-y-1">
+            <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
               <li>✅ Reports & Analytics</li>
               <li>✅ Staff Management</li>
               <li>✅ Customers/Udhar</li>
@@ -64,7 +64,7 @@ const FeatureLock = ({ feature, children }) => {
 
           <button
             onClick={() => navigate('/subscription')}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-3 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition flex items-center justify-center gap-2 font-semibold"
+            className="w-full bg-emerald-600 dark:bg-emerald-600 text-white py-3 rounded-lg hover:bg-emerald-700 dark:hover:bg-emerald-500 transition flex items-center justify-center gap-2 font-semibold"
           >
             Upgrade to Premium
             <ArrowRight size={20} />
@@ -72,7 +72,7 @@ const FeatureLock = ({ feature, children }) => {
 
           <button
             onClick={() => navigate('/dashboard')}
-            className="w-full mt-3 bg-gray-200 text-gray-700 py-3 rounded-lg hover:bg-gray-300 transition"
+            className="w-full mt-3 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 py-3 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-700 transition"
           >
             Back to Dashboard
           </button>

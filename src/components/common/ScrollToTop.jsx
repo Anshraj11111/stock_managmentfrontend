@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { trackPageView } from '../../utils/analytics';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -11,6 +12,9 @@ const ScrollToTop = () => {
       left: 0,
       behavior: 'instant' // Instant scroll, no animation
     });
+
+    // Track page view in Google Analytics
+    trackPageView(pathname);
   }, [pathname]);
 
   return null;

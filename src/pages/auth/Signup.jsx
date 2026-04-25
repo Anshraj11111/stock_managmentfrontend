@@ -152,10 +152,12 @@ import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../../store/AuthContext';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
+import { trackSignup, trackGoogleAuth } from '../../utils/analytics';
 
 const Signup = () => {
   const { t } = useTranslation();
@@ -175,8 +177,10 @@ const Signup = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showGoogleSignupForm, setShowGoogleSignupForm] = useState(false);
+  const [googleCredential, setGoogleCredential] = useState(null);
 
-  const { signup } = useAuth();
+  const { signup, googleLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -198,23 +202,107 @@ const Signup = () => {
     setLoading(false);
 
    if (result?.success) {
+  trackSignup('email');
   navigate('/dashboard');
 }
 
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    trackGoogleAuth('Signup Attempt');
+    // First try to login (in case user already exists)
+    setLoading(true);
+    const result = await googleLogin(credentialResponse.credential);
+    setLoading(false);
+
+    if (result?.success) {
+      trackSignup('google');
+      trackGoogleAuth('Signup Success');
+      navigate('/dashboard');
+    } else if (result?.requiresShopData) {
+      // New user - show shop data form
+      setGoogleCredential(credentialResponse.credential);
+      setShowGoogleSignupForm(true);
+      toast.info("Please provide your shop information to complete signup");
+    } else {
+      trackGoogleAuth('Signup Failed');
+    }
+  };
+
+  const handleGoogleSignupSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate shop data
+    if (!formData.shop_name || !formData.category || !formData.owner_phone || !formData.address) {
+      toast.error('All shop fields are required');
+      return;
+    }
+
+    setLoading(true);
+    const shopData = {
+      shop_name: formData.shop_name,
+      category: formData.category,
+      owner_phone: formData.owner_phone,
+      address: formData.address,
+      plan_type: selectedPlan
+    };
+
+    const result = await googleLogin(googleCredential, shopData);
+    setLoading(false);
+
+    if (result?.success) {
+      trackSignup('google');
+      trackGoogleAuth('Signup Success with Shop Data');
+      navigate('/dashboard');
+    } else {
+      trackGoogleAuth('Signup Failed with Shop Data');
+    }
+  };
+
+  const handleGoogleError = () => {
+    trackGoogleAuth('Signup Error');
+    toast.error("Google signup failed. Please try again.");
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-100 dark:from-secondary-950 dark:to-secondary-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 shadow-xl p-8">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-8">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-primary-600 dark:text-primary-400">StockSaaS</h1>
+            <h1 className="text-3xl font-bold text-emerald-600 dark:text-emerald-300">StockSaaS</h1>
             <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-              {t('auth.selectedPlan')}: <span className="font-semibold">{selectedPlan.toUpperCase()}</span>
+              {t('auth.selectedPlan')}: <span className="font-semibold bg-emerald-100 dark:bg-emerald-600 text-emerald-700 dark:text-white px-2 py-0.5 rounded">{selectedPlan.toUpperCase()}</span>
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {!showGoogleSignupForm ? (
+            <>
+              {/* Google Signup Button */}
+              <div className="mb-6">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="outline"
+                  size="large"
+                  text="signup_with"
+                  shape="rectangular"
+                  width="100%"
+                />
+              </div>
+
+              {/* Divider */}
+              <div className="relative mb-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-300 dark:border-slate-700"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                    Or signup with email
+                  </span>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
 
             <Input
               label={t('auth.ownerName')}
@@ -241,7 +329,7 @@ const Signup = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 pr-10 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  className="w-full px-3 py-2 pr-10 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   placeholder={t('auth.createPassword')}
                 />
                 <button
@@ -278,7 +366,7 @@ const Signup = () => {
                 value={formData.address}
                 onChange={handleChange}
                 rows="2"
-                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
                 placeholder="Enter shop address"
               />
             </div>
@@ -289,7 +377,7 @@ const Signup = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               >
                 <option value="">{t('auth.selectCategory')}</option>
                 <option value="grocery">{t('categories.grocery')}</option>
@@ -309,10 +397,85 @@ const Signup = () => {
 
           <p className="text-center text-sm mt-6 text-secondary-600 dark:text-secondary-400">
             {t('auth.alreadyHaveAccount')}{" "}
-            <Link to="/login" className="text-primary-600 dark:text-primary-400 font-medium hover:text-primary-700 dark:hover:text-primary-300">
+            <Link to="/login" className="text-emerald-600 dark:text-emerald-300 font-medium hover:text-emerald-700 dark:hover:text-emerald-200">
               {t('auth.signIn')}
             </Link>
           </p>
+          </>
+          ) : (
+            <>
+              {/* Google Signup - Shop Information Form */}
+              <div className="mb-4">
+                <p className="text-sm text-secondary-600 dark:text-secondary-400 text-center">
+                  Complete your shop information to finish signup
+                </p>
+              </div>
+
+              <form onSubmit={handleGoogleSignupSubmit} className="space-y-5">
+                <Input
+                  label={t('auth.shopName')}
+                  name="shop_name"
+                  value={formData.shop_name}
+                  onChange={handleChange}
+                  placeholder="Your shop name"
+                />
+
+                <Input
+                  label="Owner Phone Number"
+                  name="owner_phone"
+                  type="tel"
+                  value={formData.owner_phone}
+                  onChange={handleChange}
+                  placeholder="+91 98765 43210"
+                />
+
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-secondary-700 dark:text-secondary-300">Shop Address</label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    rows="2"
+                    className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                    placeholder="Enter shop address"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-secondary-700 dark:text-secondary-300">{t('auth.shopCategory')}</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  >
+                    <option value="">{t('auth.selectCategory')}</option>
+                    <option value="grocery">{t('categories.grocery')}</option>
+                    <option value="retail">{t('categories.retail')}</option>
+                    <option value="electronics">{t('categories.electronics')}</option>
+                    <option value="pharmacy">{t('categories.pharmacy')}</option>
+                    <option value="clothes">{t('categories.clothes')}</option>
+                    <option value="others">Others</option>
+                  </select>
+                </div>
+
+                <Button type="submit" loading={loading} className="w-full">
+                  Complete Signup
+                </Button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowGoogleSignupForm(false);
+                    setGoogleCredential(null);
+                  }}
+                  className="w-full text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-300"
+                >
+                  Back to signup options
+                </button>
+              </form>
+            </>
+          )}
 
         </div>
       </div>

@@ -517,7 +517,7 @@ const Staff = () => {
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
+          className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
         >
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span className="hidden sm:inline">{t('staff.addStaffMember')}</span>
@@ -533,7 +533,7 @@ const Staff = () => {
             className="bg-white dark:bg-secondary-900 p-4 sm:p-6 rounded-xl border border-secondary-200 dark:border-secondary-800 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <span className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-semibold ${
@@ -634,7 +634,7 @@ const Staff = () => {
                 <button 
                   type="submit" 
                   disabled={submitting}
-                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50 transition-colors"
                 >
                   {editingStaff ? "Update" : "Add"}
                 </button>

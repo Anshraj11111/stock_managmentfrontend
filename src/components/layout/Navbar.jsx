@@ -90,7 +90,7 @@ const Navbar = ({ onMenuClick }) => {
 
         {/* Search bar */}
         <div ref={searchRef} className="hidden md:block relative flex-1 max-w-md">
-          <form onSubmit={handleSearch} className="flex items-center gap-2 bg-secondary-100 dark:bg-secondary-900 rounded-xl px-3 sm:px-4 py-2 w-full transition-all duration-300 focus-within:ring-2 focus-within:ring-indigo-500">
+          <form onSubmit={handleSearch} className="flex items-center gap-2 bg-secondary-100 dark:bg-secondary-900 rounded-xl px-3 sm:px-4 py-2 w-full transition-all duration-300 focus-within:ring-2 focus-within:ring-emerald-500">
             <Search className="w-4 h-4 text-secondary-500 flex-shrink-0" />
             <input
               type="text"
@@ -155,14 +155,14 @@ const Navbar = ({ onMenuClick }) => {
           {theme === 'dark' ? (
             <Sun className="w-5 h-5 text-yellow-500 group-hover:rotate-180 transition-transform duration-500" />
           ) : (
-            <Moon className="w-5 h-5 text-indigo-600 group-hover:rotate-12 transition-transform duration-300" />
+            <Moon className="w-5 h-5 text-emerald-600 group-hover:rotate-12 transition-transform duration-300" />
           )}
         </button>
 
         {/* Settings Icon - Hidden on small mobile */}
         <button
           onClick={() => navigate('/settings')}
-          className="hidden sm:block p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all duration-300 group flex-shrink-0"
+          className="hidden sm:block p-2 rounded-xl hover:bg-secondary-100 dark:hover:bg-secondary-800 text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all duration-300 group flex-shrink-0"
           title="Settings"
         >
           <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
@@ -172,7 +172,7 @@ const Navbar = ({ onMenuClick }) => {
         <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-secondary-200 dark:border-secondary-700">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="relative flex-shrink-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-600 dark:bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
                 <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></div>
