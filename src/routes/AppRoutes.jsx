@@ -20,6 +20,7 @@ import Signup from "../pages/auth/Signup";
 // Protected pages
 import Dashboard from "../pages/dashboard/Dashboard";
 import Products from "../pages/products/Products";
+import BulkImport from "../pages/products/BulkImport";
 import Staff from "../pages/staff/Staff";
 import Billing from "../pages/billing/Billing";
 import Reports from "../pages/reports/Reports";
@@ -31,6 +32,9 @@ import CustomerDetail from "../pages/customers/CustomerDetail";
 import Subscription from "../pages/subscription/Subscription";
 import TrialExpired from "../pages/subscription/TrialExpired";
 import FeatureLock from "../components/common/FeatureLock";
+
+// Test pages (only in development)
+import AnalyticsTest from "../pages/test/AnalyticsTest";
 
 const ProtectedRoute = ({ children, requireOwner = false }) => {
   const { isAuthenticated, isOwner, loading } = useAuth();
@@ -166,6 +170,17 @@ const AppRoutes = () => {
       />
 
       <Route
+        path="/products/bulk-import"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <BulkImport />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/billing"
         element={
           <ProtectedRoute>
@@ -244,6 +259,9 @@ const AppRoutes = () => {
 
       {/* Subscription page - accessible without authentication or layout */}
       <Route path="/subscription" element={<Subscription />} />
+
+      {/* Analytics Test page - only for development */}
+      <Route path="/analytics-test" element={<AnalyticsTest />} />
 
       <Route
         path="/settings"

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Plus,
   Edit,
@@ -9,6 +9,7 @@ import {
   TrendingDown,
   TrendingUp,
   AlertCircle,
+  Upload,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { productService } from '../../services/productService';
@@ -20,6 +21,7 @@ import toast from 'react-hot-toast';
 const Products = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const isOwner = user?.role?.toLowerCase() === "owner";
 
@@ -295,14 +297,25 @@ const Products = () => {
           )}
           
           {isOwner && (
-            <button
-              onClick={() => openModal()}
-              className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">{t('products.addProduct')}</span>
-              <span className="sm:hidden">{t('common.add')}</span>
-            </button>
+            <>
+              <button
+                onClick={() => navigate('/products/bulk-import')}
+                className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
+              >
+                <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">Bulk Import</span>
+                <span className="sm:hidden">Import</span>
+              </button>
+              
+              <button
+                onClick={() => openModal()}
+                className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm sm:text-base"
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span className="hidden sm:inline">{t('products.addProduct')}</span>
+                <span className="sm:hidden">{t('common.add')}</span>
+              </button>
+            </>
           )}
         </div>
       </div>
