@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUpload, FiFile, FiDownload, FiCheck, FiAlertTriangle, FiX } from 'react-icons/fi';
+import { FiUpload, FiFile, FiCheck, FiAlertTriangle, FiX } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import { uploadFile, confirmImport, downloadTemplate } from '../../services/importService';
 import PreviewTable from '../../components/import/PreviewTable';
@@ -207,22 +207,13 @@ const BulkImport = () => {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                📊 Bulk Product Import
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                Upload Excel or CSV file to import multiple products at once
-              </p>
-            </div>
-            <button
-              onClick={() => downloadTemplate('csv')}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-            >
-              <FiDownload />
-              <span>Download Template</span>
-            </button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              📊 Bulk Product Import
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Upload Excel or CSV file to import multiple products at once
+            </p>
           </div>
         </div>
 
