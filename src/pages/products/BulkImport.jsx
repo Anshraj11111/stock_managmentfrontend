@@ -1,8 +1,10 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiUpload, FiFile, FiCheck, FiAlertTriangle, FiX } from 'react-icons/fi';
+import { FiUpload, FiFile, FiCheck, FiAlertTriangle, FiX, FiImage, FiFileText, FiCamera, FiZap, FiShield, FiArrowLeft } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { uploadFile, confirmImport, downloadTemplate } from '../../services/importService';
+import { uploadFile, confirmImport } from '../../services/importService';
+import { processImageForProducts } from '../../services/ocrService';
 import PreviewTable from '../../components/import/PreviewTable';
 
 const BulkImport = () => {
@@ -13,6 +15,8 @@ const BulkImport = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [ocrProgress, setOcrProgress] = useState(0);
   const [parseResult, setParseResult] = useState(null);
   const [products, setProducts] = useState([]);
   const [duplicateAction, setDuplicateAction] = useState('skip');
@@ -37,27 +41,16 @@ const BulkImport = () => {
   };
 
   const handleFileSelect = async (selectedFile) => {
-    // Validate file type - Accept Excel and CSV (PDF disabled for now)
-    const allowedTypes = ['.xlsx', '.xls', '.csv'];
+    // Check if it's an image file
+    const imageTypes = ['.jpg', '.jpeg', '.png', '.bmp', '.gif'];
     const fileExt = selectedFile.name.substring(selectedFile.name.lastIndexOf('.')).toLowerCase();
+    const isImage = imageTypes.includes(fileExt) || selectedFile.type.startsWith('image/');
     
-    if (fileExt === '.pdf') {
-      toast.error(
-        'PDF Import Not Available Yet\n\n' +
-        'Please convert your PDF to Excel or CSV:\n' +
-        '1. Open your PDF file\n' +
-        '2. Select and copy the product table\n' +
-        '3. Paste into Excel or Google Sheets\n' +
-        '4. Save as .xlsx or .csv file\n' +
-        '5. Upload the Excel/CSV file here\n\n' +
-        'This ensures accurate data import with proper column detection.',
-        { duration: 10000, style: { maxWidth: '500px' } }
-      );
-      return;
-    }
+    // Validate file type - Accept Excel, CSV, or Images
+    const allowedTypes = ['.xlsx', '.xls', '.csv', ...imageTypes];
     
-    if (!allowedTypes.includes(fileExt)) {
-      toast.error('Invalid file type. Please upload Excel (.xlsx, .xls) or CSV file.');
+    if (!allowedTypes.includes(fileExt) && !isImage) {
+      toast.error('Invalid file type. Please upload Excel, CSV, or Image file.');
       return;
     }
 
@@ -69,7 +62,77 @@ const BulkImport = () => {
 
     setFile(selectedFile);
     
-    // Auto-upload and parse
+    // Handle image files with OCR
+    if (isImage) {
+      setIsProcessingImage(true);
+      setOcrProgress(0);
+      
+      try {
+        toast.loading('Processing image with OCR...', { id: 'ocr-processing' });
+        
+        const result = await processImageForProducts(selectedFile, (progress) => {
+          setOcrProgress(progress);
+        });
+        
+        toast.dismiss('ocr-processing');
+        
+        // Format result to match expected structure
+        const formattedResult = {
+          success: true,
+          message: 'Image processed successfully',
+          fileInfo: {
+            fileName: selectedFile.name,
+            fileType: 'Image (OCR)',
+            totalRows: result.products.length,
+            isImage: true,
+            confidence: result.confidence
+          },
+          columnMapping: {
+            product_name: 0,
+            purchase_price: 1,
+            selling_price: 2,
+            stock_quantity: 3
+          },
+          detectedHeaders: ['Product Name', 'Purchase Price', 'Selling Price', 'Stock Quantity'],
+          summary: {
+            total: result.products.length,
+            valid: result.products.length,
+            errors: 0,
+            warnings: 0
+          },
+          products: result.products.map((p, index) => ({
+            rowNumber: index + 1,
+            data: p,
+            validation: 'ok',
+            errors: [],
+            warnings: []
+          }))
+        };
+        
+        setParseResult(formattedResult);
+        setProducts(formattedResult.products);
+        
+        toast.success(
+          `📸 Image processed! Found ${result.products.length} products.\n\n` +
+          `💡 Please review and edit the extracted data before importing.`,
+          { duration: 6000, style: { maxWidth: '500px' } }
+        );
+      } catch (error) {
+        console.error('OCR error:', error);
+        toast.error(
+          `❌ Failed to process image\n\n${error.message}\n\n` +
+          `💡 Try using a clearer image or Excel/CSV file instead.`,
+          { duration: 8000, style: { maxWidth: '500px' } }
+        );
+        setFile(null);
+      } finally {
+        setIsProcessingImage(false);
+        setOcrProgress(0);
+      }
+      return;
+    }
+    
+    // Handle Excel/CSV files (existing logic)
     setIsUploading(true);
     try {
       const result = await uploadFile(selectedFile);
@@ -203,270 +266,525 @@ const BulkImport = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              📊 Bulk Product Import
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              Upload Excel or CSV file to import multiple products at once
-            </p>
+        {/* Header with Back Button */}
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <button
+            onClick={() => navigate('/products')}
+            className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 mb-4 transition-colors group"
+          >
+            <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+            <span>Back to Products</span>
+          </button>
+          
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
+              <FiUpload className="text-3xl text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+                Bulk Product Import
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Import multiple products at once from Excel, CSV, or images
+              </p>
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Upload Section */}
         {!parseResult && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              className={`
-                border-2 border-dashed rounded-lg p-12 text-center transition-all
-                ${isDragging 
-                  ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20' 
-                  : 'border-gray-300 dark:border-gray-600 hover:border-primary-400'
-                }
-              `}
-            >
-              <FiUpload className="mx-auto text-6xl text-gray-400 dark:text-gray-500 mb-4" />
-              
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                Drop your Excel or CSV file here
-              </h3>
-              
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                Supported formats: Excel (.xlsx, .xls), CSV (.csv)
-                <br />
-                <span className="text-sm text-yellow-600 dark:text-yellow-400 mt-2 block">
-                  💡 Have a PDF? Convert it to Excel/CSV first for best results
-                </span>
-              </p>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 }}
+          >
+            {/* Main Upload Card */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+              {/* Upload Area */}
+              <div className="p-8 md:p-12">
+                <motion.div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  animate={{
+                    borderColor: isDragging ? 'rgb(16, 185, 129)' : 'rgb(209, 213, 219)',
+                    backgroundColor: isDragging ? 'rgba(16, 185, 129, 0.05)' : 'transparent'
+                  }}
+                  className={`
+                    relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300
+                    ${isDragging 
+                      ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10 scale-[1.02]' 
+                      : 'border-gray-300 dark:border-gray-600 hover:border-emerald-400 dark:hover:border-emerald-500'
+                    }
+                  `}
+                >
+                  {/* Upload Icon with Animation */}
+                  <motion.div
+                    animate={{
+                      y: isDragging ? -10 : 0,
+                      scale: isDragging ? 1.1 : 1
+                    }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                    className="mb-6"
+                  >
+                    <div className="relative inline-block">
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
+                      <div className="relative p-6 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl shadow-lg">
+                        <FiUpload className="text-5xl text-white" />
+                      </div>
+                    </div>
+                  </motion.div>
+                  
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {isDragging ? 'Drop your file here' : 'Upload Your File'}
+                  </h3>
+                  
+                  <p className="text-gray-600 dark:text-gray-400 mb-2 max-w-md mx-auto">
+                    Drag and drop your file here, or click to browse
+                  </p>
+                  
+                  <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium">
+                      <FiFileText className="text-base" />
+                      Excel, CSV
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium">
+                      <FiCamera className="text-base" />
+                      Images
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-full text-sm font-medium animate-pulse">
+                      <FiZap className="text-base" />
+                      OCR Powered
+                    </span>
+                  </div>
 
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                onChange={handleFileInputChange}
-                className="hidden"
-              />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls,.csv,.jpg,.jpeg,.png,.bmp"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
 
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploading}
-                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isUploading ? 'Uploading...' : 'Select File'}
-              </button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading || isProcessingImage}
+                    className="relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden group"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      {isProcessingImage ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                          Processing Image... {ocrProgress}%
+                        </>
+                      ) : isUploading ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <FiUpload className="text-xl" />
+                          Select File
+                        </>
+                      )}
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </motion.button>
 
-              <div className="mt-6 flex items-center justify-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                <div className="flex items-center space-x-1">
-                  <FiFile />
-                  <span>Max 10MB</span>
-                </div>
-                <span>•</span>
-                <div className="flex items-center space-x-1">
-                  <FiCheck />
-                  <span>Auto-detect columns</span>
+                  {/* Progress Bar for OCR */}
+                  <AnimatePresence>
+                    {isProcessingImage && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="mt-6 max-w-md mx-auto"
+                      >
+                        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${ocrProgress}%` }}
+                            className="h-full bg-gradient-to-r from-emerald-500 to-teal-600"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-2">
+                      <FiFile className="text-lg" />
+                      <span>Max 10MB</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FiCheck className="text-lg text-emerald-500" />
+                      <span>Auto-detect columns</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <FiShield className="text-lg text-emerald-500" />
+                      <span>Secure upload</span>
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Feature Cards */}
+              <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="group relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600"
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-emerald-400/20 to-teal-500/20 rounded-bl-full"></div>
+                    <div className="relative">
+                      <div className="inline-flex p-3 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-xl mb-4 group-hover:scale-110 transition-transform">
+                        <FiCamera className="text-2xl text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <h4 className="font-bold text-gray-900 dark:text-white mb-2 text-lg">
+                        Image Upload
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        Upload photos of product lists - OCR automatically extracts data with high accuracy
+                      </p>
+                      <div className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        NEW FEATURE
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="group relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-400/20 to-indigo-500/20 rounded-bl-full"></div>
+                    <div className="relative">
+                      <div className="inline-flex p-3 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl mb-4 group-hover:scale-110 transition-transform">
+                        <FiZap className="text-2xl text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h4 className="font-bold text-gray-900 dark:text-white mb-2 text-lg">
+                        Smart Detection
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        Automatically detects product names, prices, quantities, and calculates margins
+                      </p>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="group relative bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm hover:shadow-md transition-all border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600"
+                  >
+                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-400/20 to-pink-500/20 rounded-bl-full"></div>
+                    <div className="relative">
+                      <div className="inline-flex p-3 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl mb-4 group-hover:scale-110 transition-transform">
+                        <FiShield className="text-2xl text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <h4 className="font-bold text-gray-900 dark:text-white mb-2 text-lg">
+                        Data Validation
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        Validates all data and shows errors before importing to ensure data quality
+                      </p>
+                    </div>
+                  </motion.div>
                 </div>
               </div>
             </div>
-
-            {/* Info Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                  📊 Smart Detection
-                </h4>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  Automatically detects product name, prices, and quantities from your file
-                </p>
-              </div>
-
-              <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-green-900 dark:text-green-100 mb-2">
-                  ✅ Validation
-                </h4>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Validates data and shows errors before importing
-                </p>
-              </div>
-
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
-                <h4 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">
-                  🔄 Duplicate Handling
-                </h4>
-                <p className="text-sm text-purple-700 dark:text-purple-300">
-                  Choose how to handle existing products
-                </p>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Preview Section */}
         {parseResult && (
-          <div className="space-y-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-6"
+          >
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-800/50 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Total Products</p>
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Products</p>
+                    <p className="text-3xl font-bold text-gray-900 dark:text-white">
                       {parseResult.summary.total}
                     </p>
                   </div>
-                  <FiFile className="text-3xl text-gray-400" />
+                  <div className="p-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-2xl">
+                    <FiFile className="text-3xl text-gray-600 dark:text-gray-300" />
+                  </div>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl shadow-lg p-6 border border-emerald-200 dark:border-emerald-800 hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Valid</p>
-                    <p className="text-2xl font-bold text-green-600 dark:text-green-400">
+                    <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400 mb-1">Valid</p>
+                    <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                       {parseResult.summary.valid}
                     </p>
                   </div>
-                  <FiCheck className="text-3xl text-green-500" />
+                  <div className="p-4 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-800 dark:to-teal-800 rounded-2xl">
+                    <FiCheck className="text-3xl text-emerald-600 dark:text-emerald-400" />
+                  </div>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl shadow-lg p-6 border border-yellow-200 dark:border-yellow-800 hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Warnings</p>
-                    <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                    <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400 mb-1">Warnings</p>
+                    <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                       {parseResult.summary.warnings}
                     </p>
                   </div>
-                  <FiAlertTriangle className="text-3xl text-yellow-500" />
+                  <div className="p-4 bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-800 dark:to-orange-800 rounded-2xl">
+                    <FiAlertTriangle className="text-3xl text-yellow-600 dark:text-yellow-400" />
+                  </div>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-xl shadow-lg p-6 border border-red-200 dark:border-red-800 hover:shadow-xl transition-shadow"
+              >
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Errors</p>
-                    <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                    <p className="text-sm font-medium text-red-700 dark:text-red-400 mb-1">Errors</p>
+                    <p className="text-3xl font-bold text-red-600 dark:text-red-400">
                       {parseResult.summary.errors}
                     </p>
                   </div>
-                  <FiX className="text-3xl text-red-500" />
+                  <div className="p-4 bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-800 dark:to-pink-800 rounded-2xl">
+                    <FiX className="text-3xl text-red-600 dark:text-red-400" />
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </div>
 
             {/* Duplicate Handling Options */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Duplicate Product Handling
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                {parseResult.summary.warnings > 0 
-                  ? `${parseResult.summary.warnings} product(s) already exist in your inventory. Choose how to handle them:`
-                  : 'Choose how to handle products that already exist in your inventory:'}
-              </p>
-              <div className="space-y-3">
-                <label className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-emerald-500 to-teal-600 p-6">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <FiShield className="text-2xl" />
+                  Duplicate Product Handling
+                </h3>
+                <p className="text-emerald-50 mt-2">
+                  {parseResult.summary.warnings > 0 
+                    ? `${parseResult.summary.warnings} product(s) already exist in your inventory. Choose how to handle them:`
+                    : 'Choose how to handle products that already exist in your inventory:'}
+                </p>
+              </div>
+              
+              <div className="p-6 space-y-3">
+                <motion.label
+                  whileHover={{ scale: 1.02 }}
+                  className={`flex items-start gap-4 cursor-pointer p-5 rounded-xl transition-all border-2 ${
+                    duplicateAction === 'skip'
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-md'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
+                >
                   <input
                     type="radio"
                     name="duplicateAction"
                     value="skip"
                     checked={duplicateAction === 'skip'}
                     onChange={(e) => setDuplicateAction(e.target.value)}
-                    className="mt-1 text-primary-600"
+                    className="mt-1 w-5 h-5 text-emerald-600 focus:ring-emerald-500"
                   />
-                  <div>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">Skip duplicates</span>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-gray-900 dark:text-white text-lg">Skip duplicates</span>
+                      {duplicateAction === 'skip' && (
+                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-xs font-semibold rounded-full">
+                          Selected
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                       Don't import products that already exist. Keep existing data unchanged.
                     </p>
                   </div>
-                </label>
+                </motion.label>
 
-                <label className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                <motion.label
+                  whileHover={{ scale: 1.02 }}
+                  className={`flex items-start gap-4 cursor-pointer p-5 rounded-xl transition-all border-2 ${
+                    duplicateAction === 'update'
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-md'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
+                >
                   <input
                     type="radio"
                     name="duplicateAction"
                     value="update"
                     checked={duplicateAction === 'update'}
                     onChange={(e) => setDuplicateAction(e.target.value)}
-                    className="mt-1 text-primary-600"
+                    className="mt-1 w-5 h-5 text-emerald-600 focus:ring-emerald-500"
                   />
-                  <div>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">Update stock (add quantity)</span>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-gray-900 dark:text-white text-lg">Update stock (add quantity)</span>
+                      {duplicateAction === 'update' && (
+                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-xs font-semibold rounded-full">
+                          Selected
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
                       Add new quantity to existing stock. Also updates purchase and selling prices.
-                      <br />
-                      <span className="text-xs text-gray-500">Example: Existing 50 + New 20 = 70 total</span>
                     </p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                      <span className="text-xs font-mono text-blue-700 dark:text-blue-300">
+                        Example: Existing 50 + New 20 = 70 total
+                      </span>
+                    </div>
                   </div>
-                </label>
+                </motion.label>
 
-                <label className="flex items-start space-x-3 cursor-pointer p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                <motion.label
+                  whileHover={{ scale: 1.02 }}
+                  className={`flex items-start gap-4 cursor-pointer p-5 rounded-xl transition-all border-2 ${
+                    duplicateAction === 'replace'
+                      ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-md'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  }`}
+                >
                   <input
                     type="radio"
                     name="duplicateAction"
                     value="replace"
                     checked={duplicateAction === 'replace'}
                     onChange={(e) => setDuplicateAction(e.target.value)}
-                    className="mt-1 text-primary-600"
+                    className="mt-1 w-5 h-5 text-emerald-600 focus:ring-emerald-500"
                   />
-                  <div>
-                    <span className="font-medium text-gray-900 dark:text-gray-100">Replace existing</span>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-bold text-gray-900 dark:text-white text-lg">Replace existing</span>
+                      {duplicateAction === 'replace' && (
+                        <span className="px-2 py-0.5 bg-emerald-500 text-white text-xs font-semibold rounded-full">
+                          Selected
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-2">
                       Completely replace existing product data with new data from file.
-                      <br />
-                      <span className="text-xs text-gray-500">Example: Existing 50 → New 20 (replaces to 20)</span>
                     </p>
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                      <span className="text-xs font-mono text-orange-700 dark:text-orange-300">
+                        Example: Existing 50 → New 20 (replaces to 20)
+                      </span>
+                    </div>
                   </div>
-                </label>
+                </motion.label>
               </div>
-            </div>
+            </motion.div>
 
             {/* Preview Table */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Preview & Edit
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <FiFileText className="text-2xl" />
+                  Preview & Edit Products
                 </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  Review and edit product data before importing
+                </p>
               </div>
               <PreviewTable products={products} onProductsChange={setProducts} />
-            </div>
+            </motion.div>
 
             {/* Action Buttons */}
-            <div className="flex justify-between">
-              <button
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="flex flex-col sm:flex-row justify-between gap-4"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleReset}
-                className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                className="px-8 py-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all border-2 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500"
               >
-                Cancel
-              </button>
+                <span className="flex items-center justify-center gap-2">
+                  <FiX className="text-xl" />
+                  Cancel
+                </span>
+              </motion.button>
 
-              <button
+              <motion.button
+                whileHover={{ scale: isImporting || parseResult.summary.errors === parseResult.summary.total ? 1 : 1.05 }}
+                whileTap={{ scale: isImporting || parseResult.summary.errors === parseResult.summary.total ? 1 : 0.95 }}
                 onClick={handleImport}
                 disabled={isImporting || parseResult.summary.errors === parseResult.summary.total}
-                className="px-8 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                className="relative px-10 py-4 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 overflow-hidden group"
               >
-                {isImporting ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    <span>Importing...</span>
-                  </>
-                ) : (
-                  <>
-                    <FiCheck />
-                    <span>Import Products</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
+                <span className="relative z-10 flex items-center justify-center gap-2">
+                  {isImporting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-6 w-6 border-3 border-white border-t-transparent"></div>
+                      <span>Importing Products...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FiCheck className="text-2xl" />
+                      <span>Import {parseResult.summary.valid} Products</span>
+                    </>
+                  )}
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-emerald-600 to-teal-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </motion.button>
+            </motion.div>
+          </motion.div>
         )}
       </div>
     </div>

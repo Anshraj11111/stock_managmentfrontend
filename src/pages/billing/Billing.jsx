@@ -733,6 +733,11 @@ const Billing = () => {
   };
 
   const createBill = async () => {
+    // ✅ PREVENT DOUBLE SUBMISSION - Early return if already creating
+    if (createLoading) {
+      return;
+    }
+
     if (!previewData) {
       toast.error('Please preview the bill first');
       return;
@@ -761,12 +766,19 @@ const Billing = () => {
       }
     }
 
+    // ✅ SET LOADING STATE IMMEDIATELY
     setCreateLoading(true);
+    
+    // ✅ SHOW IMMEDIATE PROGRESS FEEDBACK
+    const progressToast = toast.loading('Creating bill...');
     try {
       let customerId = existingCustomer?.id;
 
       // ✅ If due > 0 and customer doesn't exist, create customer first
       if (due > 0 && !existingCustomer) {
+        // ✅ UPDATE PROGRESS
+        toast.loading('Creating customer...', { id: progressToast });
+        
         try {
           const customerResponse = await customerService.createOrUpdateCustomer({
             name: customerDetails.name,
@@ -774,13 +786,16 @@ const Billing = () => {
             address: customerDetails.address, // ✅ Include address
           });
           customerId = customerResponse.customer.id;
-          toast.success('Customer created successfully');
+          toast.success('Customer created successfully', { id: progressToast });
         } catch (error) {
-          toast.error('Failed to create customer');
+          toast.error('Failed to create customer', { id: progressToast });
           setCreateLoading(false);
           return;
         }
       }
+
+      // ✅ UPDATE PROGRESS - Saving bill
+      toast.loading('Saving bill...', { id: progressToast });
 
       // ✅ Build simple payment array
       const payments = [];
@@ -807,11 +822,15 @@ const Billing = () => {
 
       const billResponse = await billService.createBill(billData);
 
+      // ✅ SHOW SUCCESS IMMEDIATELY
       if (due > 0) {
-        toast.success(`Bill created! Due amount ₹${due.toFixed(2)} added to customer account`);
+        toast.success(`Bill created! Due amount ₹${due.toFixed(2)} added to customer account`, { id: progressToast });
       } else {
-        toast.success('Bill created successfully!');
+        toast.success('Bill created successfully!', { id: progressToast });
       }
+      
+      // ✅ UPDATE PROGRESS - Generating PDF
+      toast.loading('Generating PDF...', { id: progressToast });
       
       const billDataForPrint = {
         id: billResponse.bill_id || billResponse.data?.bill_id || 'N/A',
@@ -829,6 +848,9 @@ const Billing = () => {
       
       printBill(billDataForPrint);
       
+      // ✅ FINAL SUCCESS MESSAGE
+      toast.success('Bill PDF downloaded!', { id: progressToast });
+      
       // ✅ Reset all states
       setSelectedItems([]);
       setPreviewData(null);
@@ -845,7 +867,7 @@ const Billing = () => {
       setDiscountValue(''); // Empty string instead of 0
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create bill';
-      toast.error(errorMsg);
+      toast.error(errorMsg, { id: progressToast });
     } finally {
       setCreateLoading(false);
     }
@@ -1997,9 +2019,19 @@ const Billing = () => {
                 <button
                   onClick={createBill}
                   disabled={createLoading}
-                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 dark:from-indigo-500 dark:to-purple-500 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 dark:from-indigo-500 dark:to-purple-500 dark:hover:from-indigo-600 dark:hover:to-purple-600 text-white rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  {createLoading ? 'Creating...' : 'Create Bill'}
+                  {createLoading ? (
+                    <>
+                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    'Create Bill'
+                  )}
                 </button>
               </div>
             </div>

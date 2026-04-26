@@ -4,8 +4,13 @@ import { usePWA } from '../../store/PWAContext'
 import toast from 'react-hot-toast'
 
 export default function InstallPWA() {
-  const { isInstallable, handleInstall } = usePWA()
+  const { isInstallable, isInstalled, handleInstall } = usePWA()
   const [isLoading, setIsLoading] = useState(false)
+
+  // ✅ Hide button if app is already installed
+  if (isInstalled) {
+    return null
+  }
 
   // Always show button for better UX
   const onInstallClick = async () => {

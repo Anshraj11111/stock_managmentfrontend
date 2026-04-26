@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, Store, DollarSign, Package, TrendingUp, Activity } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { adminService } from '../services/adminService';
@@ -6,6 +7,7 @@ import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +46,8 @@ const AdminDashboard = () => {
       icon: Users,
       color: 'bg-blue-500',
       bgColor: 'bg-blue-50 dark:bg-blue-900/20',
-      textColor: 'text-blue-600'
+      textColor: 'text-blue-600',
+      link: '/admin/users'
     },
     {
       title: 'Total Shops',
@@ -53,7 +56,8 @@ const AdminDashboard = () => {
       icon: Store,
       color: 'bg-green-500',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
-      textColor: 'text-green-600'
+      textColor: 'text-green-600',
+      link: '/admin/shops'
     },
     {
       title: 'Total Revenue',
@@ -62,7 +66,8 @@ const AdminDashboard = () => {
       icon: DollarSign,
       color: 'bg-purple-500',
       bgColor: 'bg-purple-50 dark:bg-purple-900/20',
-      textColor: 'text-purple-600'
+      textColor: 'text-purple-600',
+      link: '/admin/analytics'
     },
     {
       title: 'Active Subscriptions',
@@ -71,7 +76,8 @@ const AdminDashboard = () => {
       icon: TrendingUp,
       color: 'bg-orange-500',
       bgColor: 'bg-orange-50 dark:bg-orange-900/20',
-      textColor: 'text-orange-600'
+      textColor: 'text-orange-600',
+      link: '/admin/subscriptions'
     },
     {
       title: 'Total Products',
@@ -80,7 +86,8 @@ const AdminDashboard = () => {
       icon: Package,
       color: 'bg-pink-500',
       bgColor: 'bg-pink-50 dark:bg-pink-900/20',
-      textColor: 'text-pink-600'
+      textColor: 'text-pink-600',
+      link: '/admin/shops'
     },
     {
       title: 'Total Staff',
@@ -89,7 +96,8 @@ const AdminDashboard = () => {
       icon: Activity,
       color: 'bg-indigo-500',
       bgColor: 'bg-indigo-50 dark:bg-indigo-900/20',
-      textColor: 'text-indigo-600'
+      textColor: 'text-indigo-600',
+      link: '/admin/users'
     }
   ];
 
@@ -111,24 +119,38 @@ const AdminDashboard = () => {
           {statCards.map((card, index) => (
             <div
               key={index}
-              className={`${card.bgColor} rounded-xl p-6 border border-secondary-200 dark:border-secondary-800 hover:shadow-lg transition-shadow`}
+              onClick={() => navigate(card.link)}
+              className={`${card.bgColor} rounded-xl p-6 border border-secondary-200 dark:border-secondary-800 hover:shadow-lg hover:scale-105 transition-all cursor-pointer group`}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  navigate(card.link);
+                }
+              }}
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">
                     {card.title}
                   </p>
-                  <h3 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">
+                  <h3 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 group-hover:scale-105 transition-transform">
                     {card.value}
                   </h3>
                 </div>
-                <div className={`p-3 ${card.color} rounded-lg`}>
+                <div className={`p-3 ${card.color} rounded-lg group-hover:scale-110 transition-transform`}>
                   <card.icon className="w-6 h-6 text-white" />
                 </div>
               </div>
               <p className={`text-sm ${card.textColor} font-medium`}>
                 {card.subtitle}
               </p>
+              <div className="mt-3 flex items-center gap-1 text-xs font-semibold text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                <span>View Details</span>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
             </div>
           ))}
         </div>
