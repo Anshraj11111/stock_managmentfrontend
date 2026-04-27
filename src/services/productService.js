@@ -4,7 +4,9 @@ export const productService = {
   // Get all products
   getProducts: async () => {
     const response = await api.get('/products');
-    return response.data;
+    // Backend now returns { products: [...], pagination: {...} }
+    // Extract just the products array for backward compatibility
+    return response.data.products || response.data;
   },
 
   // Add new product
