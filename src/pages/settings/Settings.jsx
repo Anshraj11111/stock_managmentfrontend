@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Settings as SettingsIcon, Save } from "lucide-react";
+import { Settings as SettingsIcon, Save, Mic, MicOff } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { shopService } from "../../services/shopService";
 import Button from "../../components/common/Button";
@@ -35,6 +35,19 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [signaturePreview, setSignaturePreview] = useState(null);
+
+  // ✅ Voice command setting - stored in localStorage
+  const [voiceEnabled, setVoiceEnabled] = useState(() => {
+    return localStorage.getItem('voiceCommandEnabled') !== 'false';
+  });
+
+  const handleVoiceToggle = (enabled) => {
+    setVoiceEnabled(enabled);
+    localStorage.setItem('voiceCommandEnabled', enabled ? 'true' : 'false');
+    toast.success(enabled ? 'Voice commands enabled' : 'Voice commands disabled');
+    // Reload page so VoiceButton re-evaluates
+    setTimeout(() => window.location.reload(), 800);
+  };
 
   useEffect(() => {
     fetchShopDetails();
@@ -523,6 +536,55 @@ const Settings = () => {
                   {shopData.subscription_active ? t('settings.subscriptionActive') : t('settings.subscriptionTrial')}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Voice Command Section */}
+          <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
+            <h3 className="text-md font-semibold mb-1 text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
+              <Mic className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              Voice Commands
+            </h3>
+            <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-4">
+              Control the mic button visibility. When disabled, the mic icon will be completely hidden.
+            </p>
+
+            <div className="flex items-center justify-between p-4 bg-secondary-50 dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${voiceEnabled ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-secondary-200 dark:bg-secondary-700'}`}>
+                  {voiceEnabled 
+                    ? <Mic className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    : <MicOff className="w-5 h-5 text-secondary-500 dark:text-secondary-400" />
+                  }
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-secondary-900 dark:text-secondary-100">
+                    {voiceEnabled ? 'Voice Commands: ON' : 'Voice Commands: OFF'}
+                  </p>
+                  <p className="text-xs text-secondary-500 dark:text-secondary-400">
+                    {voiceEnabled 
+                      ? 'Mic button is visible. Say "Hey Stock" to activate.' 
+                      : 'Mic button is hidden. Enable to use voice navigation.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Toggle Switch */}
+              <button
+                type="button"
+                onClick={() => handleVoiceToggle(!voiceEnabled)}
+                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none ${
+                  voiceEnabled 
+                    ? 'bg-emerald-500' 
+                    : 'bg-secondary-300 dark:bg-secondary-600'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform duration-300 ${
+                    voiceEnabled ? 'translate-x-8' : 'translate-x-1'
+                  }`}
+                />
+              </button>
             </div>
           </div>
 

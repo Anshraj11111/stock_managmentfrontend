@@ -1,7 +1,22 @@
 import { Mic, MicOff, Radio } from "lucide-react";
 import useVoiceNavigation from "../../hooks/usevoicenavigation";
 
+// ✅ Check if voice commands are enabled in settings
+const isVoiceEnabled = () => {
+  return localStorage.getItem('voiceCommandEnabled') !== 'false';
+};
+
 const VoiceButton = () => {
+  // ✅ If voice is permanently disabled in settings, don't render anything
+  if (!isVoiceEnabled()) {
+    return null;
+  }
+
+  return <VoiceButtonInner />;
+};
+
+// Inner component that uses the hook (only rendered when voice is enabled)
+const VoiceButtonInner = () => {
   const { listening, wakeWordActive, toggleWakeWord } = useVoiceNavigation();
 
   return (
