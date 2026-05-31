@@ -372,6 +372,26 @@ const Invoice = () => {
       doc.text(paymentAmount, 60, yPos);
       yPos += 5;
     });
+
+    // ✅ Show Due Amount if any
+    const totalPaidBill = payments
+      .filter(p => p.mode !== 'credit')
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    const dueAmtBill = parseFloat(bill.total_amount) - totalPaidBill;
+    if (dueAmtBill > 0.01) {
+      yPos += 2;
+      doc.setFont('times', 'bold');
+      doc.setTextColor(200, 50, 50);
+      doc.text('BALANCE DUE:', 15, yPos);
+      doc.text('Rs.' + dueAmtBill.toFixed(2), 60, yPos);
+      doc.setTextColor(0, 0, 0);
+      yPos += 5;
+      doc.setFont('times', 'normal');
+      doc.setFontSize(8);
+      doc.text('(Remaining amount to be paid)', 15, yPos);
+      doc.setFontSize(10);
+      yPos += 3;
+    }
     
     // Signature - Right side
     const signYPos = paymentStartY;
@@ -973,7 +993,7 @@ const Invoice = () => {
                     <div className="flex justify-between items-start mb-1">
                       <div>
                         <p className="text-sm font-semibold text-secondary-900 dark:text-secondary-100">
-                          Bill #{bill.id}
+                          Bill #{bill.bill_number || bill.id}
                         </p>
                         <p className="text-xs text-gray-600 dark:text-gray-400">
                           {new Date(bill.createdAt).toLocaleDateString('en-IN')}
@@ -985,13 +1005,26 @@ const Invoice = () => {
                           })}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right space-y-1">
                         <p className="text-sm font-bold text-emerald-600">
                           ₹{parseFloat(bill.total_amount).toFixed(2)}
                         </p>
-                        <span className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
-                          PAID
+                        {/* Status badge */}
+                        <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
+                          bill.status === 'PAID'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : bill.status === 'PARTIAL'
+                            ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                        }`}>
+                          {bill.status}
                         </span>
+                        {/* Due amount - always show if > 0 */}
+                        {parseFloat(bill.due_amount || 0) > 0 && (
+                          <p className="text-xs font-bold text-red-500 dark:text-red-400">
+                            Due: ₹{parseFloat(bill.due_amount).toFixed(2)}
+                          </p>
+                        )}
                       </div>
                     </div>
                     {bill.customer_name && (

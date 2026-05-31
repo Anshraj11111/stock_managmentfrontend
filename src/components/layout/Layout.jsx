@@ -50,7 +50,7 @@ import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 import Footer from '../common/Footer';
-import VoiceButton from '../common/VoiceButton';
+// import VoiceButton from '../common/VoiceButton'; // Voice assistant disabled
 
 const Layout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -90,8 +90,8 @@ const Layout = ({ children }) => {
 
       </div>
 
-      {/* 🔥 Voice Button Here */}
-      <VoiceButton />
+      {/* 🔥 Voice Button Here - Disabled */}
+      {/* <VoiceButton /> */}
 
     </div>
   );

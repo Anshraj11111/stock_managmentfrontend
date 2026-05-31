@@ -705,6 +705,14 @@ const Billing = () => {
       return;
     }
 
+    // ✅ Require customer name before preview
+    if (!customerDetails.name.trim()) {
+      toast.error('Please enter customer name before previewing bill');
+      // Scroll to customer section
+      document.getElementById('customer-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
     // ✅ Validate customer phone if provided
     if (customerDetails.phone && !/^[0-9]{10}$/.test(customerDetails.phone)) {
       toast.error('Phone number must be exactly 10 digits');
@@ -1105,14 +1113,32 @@ const Billing = () => {
     doc.setFontSize(10);
     doc.setFont('times', 'normal'); // ✅ Professional font
     (billData.payments || []).forEach(payment => {
-      // ✅ Fixed: Better alignment for payment details, clean formatting
       const paymentMode = payment.mode.toUpperCase();
       const paymentAmount = 'Rs.' + parseFloat(payment.amount).toFixed(2);
-      
-      doc.text(paymentMode + ':', 15, yPos); // Clean colon formatting
-      doc.text(paymentAmount, 60, yPos); // ✅ Fixed position for amount alignment
+      doc.text(paymentMode + ':', 15, yPos);
+      doc.text(paymentAmount, 60, yPos);
       yPos += 5;
     });
+
+    // ✅ Show Due Amount if any
+    const totalPaid = (billData.payments || [])
+      .filter(p => p.mode !== 'credit')
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    const dueAmt = parseFloat(billData.total_amount) - totalPaid;
+    if (dueAmt > 0.01) {
+      yPos += 2;
+      doc.setFont('times', 'bold');
+      doc.setTextColor(200, 50, 50); // Red color for due
+      doc.text('BALANCE DUE:', 15, yPos);
+      doc.text('Rs.' + dueAmt.toFixed(2), 60, yPos);
+      doc.setTextColor(0, 0, 0); // Reset color
+      yPos += 5;
+      doc.setFont('times', 'normal');
+      doc.setFontSize(8);
+      doc.text('(Remaining amount to be paid)', 15, yPos);
+      doc.setFontSize(10);
+      yPos += 3;
+    }
     
     // Signature - Right side (aligned with payment details)
     const signYPos = paymentStartY;
@@ -1260,543 +1286,331 @@ const Billing = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-900 space-y-6 px-4 sm:px-6 py-6">
-      {/* Header - Premium Design */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-900 overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-gray-800 px-4 sm:px-6 py-3 shadow-md border-b border-gray-200 dark:border-gray-700">
         <div>
-          <h1 className="text-3xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-400 bg-clip-text text-transparent">
             {t('billing.title')}
           </h1>
-          <p className="text-base text-gray-600 dark:text-gray-400 font-medium">
-            {t('billing.subtitle')}
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('billing.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 px-8 py-5 rounded-xl shadow-xl">
-          <ShoppingCart className="w-7 h-7 text-white" />
+        <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 px-5 py-2.5 rounded-xl shadow-lg">
+          <ShoppingCart className="w-5 h-5 text-white" />
           <div>
             <p className="text-xs text-white/90 font-bold uppercase tracking-wider">{t('billing.itemsInCart')}</p>
-            <p className="text-3xl font-black text-white">{selectedItems.length}</p>
+            <p className="text-xl font-black text-white">{selectedItems.length}</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Products List - Full Width */}
-        <div className="space-y-6">
-          {/* Search - Premium Design */}
+      {/* Two-column layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* LEFT - scrollable */}
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
+          <div className="grid grid-cols-1 gap-4">
+          {/* Search */}
           <div className="relative">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-indigo-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-500" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-14 pr-6 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-4 focus:ring-emerald-400 focus:border-emerald-500 transition-all text-lg font-medium shadow-xl placeholder-gray-400"
+              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-emerald-400 focus:border-emerald-500 transition-all font-medium shadow-md placeholder-gray-400"
             />
           </div>
 
           {/* Products Grid */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-2xl">
-            <h2 className="text-xl font-black text-gray-900 dark:text-white mb-6 flex items-center gap-3">
-              <Package className="w-6 h-6 text-emerald-600" />
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-md">
+            <h2 className="text-lg font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <Package className="w-5 h-5 text-emerald-600" />
               {t('billing.availableProducts')}
             </h2>
 
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-16">
-                <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-                <p className="text-lg text-gray-500">
+              <div className="text-center py-12">
+                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">
                   {searchTerm ? t('billing.noProductsFound') : t('billing.noProductsAvailable')}
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 {filteredProducts.map((product, index) => (
                   <div
                     key={product.id}
-                    className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 sm:p-4 border border-secondary-200 dark:border-secondary-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 border border-secondary-200 dark:border-secondary-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
                   >
                     <div className="absolute top-2 right-2">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${
-                        product.stock_quantity > 10 
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                          : product.stock_quantity > 0 
-                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' 
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${
+                        product.stock_quantity > 10
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                          : product.stock_quantity > 0
+                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
                           : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       }`}>
                         {t('billing.stock')}: {product.stock_quantity}
                       </span>
                     </div>
-
                     <div className="mb-3 pr-16">
-                      <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1 text-sm sm:text-base truncate">
-                        {product.product_name}
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-600" />
-                        <span className="text-lg sm:text-2xl font-bold text-emerald-600">
-                          ₹{product.selling_price}
-                        </span>
+                      <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1 text-sm truncate">{product.product_name}</h3>
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="w-3 h-3 text-emerald-600" />
+                        <span className="text-lg font-bold text-emerald-600">₹{product.selling_price}</span>
                       </div>
                     </div>
-
                     <button
                       onClick={() => addToBill(product)}
                       disabled={product.stock_quantity === 0}
-                      className="w-full flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group-hover:shadow-lg text-sm sm:text-base"
+                      className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
-                      <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span className="hidden sm:inline">{t('billing.addToBill')}</span>
-                      <span className="sm:hidden">{t('billing.add')}</span>
+                      <Plus className="w-3 h-3" />
+                      {t('billing.addToBill')}
                     </button>
                   </div>
                 ))}
               </div>
             )}
           </div>
-        </div>
 
-        {/* Bill Summary */}
-        <div className="space-y-4 sm:space-y-6">
-          {/* ✅ NEW: Customer Details Section */}
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl sm:rounded-2xl border border-emerald-200 dark:border-emerald-600 p-4 sm:p-6">
-            <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100 mb-3 flex items-center gap-2">
+          {/* Customer Details */}
+          <div id="customer-section" className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-600 p-4 sm:p-6">
+            <h3 className="text-base font-bold text-secondary-900 dark:text-secondary-100 mb-3 flex items-center gap-2">
               <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
-              Customer Details (For Credit/Udhar)
+              Customer Details
+              <span className="text-red-500 text-xs font-normal">(Required to preview)</span>
             </h3>
-            
-            {/* Show existing customer info if found */}
             {existingCustomer && (
               <div className="mb-3 p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
-                <p className="text-sm font-semibold text-green-800 dark:text-green-300 mb-1">
-                  ✓ Existing Customer Found
-                </p>
-                <p className="text-sm text-green-700 dark:text-green-400">
-                  Previous Due: ₹{parseFloat(existingCustomer.total_due).toFixed(2)}
-                </p>
+                <p className="text-sm font-semibold text-green-800 dark:text-green-300">✓ Existing Customer Found</p>
+                <p className="text-sm text-green-700 dark:text-green-400">Previous Due: ₹{parseFloat(existingCustomer.total_due).toFixed(2)}</p>
               </div>
             )}
-
             <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Phone Number (10 digits)
-                </label>
-                <input
-                  type="tel"
-                  placeholder="Search by phone..."
-                  value={customerDetails.phone}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer Name <span className="text-red-500">*</span></label>
+                <input type="text" placeholder="Customer Name" value={customerDetails.name}
+                  onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number (10 digits)</label>
+                <input type="tel" placeholder="Search by phone..." value={customerDetails.phone}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                     setCustomerDetails({ ...customerDetails, phone: value });
-                    if (value.length === 10) {
-                      searchCustomerByPhone(value);
-                    } else {
-                      setExistingCustomer(null);
-                    }
+                    if (value.length === 10) searchCustomerByPhone(value);
+                    else setExistingCustomer(null);
                   }}
                   maxLength="10"
-                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                {searchingCustomer && (
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Searching...</p>
-                )}
-                {customerDetails.phone && customerDetails.phone.length !== 10 && (
-                  <p className="text-xs text-red-600 dark:text-red-400 mt-1">Phone must be exactly 10 digits</p>
-                )}
+                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                {searchingCustomer && <p className="text-xs text-blue-600 mt-1">Searching...</p>}
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Customer Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Customer Name"
-                  value={customerDetails.name}
-                  onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* ✅ NEW: Address Field */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Address
-                </label>
-                <textarea
-                  placeholder="Customer Address"
-                  value={customerDetails.address}
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
+                <textarea placeholder="Customer Address" value={customerDetails.address}
                   onChange={(e) => setCustomerDetails({ ...customerDetails, address: e.target.value })}
                   rows="2"
-                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                />
+                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" />
               </div>
-
               <div className="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
-                💡 Required only for partial payment (credit/udhar sales)
+                💡 Address & phone required only for credit/udhar sales
               </div>
             </div>
           </div>
 
-          {/* ✅ NEW: GST Section */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl sm:rounded-2xl border border-green-200 dark:border-green-800 p-4 sm:p-6">
+          {/* GST Section */}
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-200 dark:border-green-800 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
+              <h3 className="text-base font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
                 GST (Optional)
               </h3>
-              <button
-                onClick={() => setGstEnabled(!gstEnabled)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  gstEnabled ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    gstEnabled ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
+              <button onClick={() => setGstEnabled(!gstEnabled)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${gstEnabled ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${gstEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
             {gstEnabled && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    placeholder="GST %"
-                    value={gstPercentage}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value);
-                      if (value >= 0 && value <= 28) {
-                        setGstPercentage(value);
-                      }
-                    }}
-                    min="0"
-                    max="28"
-                    step="0.1"
-                    className="flex-1 px-4 py-3 border-2 border-indigo-400 dark:border-indigo-500 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-indigo-400 dark:focus:ring-indigo-600 focus:border-indigo-600 dark:focus:border-indigo-400 font-bold text-lg shadow-lg transition-all"
-                  />
+                  <input type="number" placeholder="GST %" value={gstPercentage}
+                    onChange={(e) => { const v = parseFloat(e.target.value); if (v >= 0 && v <= 28) setGstPercentage(v); }}
+                    min="0" max="28" step="0.1"
+                    className="flex-1 px-4 py-2 border-2 border-indigo-400 dark:border-indigo-500 rounded-xl bg-white dark:bg-secondary-800 text-gray-900 dark:text-gray-100 font-bold focus:ring-2 focus:ring-indigo-400" />
                   <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">%</span>
                 </div>
                 {selectedItems.length > 0 && (
                   <div className="bg-white dark:bg-secondary-800 rounded-lg p-3 space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                      <span className="font-semibold">₹{calculateTotal().toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span>
-                      <span className="font-semibold text-green-600">
-                        ₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-1 mt-1"></div>
-                    <div className="flex justify-between text-base">
-                      <span className="font-bold">Total:</span>
-                      <span className="font-bold text-green-600">
-                        ₹{(calculateTotal() + (calculateTotal() * gstPercentage) / 100).toFixed(2)}
-                      </span>
-                    </div>
+                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Subtotal:</span><span className="font-semibold">₹{calculateTotal().toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span><span className="font-semibold text-green-600">₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-1"></div>
+                    <div className="flex justify-between text-base"><span className="font-bold">Total:</span><span className="font-bold text-green-600">₹{(calculateTotal() + (calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* ✅ NEW: Discount Section */}
-          <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl sm:rounded-2xl border border-orange-200 dark:border-orange-800 p-4 sm:p-6">
+          {/* Discount Section */}
+          <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl border border-orange-200 dark:border-orange-800 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
+              <h3 className="text-base font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
                 <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 Discount (Optional)
               </h3>
-              <button
-                onClick={() => setDiscountEnabled(!discountEnabled)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  discountEnabled ? 'bg-orange-600' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    discountEnabled ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
+              <button onClick={() => setDiscountEnabled(!discountEnabled)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${discountEnabled ? 'bg-orange-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${discountEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
-            
             {discountEnabled && (
               <div className="space-y-3">
-                {/* Discount Type Toggle */}
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setDiscountType('percentage')}
-                    className={`flex-1 px-3 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
-                      discountType === 'percentage'
-                        ? 'bg-orange-600 text-white'
-                        : 'bg-white dark:bg-secondary-800 text-gray-700 dark:text-gray-300 border border-orange-300 dark:border-orange-700'
-                    }`}
-                  >
-                    Percentage (%)
-                  </button>
-                  <button
-                    onClick={() => setDiscountType('fixed')}
-                    className={`flex-1 px-3 py-2 rounded-lg font-medium transition-all text-sm sm:text-base ${
-                      discountType === 'fixed'
-                        ? 'bg-orange-600 text-white'
-                        : 'bg-white dark:bg-secondary-800 text-gray-700 dark:text-gray-300 border border-orange-300 dark:border-orange-700'
-                    }`}
-                  >
-                    Fixed (₹)
-                  </button>
+                  <button onClick={() => setDiscountType('percentage')} className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm transition-all ${discountType === 'percentage' ? 'bg-orange-600 text-white' : 'bg-white dark:bg-secondary-800 text-gray-700 dark:text-gray-300 border border-orange-300 dark:border-orange-700'}`}>Percentage (%)</button>
+                  <button onClick={() => setDiscountType('fixed')} className={`flex-1 px-3 py-2 rounded-lg font-medium text-sm transition-all ${discountType === 'fixed' ? 'bg-orange-600 text-white' : 'bg-white dark:bg-secondary-800 text-gray-700 dark:text-gray-300 border border-orange-300 dark:border-orange-700'}`}>Fixed (₹)</button>
                 </div>
-
-                {/* Discount Input */}
                 <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    placeholder={discountType === 'percentage' ? 'Enter discount %' : 'Enter discount amount'}
-                    value={discountValue}
+                  <input type="number" placeholder={discountType === 'percentage' ? 'Enter discount %' : 'Enter discount amount'} value={discountValue}
                     onChange={(e) => {
                       const inputValue = e.target.value;
-                      if (inputValue === '') {
-                        setDiscountValue('');
-                        return;
-                      }
+                      if (inputValue === '') { setDiscountValue(''); return; }
                       const value = parseFloat(inputValue) || 0;
                       if (discountType === 'percentage' && value > 100) return;
-                      const maxDiscount = gstEnabled 
-                        ? calculateTotal() + (calculateTotal() * gstPercentage) / 100 
-                        : calculateTotal();
-                      if (discountType === 'fixed' && value > maxDiscount) return;
                       setDiscountValue(inputValue);
                     }}
                     min="0"
-                    max={discountType === 'percentage' ? '100' : (gstEnabled ? calculateTotal() + (calculateTotal() * gstPercentage) / 100 : calculateTotal())}
-                    step={discountType === 'percentage' ? '1' : '0.01'}
-                    className="flex-1 px-4 py-3 border-2 border-orange-400 dark:border-orange-500 rounded-xl bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-4 focus:ring-orange-400 dark:focus:ring-orange-600 focus:border-orange-600 dark:focus:border-orange-400 font-bold text-lg shadow-lg transition-all"
-                  />
-                  <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                    {discountType === 'percentage' ? '%' : '₹'}
-                  </span>
+                    className="flex-1 px-4 py-2 border-2 border-orange-400 dark:border-orange-500 rounded-xl bg-white dark:bg-secondary-800 text-gray-900 dark:text-gray-100 font-bold focus:ring-2 focus:ring-orange-400" />
+                  <span className="text-lg font-bold text-orange-600">{discountType === 'percentage' ? '%' : '₹'}</span>
                 </div>
-
-                {/* Discount Preview */}
                 {selectedItems.length > 0 && discountValue && parseFloat(discountValue) > 0 && (
                   <div className="bg-white dark:bg-secondary-800 rounded-lg p-3 space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                      <span className="font-semibold">₹{calculateTotal().toFixed(2)}</span>
-                    </div>
-                    
-                    {gstEnabled && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span>
-                        <span className="font-semibold text-green-600">
-                          ₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between text-red-600">
-                      <span>Discount ({discountType === 'percentage' ? `${discountValue}%` : `₹${discountValue}`}):</span>
-                      <span className="font-semibold">
-                        -₹{calculateDiscountAmount().toFixed(2)}
-                      </span>
-                    </div>
-
-                    <div className="border-t border-gray-200 dark:border-gray-700 pt-1 mt-1"></div>
-                    <div className="flex justify-between text-base">
-                      <span className="font-bold">Final Total:</span>
-                      <span className="font-bold text-orange-600">
-                        ₹{calculateFinalTotal().toFixed(2)}
-                      </span>
-                    </div>
+                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Subtotal:</span><span className="font-semibold">₹{calculateTotal().toFixed(2)}</span></div>
+                    {gstEnabled && <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span><span className="font-semibold text-green-600">₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>}
+                    <div className="flex justify-between text-red-600"><span>Discount:</span><span className="font-semibold">-₹{calculateDiscountAmount().toFixed(2)}</span></div>
+                    <div className="border-t border-gray-200 dark:border-gray-700 pt-1"></div>
+                    <div className="flex justify-between text-base"><span className="font-bold">Final Total:</span><span className="font-bold text-orange-600">₹{calculateFinalTotal().toFixed(2)}</span></div>
                   </div>
                 )}
               </div>
             )}
           </div>
 
-          {/* Current Bill */}
-          <div id="preview-bill-section" className="bg-white dark:bg-secondary-900 rounded-xl sm:rounded-2xl border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 sticky top-4 sm:top-20">
-            <h2 className="text-lg sm:text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-              <Receipt className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+          <div className="h-4" />
+        </div>{/* end left grid */}
+        </div>{/* end left column */}
+
+        {/* RIGHT COLUMN - Fixed, own scroll */}
+        <div className="w-80 xl:w-96 flex-shrink-0 flex flex-col border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
+          {/* Scrollable items list */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <h2 className="text-base font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2 sticky top-0 bg-white dark:bg-gray-800 py-2 z-10 border-b border-gray-100 dark:border-gray-700">
+              <Receipt className="w-4 h-4 text-emerald-600" />
               {t('billing.currentBill')}
             </h2>
 
             {selectedItems.length === 0 ? (
-              <div className="text-center py-8 sm:py-12">
-                <ShoppingCart className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {t('billing.noItemsAdded')}
-                </p>
+              <div className="text-center py-12">
+                <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.noItemsAdded')}</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="max-h-48 sm:max-h-64 overflow-y-auto space-y-2 pr-2">
-                  {selectedItems.map((item, index) => (
-                    <div
-                      key={item.product_id}
-                      className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-secondary-200 dark:border-secondary-700"
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-secondary-900 dark:text-secondary-100 truncate text-sm sm:text-base">
-                          {item.name}
-                        </p>
-                        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                          ₹{item.price} × {item.quantity} = ₹{item.total}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                          className="p-1 sm:p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        >
-                          <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
-                        {/* ✅ Editable Quantity Input */}
-                        <input
-                          type="number"
-                          value={item.quantity}
-                          onChange={(e) => updateQuantity(item.product_id, e.target.value)}
-                          min="1"
-                          className="w-12 sm:w-16 text-center font-semibold text-sm sm:text-base border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-                        />
-                        <button
-                          onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                          className="p-1 sm:p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        >
-                          <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
-                        <button
-                          onClick={() => removeFromBill(item.product_id)}
-                          className="p-1 sm:p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ml-1"
-                        >
-                          <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                        </button>
-                      </div>
+              <div className="space-y-2">
+                {selectedItems.map((item) => (
+                  <div key={item.product_id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-xl border border-secondary-200 dark:border-secondary-700">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-secondary-900 dark:text-secondary-100 truncate text-sm">{item.name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">₹{item.price} × {item.quantity} = ₹{item.total}</p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><Minus className="w-3 h-3" /></button>
+                      <input type="number" value={item.quantity} onChange={(e) => updateQuantity(item.product_id, e.target.value)} min="1"
+                        className="w-10 text-center font-semibold text-sm border border-secondary-300 dark:border-secondary-700 rounded bg-white dark:bg-secondary-800 focus:ring-1 focus:ring-emerald-500" />
+                      <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><Plus className="w-3 h-3" /></button>
+                      <button onClick={() => removeFromBill(item.product_id)} className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 className="w-3 h-3" /></button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Bill Preview */}
+            {previewData && (
+              <div className="mt-3 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-200 dark:border-emerald-600 p-4">
+                <h3 className="text-sm font-bold text-secondary-900 dark:text-secondary-100 mb-3 flex items-center gap-2">
+                  <Receipt className="w-4 h-4 text-emerald-600" />
+                  {t('billing.billPreview')}
+                </h3>
+                {(customerDetails.name || customerDetails.phone) && (
+                  <div className="mb-3 pb-2 border-b border-emerald-200 dark:border-emerald-500">
+                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">Customer:</p>
+                    {customerDetails.name && <p className="text-xs text-gray-600 dark:text-gray-400">{customerDetails.name}</p>}
+                    {customerDetails.phone && <p className="text-xs text-gray-600 dark:text-gray-400">{customerDetails.phone}</p>}
+                  </div>
+                )}
+                <div className="space-y-1 mb-3">
+                  {previewData.items.map((item, index) => (
+                    <div key={index} className="flex justify-between text-xs">
+                      <span className="text-gray-600 dark:text-gray-400 truncate mr-2">{item.name} × {item.quantity}</span>
+                      <span className="font-semibold text-secondary-900 dark:text-secondary-100 flex-shrink-0">₹{item.total}</span>
                     </div>
                   ))}
                 </div>
-
-                <div className="border-t border-secondary-200 dark:border-secondary-800 pt-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{t('billing.subtotal')}:</span>
-                    <span className="text-xl sm:text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-                      ₹{calculateTotal().toFixed(2)}
-                    </span>
+                <div className="border-t border-emerald-200 dark:border-emerald-500 pt-2 space-y-1">
+                  <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">Subtotal:</span><span className="font-semibold">₹{previewData.subtotal || previewData.total_amount}</span></div>
+                  {previewData.gst_amount && <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">GST ({previewData.gst_percentage}%):</span><span className="font-semibold text-green-600">+₹{previewData.gst_amount}</span></div>}
+                  {previewData.discount_amount && <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">Discount:</span><span className="font-semibold text-red-600">-₹{previewData.discount_amount}</span></div>}
+                  <div className="flex justify-between items-center pt-1 border-t border-emerald-300 dark:border-emerald-600">
+                    <span className="text-sm font-bold text-secondary-900 dark:text-secondary-100">Total:</span>
+                    <span className="text-lg font-black text-emerald-600">₹{previewData.total_amount}</span>
                   </div>
-
-                  <button
-                    onClick={previewBill}
-                    disabled={previewLoading}
-                    className="w-full flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 text-sm sm:text-base"
-                  >
-                    {previewLoading ? t('common.loading') : t('billing.previewBill')}
-                  </button>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Bill Preview */}
-          {previewData && (
-            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-600 p-6">
-              <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-emerald-600" />
-                {t('billing.billPreview')}
-              </h2>
+          {/* Bottom actions - always visible */}
+          <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 space-y-3">
+            {selectedItems.length > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600 dark:text-gray-400">{t('billing.subtotal')}:</span>
+                <span className="text-xl font-bold text-secondary-900 dark:text-secondary-100">₹{calculateTotal().toFixed(2)}</span>
+              </div>
+            )}
 
-              {/* ✅ Customer Details in Preview */}
-              {(customerDetails.name || customerDetails.phone) && (
-                <div className="mb-4 pb-3 border-b border-emerald-200 dark:border-emerald-500">
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Customer:</p>
-                  {customerDetails.name && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{customerDetails.name}</p>
-                  )}
-                  {customerDetails.phone && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{customerDetails.phone}</p>
-                  )}
-                </div>
+            <button
+              onClick={previewBill}
+              disabled={previewLoading || selectedItems.length === 0}
+              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 text-sm
+                ${!customerDetails.name.trim() || selectedItems.length === 0
+                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white hover:shadow-lg'
+                }`}
+            >
+              {previewLoading ? t('common.loading') : (
+                !customerDetails.name.trim() && selectedItems.length > 0
+                  ? '⚠ Enter customer name first'
+                  : t('billing.previewBill')
               )}
+            </button>
 
-              <div className="space-y-3 mb-4">
-                {previewData.items.map((item, index) => (
-                  <div key={index} className="flex justify-between text-sm">
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {item.name} × {item.quantity}
-                    </span>
-                    <span className="font-semibold text-secondary-900 dark:text-secondary-100">
-                      ₹{item.total}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="border-t border-emerald-200 dark:border-emerald-500 pt-3 mb-4 space-y-2">
-                {/* ✅ Show Subtotal */}
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-700 dark:text-gray-300">Subtotal:</span>
-                  <span className="font-semibold text-secondary-900 dark:text-secondary-100">
-                    ₹{previewData.subtotal || previewData.total_amount}
-                  </span>
-                </div>
-
-                {/* ✅ Show GST if enabled */}
-                {previewData.gst_amount && previewData.gst_percentage && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700 dark:text-gray-300">
-                      GST ({previewData.gst_percentage}%):
-                    </span>
-                    <span className="font-semibold text-green-600">
-                      +₹{previewData.gst_amount}
-                    </span>
-                  </div>
-                )}
-
-                {/* ✅ Show Discount if enabled */}
-                {previewData.discount_amount && previewData.discount_value && (
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700 dark:text-gray-300">
-                      Discount ({previewData.discount_type === 'percentage' ? `${previewData.discount_value}%` : `₹${previewData.discount_value}`}):
-                    </span>
-                    <span className="font-semibold text-red-600">
-                      -₹{previewData.discount_amount}
-                    </span>
-                  </div>
-                )}
-
-                <div className="border-t border-emerald-300 dark:border-emerald-600 pt-2 mt-2"></div>
-
-                {/* ✅ Total */}
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Total:</span>
-                  <span className="text-2xl font-bold text-emerald-600">
-                    ₹{previewData.total_amount}
-                  </span>
-                </div>
-              </div>
-
+            {previewData && (
               <button
                 onClick={() => setShowPaymentModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-300 text-sm"
               >
-                <Receipt className="w-5 h-5" />
+                <Receipt className="w-4 h-4" />
                 {t('billing.proceedToPayment')}
               </button>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+          </div>
+        </div>{/* end right column */}
+      </div>{/* end two-column */}
 
       {/* ✅ SIMPLE Payment Modal - Dark Mode Friendly */}
       {showPaymentModal && (

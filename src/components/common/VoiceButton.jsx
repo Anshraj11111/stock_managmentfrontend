@@ -1,3 +1,7 @@
+// Voice Assistant - DISABLED
+// To re-enable: uncomment this file and uncomment VoiceButton in Layout.jsx
+
+/*
 import { Mic, MicOff, Radio } from "lucide-react";
 import useVoiceNavigation from "../../hooks/usevoicenavigation";
 
@@ -46,7 +50,6 @@ const VoiceButtonInner = () => {
         <Mic size={28} />
       )}
       
-      {/* Active indicator */}
       {(listening || wakeWordActive) && (
         <span className="absolute -top-1 -right-1 flex h-4 w-4">
           <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${listening ? 'bg-red-400' : 'bg-green-400'} opacity-75`}></span>
@@ -57,4 +60,9 @@ const VoiceButtonInner = () => {
   );
 };
 
+export default VoiceButton;
+*/
+
+// Placeholder export so imports don't break
+const VoiceButton = () => null;
 export default VoiceButton;
