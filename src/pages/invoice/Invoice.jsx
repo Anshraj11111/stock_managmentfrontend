@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FileText, Download, Calendar, Receipt, FileCheck } from 'lucide-react';
 import jsPDF from 'jspdf';
-import QRCode from 'qrcode';
 import { billService } from '../../services/billService';
 import { shopService } from '../../services/shopService';
 import Button from '../../components/common/Button';
@@ -96,780 +95,294 @@ const Invoice = () => {
     }
   };
 
-  // ✅ NEW: Generate Bill (not Invoice) - Similar to Billing.jsx format
-  const generateProfessionalBill = async (bill) => {
-    const doc = new jsPDF();
-    
-    let yPos = 15;
-    
-    // ========================================
-    // CLEAN PROFESSIONAL HEADER
-    // ========================================
-    
-    // Company Name - Large, Bold, Professional Font
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(22);
-    doc.setFont('times', 'bold');
-    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, yPos, { align: 'center' });
-    yPos += 8;
-    
-    // Tagline
-    doc.setFontSize(10);
-    doc.setFont('times', 'normal');
-    doc.text('Quality Products & Excellent Service', 105, yPos, { align: 'center' });
-    yPos += 6;
-    
-    // Company Details
-    doc.setFontSize(10);
-    if (shop?.address) {
-      const addressLines = doc.splitTextToSize(shop.address, 140);
-      doc.text(addressLines[0], 105, yPos, { align: 'center' });
-      yPos += 5;
-    }
-    
-    if (shop?.owner_phone) {
-      doc.text(`Phone: ${shop.owner_phone}`, 105, yPos, { align: 'center' });
-      yPos += 5;
-    }
-    
-    if (shop?.gstin) {
-      doc.text(`GSTIN: ${shop.gstin}`, 105, yPos, { align: 'center' });
-      yPos += 5;
-    }
-    
-    // Separator line
-    doc.setLineWidth(0.5);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 8;
-    
-    // ========================================
-    // BILL DETAILS - Clean Layout
-    // ========================================
-    
-    // Bill Number
-    doc.setFontSize(11);
-    doc.setFont('times', 'bold');
-    doc.text('Bill No:', 15, yPos);
-    doc.setFontSize(13);
-    doc.text(`#${bill.bill_number || bill.id}`, 40, yPos);
-    
-    // Date - Right aligned
-    doc.setFontSize(11);
-    doc.setFont('times', 'bold');
-    doc.text('Date:', 150, yPos);
-    doc.setFontSize(11);
-    doc.setFont('times', 'normal');
-    doc.text(new Date(bill.createdAt).toLocaleDateString('en-IN', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
-    }), 165, yPos);
-    
-    yPos += 10;
-    
-    // ========================================
-    // CUSTOMER DETAILS
-    // ========================================
-    
-    if (bill.customer_name || bill.customer_phone) {
-      doc.setFontSize(10);
-      doc.setFont('times', 'bold');
-      doc.text('Customer:', 15, yPos);
-      
-      doc.setFontSize(11);
-      doc.setFont('times', 'normal');
-      doc.text(bill.customer_name || 'Walk-in Customer', 40, yPos);
-      
-      // Move phone to next line, aligned under date
-      if (bill.customer_phone) {
-        yPos += 5;
-        doc.text(`Phone: ${bill.customer_phone}`, 150, yPos);
-      }
-      
-      yPos += 8;
-    }
-    
-    // Separator line
-    doc.setLineWidth(0.5);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 8;
-    
-    // ========================================
-    // ITEMS TABLE - Clean & Readable
-    // ========================================
-    
-    // Table Header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(15, yPos, 180, 8, 'F');
-    
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('times', 'bold');
-    doc.setFontSize(10);
-    doc.text('Product / Service', 18, yPos + 5.5);
-    doc.text('Qty', 130, yPos + 5.5);
-    doc.text('Rate', 150, yPos + 5.5);
-    doc.text('Amount', 175, yPos + 5.5);
-    
-    yPos += 8;
-    
-    // Parse items
-    let items = [];
-    if (typeof bill.items === 'string') {
-      items = JSON.parse(bill.items);
-    } else if (bill.BillItems && Array.isArray(bill.BillItems)) {
-      items = bill.BillItems.map(item => ({
-        name: item.Product?.product_name || 'Product',
-        price: item.price,
-        quantity: item.quantity,
-        total: item.price * item.quantity
-      }));
-    } else if (Array.isArray(bill.items)) {
-      items = bill.items;
-    }
-    
-    let subtotal = 0;
-    
-    // Items rows
-    doc.setFont('times', 'normal');
-    doc.setFontSize(10);
-    
-    items.forEach((item, index) => {
-      const itemTotal = parseFloat(item.total || (item.price * item.quantity));
-      subtotal += itemTotal;
-      
-      // Check if we need a new page
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-      
-      // Alternating row colors
-      if (index % 2 === 1) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(15, yPos, 180, 8, 'F');
-      }
-      
-      // Item data
-      const productName = item.name.length > 55 ? item.name.substring(0, 55) + '...' : item.name;
-      doc.text(productName, 18, yPos + 5.5);
-      doc.text(item.quantity.toString(), 133, yPos + 5.5, { align: 'center' });
-      doc.text(parseFloat(item.price).toFixed(2), 165, yPos + 5.5, { align: 'right' });
-      doc.setFont('times', 'bold');
-      doc.text(itemTotal.toFixed(2), 192, yPos + 5.5, { align: 'right' });
-      doc.setFont('times', 'normal');
-      
-      yPos += 8;
+  // ─────────────────────────────────────────────────────────────────────────
+  // SHARED PDF BUILDER — same professional design for Bill & Invoice
+  // ─────────────────────────────────────────────────────────────────────────
+  const buildPDF = (bill, mode = 'bill') => {
+    const isInvoice = mode === 'invoice';
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    const PW = 210; const PH = 297;
+    const M  = 14;  const CW = PW - M * 2; // 182mm
+
+    const BLUE  = [30,  58, 138];
+    const LBLUE = [37,  99, 235];
+    const BGBL  = [240, 244, 255];
+    const BGGY  = [248, 250, 252];
+    const BORD  = [209, 216, 232];
+    const DARK  = [30,  41,  59];
+    const GREY  = [100, 116, 139];
+    const WHITE = [255, 255, 255];
+    const GREEN = [21,  128,  61];
+    const RED   = [220,  38,  38];
+
+    const rs = (n) => `Rs.${Number(n || 0).toFixed(2)}`;
+
+    const sc = (rgb, type = 'text') => {
+      if (type === 'fill') doc.setFillColor(...rgb);
+      else if (type === 'draw') doc.setDrawColor(...rgb);
+      else doc.setTextColor(...rgb);
+    };
+
+    let Y = M;
+
+    // ── 1. HEADER BAND ──────────────────────────────────────────────────────
+    sc(BLUE, 'fill');
+    doc.rect(0, 0, PW, 30, 'F');
+
+    sc(WHITE);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(16);
+    doc.text((shop?.shop_name || 'SHOP NAME').toUpperCase(), M, 10);
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+    doc.setTextColor(191, 219, 254);
+    let shopY = 15;
+    if (shop?.category)    { doc.text(shop.category, M, shopY); shopY += 4; }
+    const addrParts = [];
+    if (shop?.address)     addrParts.push(shop.address);
+    if (shop?.owner_phone) addrParts.push(`Ph: ${shop.owner_phone}`);
+    if (addrParts.length)  { doc.text(addrParts.join('  |  '), M, shopY, { maxWidth: CW * 0.65 }); shopY += 4; }
+    if (shop?.gstin)       doc.text(`GSTIN: ${shop.gstin}`, M, shopY);
+
+    sc(WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+    doc.text(isInvoice ? 'INVOICE' : 'BILL', PW - M, 12, { align: 'right' });
+
+    Y = 30;
+
+    // ── 2. TITLE BAR ────────────────────────────────────────────────────────
+    sc(LBLUE, 'fill');
+    doc.rect(0, Y, PW, 8, 'F');
+    sc(WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    const titleLabel = isInvoice ? 'INVOICE' : 'BILL';
+    doc.text(`${titleLabel}  –  #${bill.bill_number || bill.id}`, PW / 2, Y + 5.5, { align: 'center' });
+    Y += 8 + 4;
+
+    // ── 3. INFO BOXES ────────────────────────────────────────────────────────
+    const BOX_H = 22; const BOX_W = (CW - 4) / 2;
+    sc(BGBL, 'fill'); sc(BORD, 'draw'); doc.setLineWidth(0.3);
+    doc.rect(M, Y, BOX_W, BOX_H, 'FD');
+
+    let lY = Y + 5;
+    const metaLine = (label, val, x = M) => {
+      if (!val) return;
+      sc(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+      doc.text(label, x + 3, lY);
+      sc(GREY); doc.setFont('helvetica', 'normal');
+      doc.text(String(val), x + 3 + doc.getTextWidth(label) + 1, lY);
+      lY += 4.5;
+    };
+
+    // Parse payments from BillPayments array
+    const pmts = bill.BillPayments || bill.payments || [];
+    const pmtModes = pmts.map(p => (p.payment_mode || p.mode || '').toUpperCase()).filter(Boolean).join(', ');
+
+    metaLine(isInvoice ? 'Invoice No:' : 'Bill No:', `#${bill.bill_number || bill.id}`);
+    metaLine('Date:', new Date(bill.createdAt || Date.now()).toLocaleDateString('en-IN', { day: 'numeric', month: 'numeric', year: 'numeric' }));
+    metaLine('Status:', bill.status || '-');
+    if (pmtModes) metaLine('Payment:', pmtModes);
+
+    const RX = M + BOX_W + 4;
+    sc(BGBL, 'fill'); sc(BORD, 'draw');
+    doc.rect(RX, Y, BOX_W, BOX_H, 'FD');
+    let rY = Y + 5;
+    const custLine = (label, val) => {
+      if (!val) return;
+      sc(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+      doc.text(label, RX + 3, rY);
+      sc(GREY); doc.setFont('helvetica', 'normal');
+      doc.text(String(val), RX + 3 + doc.getTextWidth(label) + 1, rY);
+      rY += 4.5;
+    };
+    custLine('To:', bill.customer_name || 'Walk-in Customer');
+    custLine('Mobile:', bill.customer_phone);
+
+    Y += BOX_H + 5;
+
+    // ── 4. ITEMS TABLE ───────────────────────────────────────────────────────
+    const cols = [
+      { key: 'sno',  hdr: '#',           x: M,       w: 7,   align: 'left'   },
+      { key: 'desc', hdr: 'DESCRIPTION', x: M + 7,   w: 73,  align: 'left'   },
+      { key: 'qty',  hdr: 'QTY',         x: M + 80,  w: 20,  align: 'center' },
+      { key: 'rate', hdr: 'RATE',        x: M + 100, w: 27,  align: 'right'  },
+      { key: 'gst',  hdr: 'GST%',        x: M + 127, w: 18,  align: 'center' },
+      { key: 'amt',  hdr: 'AMOUNT',      x: M + 145, w: (M + CW) - (M + 145), align: 'right' },
+    ];
+
+    const TH_H = 7;
+    sc(BLUE, 'fill'); doc.rect(M, Y, CW, TH_H, 'F');
+    sc(WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+    cols.forEach(c => {
+      const tx = c.align === 'right' ? c.x + c.w - 1.5 : c.align === 'center' ? c.x + c.w / 2 : c.x + 1.5;
+      doc.text(c.hdr, tx, Y + 4.8, { align: c.align });
     });
-    
-    // Separator line
-    doc.setLineWidth(0.5);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 8;
-    
-    // ========================================
-    // TOTALS SECTION - Clean & Clear
-    // ========================================
-    
-    doc.setFontSize(11);
-    
-    // Subtotal
-    doc.setFont('times', 'normal');
-    doc.text('Subtotal:', 130, yPos);
-    doc.setFont('times', 'bold');
-    doc.text((bill.subtotal_amount || subtotal).toFixed(2), 192, yPos, { align: 'right' });
-    yPos += 7;
-    
-    // GST (if applicable)
-    if (bill.gst_amount && bill.gst_percentage) {
-      doc.setFont('times', 'normal');
-      doc.text(`GST (${bill.gst_percentage}%):`, 130, yPos);
-      doc.setFont('times', 'bold');
-      doc.text(parseFloat(bill.gst_amount).toFixed(2), 192, yPos, { align: 'right' });
-      yPos += 7;
-    }
-    
-    // Discount (if applicable)
-    if (bill.discount_amount && parseFloat(bill.discount_amount) > 0) {
-      doc.setFont('times', 'normal');
-      const discountLabel = bill.discount_type === 'percentage' 
-        ? `Discount (${bill.discount_value}%):` 
-        : `Discount:`;
-      doc.text(discountLabel, 130, yPos);
-      doc.setFont('times', 'bold');
-      doc.text(`-${parseFloat(bill.discount_amount).toFixed(2)}`, 192, yPos, { align: 'right' });
-      yPos += 7;
-    }
-    
-    // Separator line
-    doc.setLineWidth(0.8);
-    doc.line(130, yPos, 195, yPos);
-    yPos += 7;
-    
-    // Grand Total - Highlighted with proper alignment
-    doc.setFillColor(240, 240, 240);
-    doc.rect(125, yPos - 5, 70, 10, 'F');
-    
-    doc.setFontSize(13);
-    doc.setFont('times', 'bold');
-    doc.text('GRAND TOTAL:', 128, yPos);
-    doc.setFontSize(14);
-    doc.setFont('times', 'bold');
-    const grandTotalText = parseFloat(bill.total_amount).toFixed(2);
-    doc.text(grandTotalText, 192, yPos, { align: 'right' });
-    
-    yPos += 12;
-    
-    // ========================================
-    // AMOUNT IN WORDS
-    // ========================================
-    doc.setFontSize(10);
-    doc.setFont('times', 'bold');
-    doc.text('Amount in Words:', 15, yPos);
-    
-    doc.setFont('times', 'normal');
-    const amountInWords = numberToWords(bill.total_amount);
-    doc.text(amountInWords.toUpperCase(), 15, yPos + 6);
-    
-    yPos += 15;
-    
-    // ========================================
-    // PAYMENT DETAILS & SIGNATURE - Fixed Layout
-    // ========================================
-    
-    const paymentStartY = yPos;
-    
-    // Payment Details - Left side
-    doc.setFontSize(10);
-    doc.setFont('times', 'bold');
-    doc.text('Payment Details:', 15, yPos);
-    yPos += 6;
-    
-    doc.setFontSize(10);
-    doc.setFont('times', 'normal');
-    
-    // Parse payments
-    let payments = [];
-    if (typeof bill.payments === 'string') {
-      try {
-        payments = JSON.parse(bill.payments);
-      } catch (e) {
-        payments = [];
-      }
-    } else if (Array.isArray(bill.payments)) {
-      payments = bill.payments;
-    } else if (bill.BillPayments && Array.isArray(bill.BillPayments)) {
-      payments = bill.BillPayments.map(p => ({
-        mode: p.payment_mode,
-        amount: p.amount
-      }));
-    }
-    
-    payments.forEach(payment => {
-      const paymentMode = payment.mode.toUpperCase();
-      const paymentAmount = parseFloat(payment.amount).toFixed(2);
-      
-      doc.text(paymentMode + ':', 15, yPos);
-      doc.text(paymentAmount, 60, yPos);
-      yPos += 5;
+    Y += TH_H;
+
+    // parse items from BillItems
+    const rawItems = bill.BillItems || bill.items || [];
+    const items = rawItems.map(item => ({
+      name:     item.Product?.product_name || item.name || 'Item',
+      price:    parseFloat(item.price || 0),
+      quantity: parseFloat(item.quantity || 1),
+      total:    parseFloat(item.total || (item.price * item.quantity) || 0),
+    }));
+
+    const gstPct = bill.gst_percentage || 0;
+
+    items.forEach((item, idx) => {
+      if (Y > PH - 40) { doc.addPage(); Y = M; }
+      const ROW_H = 6;
+      const bg = idx % 2 === 0 ? WHITE : BGGY;
+      sc(bg, 'fill'); sc(BORD, 'draw'); doc.setLineWidth(0.2);
+      doc.rect(M, Y, CW, ROW_H, 'FD');
+      const vals = {
+        sno:  String(idx + 1),
+        desc: (item.name || '').substring(0, 40),
+        qty:  String(item.quantity),
+        rate: rs(item.price),
+        gst:  gstPct > 0 ? `${gstPct}%` : '0%',
+        amt:  rs(item.total),
+      };
+      sc(DARK);
+      cols.forEach(c => {
+        doc.setFont('helvetica', c.key === 'desc' ? 'bold' : 'normal'); doc.setFontSize(7.5);
+        const tx = c.align === 'right' ? c.x + c.w - 1.5 : c.align === 'center' ? c.x + c.w / 2 : c.x + 1.5;
+        doc.text(vals[c.key] || '', tx, Y + 4, { align: c.align });
+      });
+      Y += ROW_H;
     });
 
-    // ✅ Show Due Amount if any
-    const totalPaidBill = payments
-      .filter(p => p.mode !== 'credit')
-      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
-    const dueAmtBill = parseFloat(bill.total_amount) - totalPaidBill;
-    if (dueAmtBill > 0.01) {
-      yPos += 2;
-      doc.setFont('times', 'bold');
-      doc.setTextColor(200, 50, 50);
-      doc.text('BALANCE DUE:', 15, yPos);
-      doc.text('Rs.' + dueAmtBill.toFixed(2), 60, yPos);
-      doc.setTextColor(0, 0, 0);
-      yPos += 5;
-      doc.setFont('times', 'normal');
-      doc.setFontSize(8);
-      doc.text('(Remaining amount to be paid)', 15, yPos);
-      doc.setFontSize(10);
-      yPos += 3;
+    sc(BORD, 'draw'); doc.setLineWidth(0.4);
+    doc.rect(M, Y - items.length * 6 - TH_H, CW, TH_H + items.length * 6, 'D');
+    Y += 3;
+
+    // ── 5. TOTALS ────────────────────────────────────────────────────────────
+    const TW = 72; const TX = M + CW - TW; const TR_H = 6;
+
+    const totalRow = (label, val, isFinal = false, color = null) => {
+      if (isFinal) {
+        sc(BLUE, 'fill'); doc.rect(TX, Y, TW, TR_H + 1, 'F');
+        sc(WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+        doc.text(label, TX + 2, Y + 4.5);
+        doc.text(val, TX + TW - 1.5, Y + 4.5, { align: 'right' });
+        Y += TR_H + 1;
+      } else {
+        sc(BORD, 'draw'); doc.setLineWidth(0.2); doc.rect(TX, Y, TW, TR_H, 'D');
+        sc(color || GREY); doc.setFont('helvetica', color ? 'bold' : 'normal'); doc.setFontSize(8);
+        doc.text(label, TX + 2, Y + 4);
+        doc.text(val, TX + TW - 1.5, Y + 4, { align: 'right' });
+        Y += TR_H;
+      }
+    };
+
+    const subtotal = bill.subtotal_amount || bill.total_amount;
+    totalRow('Subtotal', rs(subtotal));
+    if (bill.gst_percentage > 0 && bill.gst_amount)
+      totalRow(`GST (${bill.gst_percentage}%)`, rs(bill.gst_amount));
+    if (bill.discount_amount && parseFloat(bill.discount_amount) > 0)
+      totalRow('Discount', `-${rs(bill.discount_amount)}`);
+    totalRow('GRAND TOTAL', rs(bill.total_amount), true);
+
+    const paidAmt = parseFloat(bill.paid_amount || 0);
+    const dueAmt  = parseFloat(bill.due_amount  || 0);
+    if (paidAmt > 0)    totalRow('Paid Amount',  rs(paidAmt), false, GREEN);
+    if (dueAmt  > 0.01) totalRow('Balance Due',  rs(dueAmt),  false, RED);
+
+    Y += 5;
+
+    // Amount in words
+    sc(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+    doc.text('Amount in Words: ', M, Y);
+    sc(GREY); doc.setFont('helvetica', 'normal');
+    doc.text(numberToWords(bill.total_amount).toUpperCase(), M + doc.getTextWidth('Amount in Words: '), Y);
+    Y += 6;
+
+    // ── 6. DIVIDER ───────────────────────────────────────────────────────────
+    sc(BORD, 'draw'); doc.setLineWidth(0.3); doc.line(M, Y, M + CW, Y);
+    Y += 5;
+
+    // ── 7. PAYMENT + SIGNATURE ───────────────────────────────────────────────
+    const hasBankInfo = shop?.bank_name || shop?.bank_account_number || shop?.upi_id;
+    const PAY_W   = hasBankInfo ? (CW - 4) / 2 : 0;
+    const SIG_X   = hasBankInfo ? M + PAY_W + 4 : M;
+    const SIG_W   = hasBankInfo ? CW - PAY_W - 4 : CW;
+    const secTopY = Y;
+
+    if (hasBankInfo) {
+      sc(LBLUE); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      doc.text('Payment Details:', M, Y); Y += 5;
+      const bLine = (label, val) => {
+        if (!val) return;
+        sc(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+        doc.text(`${label}: `, M, Y);
+        sc(GREY); doc.text(val, M + doc.getTextWidth(`${label}: `), Y);
+        Y += 4.2;
+      };
+      bLine('Bank',   shop.bank_name);
+      bLine('Branch', shop.bank_branch);
+      bLine('A/C No', shop.bank_account_number);
+      bLine('IFSC',   shop.bank_ifsc);
+      if (shop.upi_id) bLine('UPI', `${shop.upi_id}${shop.upi_name ? ` (${shop.upi_name})` : ''}`);
     }
-    
-    // Signature - Right side
-    const signYPos = paymentStartY;
-    doc.setFontSize(10);
-    doc.setFont('times', 'bold');
-    doc.text('For ' + (shop?.shop_name?.toUpperCase() || 'YOUR SHOP'), 130, signYPos);
-    
-    // Add signature image if available
+
+    // Signature block
+    sc(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    doc.text('Authorised Signatory', SIG_X + SIG_W / 2, secTopY, { align: 'center' });
+
     if (shop?.signature_image) {
-      try {
-        doc.addImage(shop.signature_image, 'PNG', 130, signYPos + 5, 30, 10);
-      } catch (error) {
-        console.error('Failed to add signature image:', error);
-      }
+      try { doc.addImage(shop.signature_image, 'PNG', SIG_X + SIG_W / 2 - 15, secTopY + 3, 30, 12); }
+      catch (_) { /* skip */ }
     }
-    
-    doc.setFontSize(9);
-    doc.setFont('times', 'normal');
-    doc.text('Authorized Signatory', 130, signYPos + 20);
-    
-    // Ensure consistent bottom spacing
-    yPos = Math.max(yPos, signYPos + 25);
-    
-    // ========================================
-    // TERMS & CONDITIONS - Dynamic from Settings
-    // ========================================
-    doc.setLineWidth(0.3);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 5;
-    
-    doc.setFont('times', 'bold');
-    doc.setFontSize(9);
-    doc.text('Terms & Conditions:', 15, yPos);
-    yPos += 5;
-    
-    doc.setFont('times', 'normal');
-    doc.setFontSize(8);
-    
-    const termsText = shop?.terms_and_conditions || 
-      'Goods once sold will not be taken back\nSubject to local jurisdiction';
-    
-    const termsLines = termsText.split('\n');
-    termsLines.forEach((line, index) => {
-      if (line.trim()) {
-        doc.text(`• ${line.trim()}`, 15, yPos);
-        yPos += 4;
-      }
+
+    const sigLineY = secTopY + 20;
+    sc(BORD, 'draw'); doc.setLineWidth(0.4);
+    doc.line(SIG_X + 4, sigLineY, SIG_X + SIG_W - 4, sigLineY);
+    sc(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    doc.text(shop?.authorized_signatory || shop?.shop_name || 'Authorized Signatory',
+      SIG_X + SIG_W / 2, sigLineY + 4, { align: 'center' });
+
+    Y = Math.max(Y, sigLineY + 8) + 6;
+
+    // ── 8. TERMS ─────────────────────────────────────────────────────────────
+    const effectiveTerms = shop?.terms_and_conditions || 'Goods once sold will not be taken back.';
+    sc(LBLUE); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    doc.text('Terms & Conditions:', M, Y); Y += 4;
+    sc(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    effectiveTerms.split('\n').forEach(line => {
+      if (line.trim()) { doc.text(`• ${line.trim()}`, M, Y, { maxWidth: CW }); Y += 4; }
     });
-    
-    yPos += 4;
-    
-    // ========================================
-    // FOOTER
-    // ========================================
-    doc.setLineWidth(0.3);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 5;
-    
-    doc.setFontSize(10);
-    doc.setFont('times', 'bold');
-    doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
-    
-    doc.setFontSize(8);
-    doc.setFont('times', 'italic');
-    doc.text('This is a computer-generated bill', 105, yPos + 4, { align: 'center' });
-    
-    // Save PDF
+    Y += 3;
+
+    // ── 9. FOOTER ─────────────────────────────────────────────────────────────
+    sc(BORD, 'draw'); doc.setLineWidth(0.3); doc.line(M, Y, M + CW, Y); Y += 4;
+    sc(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    doc.text(`This is a computer-generated ${isInvoice ? 'invoice' : 'bill'}. Thank you for your business!`,
+      PW / 2, Y, { align: 'center' });
+
+    return doc;
+  };
+
+  // ✅ NEW: Generate Bill
+  const generateProfessionalBill = async (bill) => {
+    const doc = buildPDF(bill, 'bill');
     const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    
-    // Open in new tab
+    const pdfUrl  = URL.createObjectURL(pdfBlob);
     window.open(pdfUrl, '_blank');
-    
-    // Trigger download
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = `Bill_${bill.bill_number || bill.id}_${new Date().getTime()}.pdf`;
-    link.click();
-    
-    // Cleanup
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = `Bill_${bill.bill_number || bill.id}_${Date.now()}.pdf`;
+    a.click();
     setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
   };
 
   const generateProfessionalInvoice = async (bill) => {
-    const doc = new jsPDF();
-    
-    // Generate QR Code if UPI ID exists
-    let qrCodeDataUrl = null;
-    if (shop?.upi_id) {
-      try {
-        const upiString = `upi://pay?pa=${shop.upi_id}&pn=${encodeURIComponent(shop.shop_name || 'Shop')}&am=${bill.total_amount}&cu=INR`;
-        qrCodeDataUrl = await QRCode.toDataURL(upiString, {
-          width: 100,
-          margin: 1,
-          color: {
-            dark: '#000000',
-            light: '#FFFFFF'
-          }
-        });
-      } catch (error) {
-        console.error('QR Code generation failed:', error);
-      }
-    }
-    
-    let yPos = 15;
-    
-    // ========================================
-    // CLEAN PROFESSIONAL HEADER
-    // ========================================
-    
-    // Company Name - Large, Bold, Professional Font
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(22);
-    doc.setFont('times', 'bold'); // ✅ Changed to Times for more professional look
-    doc.text(shop?.shop_name?.toUpperCase() || 'YOUR SHOP NAME', 105, yPos, { align: 'center' });
-    yPos += 8;
-    
-    // TAX INVOICE Badge - Right side
-    doc.setFillColor(0, 0, 0);
-    doc.rect(160, 10, 35, 8, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(11);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text('TAX INVOICE', 177.5, 15, { align: 'center' });
-    doc.setTextColor(0, 0, 0);
-    
-    // Tagline
-    doc.setFontSize(10);
-    doc.setFont('times', 'normal'); // ✅ Professional font
-    doc.text('Quality Products & Excellent Service', 105, yPos, { align: 'center' });
-    yPos += 6;
-    
-    // Company Details
-    doc.setFontSize(10);
-    if (shop?.address) {
-      const addressLines = doc.splitTextToSize(shop.address, 140);
-      doc.text(addressLines[0], 105, yPos, { align: 'center' });
-      yPos += 5;
-    }
-    
-    if (shop?.owner_phone) {
-      doc.text(`Phone: ${shop.owner_phone}`, 105, yPos, { align: 'center' });
-      yPos += 5;
-    }
-    
-    if (shop?.gstin) {
-      doc.text(`GSTIN: ${shop.gstin}`, 105, yPos, { align: 'center' });
-      yPos += 5;
-    }
-    
-    // Separator line
-    doc.setLineWidth(0.5);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 8;
-    
-    // ========================================
-    // INVOICE DETAILS - Clean Layout
-    // ========================================
-    
-    // Invoice Number
-    doc.setFontSize(11);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text('Invoice No:', 15, yPos);
-    doc.setFontSize(13);
-    doc.text(`#${bill.bill_number || bill.id}`, 45, yPos);
-    
-    // Date - Right aligned
-    doc.setFontSize(11);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text('Date:', 150, yPos);
-    doc.setFontSize(11);
-    doc.setFont('times', 'normal'); // ✅ Professional font
-    doc.text(new Date(bill.createdAt).toLocaleDateString('en-IN', { 
-      day: '2-digit', 
-      month: 'short', 
-      year: 'numeric' 
-    }), 165, yPos);
-    
-    yPos += 10;
-    
-    // ========================================
-    // CUSTOMER DETAILS
-    // ========================================
-    
-    if (bill.customer_name || bill.customer_phone) {
-      doc.setFontSize(10);
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text('Bill To:', 15, yPos);
-      
-      doc.setFontSize(11);
-      doc.setFont('times', 'normal'); // ✅ Professional font
-      doc.text(bill.customer_name || 'Walk-in Customer', 35, yPos);
-      
-      // ✅ Fixed: Move phone to next line, aligned under date
-      if (bill.customer_phone) {
-        yPos += 5; // Move to next line
-        doc.text(`Phone: ${bill.customer_phone}`, 150, yPos); // Align under date
-      }
-      
-      yPos += 8;
-    }
-    
-    // Separator line
-    doc.setLineWidth(0.5);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 8;
-    
-    // ========================================
-    // ITEMS TABLE - Clean & Readable
-    // ========================================
-    
-    // Table Header
-    doc.setFillColor(240, 240, 240);
-    doc.rect(15, yPos, 180, 8, 'F');
-    
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.setFontSize(10);
-    doc.text('Product / Service', 18, yPos + 5.5);
-    doc.text('HSN', 110, yPos + 5.5);
-    doc.text('Qty', 130, yPos + 5.5);
-    doc.text('Rate', 150, yPos + 5.5);
-    doc.text('Amount', 175, yPos + 5.5);
-    
-    yPos += 8;
-    
-    // Parse items
-    let items = [];
-    if (typeof bill.items === 'string') {
-      items = JSON.parse(bill.items);
-    } else if (bill.BillItems && Array.isArray(bill.BillItems)) {
-      items = bill.BillItems.map(item => ({
-        name: item.Product?.product_name || 'Product',
-        price: item.price,
-        quantity: item.quantity,
-        total: item.price * item.quantity
-      }));
-    } else if (Array.isArray(bill.items)) {
-      items = bill.items;
-    }
-    
-    let subtotal = 0;
-    
-    // Items rows
-    doc.setFont('times', 'normal'); // ✅ Professional font
-    doc.setFontSize(10);
-    
-    items.forEach((item, index) => {
-      const itemTotal = parseFloat(item.total || (item.price * item.quantity));
-      subtotal += itemTotal;
-      
-      // Check if we need a new page
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-      
-      // Alternating row colors
-      if (index % 2 === 1) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(15, yPos, 180, 8, 'F');
-      }
-      
-      // Item data
-      const productName = item.name.length > 50 ? item.name.substring(0, 50) + '...' : item.name;
-      doc.text(productName, 18, yPos + 5.5);
-      doc.text('-', 112, yPos + 5.5);
-      doc.text(item.quantity.toString(), 133, yPos + 5.5, { align: 'center' });
-      doc.text(parseFloat(item.price).toFixed(2), 165, yPos + 5.5, { align: 'right' });
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text(itemTotal.toFixed(2), 192, yPos + 5.5, { align: 'right' }); // ✅ Moved right for better alignment
-      doc.setFont('times', 'normal'); // ✅ Professional font
-      
-      yPos += 8;
-    });
-    
-    // Separator line
-    doc.setLineWidth(0.5);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 8;
-    
-    // ========================================
-    // TOTALS SECTION - Clean & Clear
-    // ========================================
-    
-    doc.setFontSize(11);
-    
-    // Subtotal
-    doc.setFont('times', 'normal'); // ✅ Professional font
-    doc.text('Subtotal:', 130, yPos);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text(subtotal.toFixed(2), 192, yPos, { align: 'right' }); // ✅ Moved right for better alignment
-    yPos += 7;
-    
-    // GST (if applicable)
-    if (bill.gst_amount && bill.gst_percentage) {
-      doc.setFont('times', 'normal'); // ✅ Professional font
-      doc.text(`GST (${bill.gst_percentage}%):`, 130, yPos);
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text(parseFloat(bill.gst_amount).toFixed(2), 192, yPos, { align: 'right' }); // ✅ Moved right for better alignment
-      yPos += 7;
-    }
-    
-    // Discount (if applicable)
-    if (bill.discount_amount && parseFloat(bill.discount_amount) > 0) {
-      doc.setFont('times', 'normal'); // ✅ Professional font
-      doc.text(`Discount:`, 130, yPos);
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text(`-${parseFloat(bill.discount_amount).toFixed(2)}`, 192, yPos, { align: 'right' }); // ✅ Moved right for better alignment
-      yPos += 7;
-    }
-    
-    // Separator line
-    doc.setLineWidth(0.8);
-    doc.line(130, yPos, 195, yPos);
-    yPos += 7;
-    
-    // Grand Total - Highlighted with proper alignment and professional font
-    doc.setFillColor(240, 240, 240);
-    doc.rect(125, yPos - 5, 70, 10, 'F'); // ✅ Made box wider and moved left
-    
-    doc.setFontSize(13);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text('GRAND TOTAL:', 128, yPos); // ✅ Moved text left to give more space
-    doc.setFontSize(14);
-    doc.setFont('times', 'bold'); // ✅ Ensure consistent font
-    // ✅ Fixed: Better right alignment with more space for large numbers, removed potential character issues
-    const grandTotalText = parseFloat(bill.total_amount).toFixed(2);
-    doc.text(grandTotalText, 192, yPos, { align: 'right' }); // ✅ Moved further right
-    
-    yPos += 12;
-    
-    // ========================================
-    // AMOUNT IN WORDS
-    // ========================================
-    doc.setFontSize(10);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text('Amount in Words:', 15, yPos);
-    
-    doc.setFont('times', 'normal'); // ✅ Professional font
-    const amountInWords = numberToWords(bill.total_amount);
-    doc.text(amountInWords.toUpperCase(), 15, yPos + 6);
-    
-    yPos += 15;
-    
-    // ========================================
-    // BANK DETAILS & QR CODE SECTION
-    // ========================================
-    
-    // Bank Details - Left side
-    doc.setFontSize(10);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text('Bank Details:', 15, yPos);
-    yPos += 6;
-    
-    doc.setFontSize(10);
-    doc.setFont('times', 'normal'); // ✅ Professional font
-    
-    if (shop?.bank_name) {
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text('Bank:', 15, yPos);
-      doc.setFont('times', 'normal'); // ✅ Professional font
-      doc.text(shop.bank_name, 35, yPos);
-      yPos += 5;
-    }
-    
-    if (shop?.bank_account_number) {
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text('A/C:', 15, yPos);
-      doc.setFont('times', 'normal'); // ✅ Professional font
-      doc.text(shop.bank_account_number, 35, yPos);
-      yPos += 5;
-    }
-    
-    if (shop?.bank_ifsc) {
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text('IFSC:', 15, yPos);
-      doc.setFont('times', 'normal'); // ✅ Professional font
-      doc.text(shop.bank_ifsc, 35, yPos);
-      yPos += 5;
-    }
-    
-    if (shop?.upi_id) {
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text('UPI:', 15, yPos);
-      doc.setFont('times', 'normal'); // ✅ Professional font
-      doc.text(shop.upi_id, 35, yPos);
-    }
-    
-    // QR Code & Signature - Right side
-    const rightStartY = yPos - 25;
-    
-    // QR Code
-    if (qrCodeDataUrl) {
-      doc.addImage(qrCodeDataUrl, 'PNG', 125, rightStartY, 25, 25);
-      doc.setFontSize(9);
-      doc.setFont('times', 'bold'); // ✅ Professional font
-      doc.text('Scan to Pay', 132, rightStartY + 28);
-    }
-    
-    // Signature Section
-    doc.setFontSize(10);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text('For ' + (shop?.shop_name?.toUpperCase() || 'YOUR SHOP'), 155, rightStartY + 5);
-    
-    // Add signature image if available
-    if (shop?.signature_image) {
-      try {
-        doc.addImage(shop.signature_image, 'PNG', 155, rightStartY + 10, 30, 10);
-      } catch (error) {
-        console.error('Failed to add signature image:', error);
-      }
-    }
-    
-    doc.setFontSize(9);
-    doc.setFont('times', 'normal'); // ✅ Professional font
-    doc.text('Authorized Signatory', 155, rightStartY + 25);
-    
-    yPos += 35;
-    
-    // ========================================
-    // TERMS & CONDITIONS - Dynamic from Settings
-    // ========================================
-    doc.setLineWidth(0.3);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 5;
-    
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.setFontSize(9);
-    doc.text('Terms & Conditions:', 15, yPos);
-    yPos += 5;
-    
-    doc.setFont('times', 'normal'); // ✅ Professional font
-    doc.setFontSize(8);
-    
-    // ✅ Fixed: Use dynamic terms & conditions from shop settings
-    const termsText = shop?.terms_and_conditions || 
-      'Goods once sold will not be taken back\nSubject to local jurisdiction';
-    
-    const termsLines = termsText.split('\n');
-    termsLines.forEach((line, index) => {
-      if (line.trim()) {
-        doc.text(`• ${line.trim()}`, 15, yPos);
-        yPos += 4;
-      }
-    });
-    
-    yPos += 4;
-    
-    // ========================================
-    // FOOTER
-    // ========================================
-    doc.setLineWidth(0.3);
-    doc.line(15, yPos, 195, yPos);
-    yPos += 5;
-    
-    doc.setFontSize(10);
-    doc.setFont('times', 'bold'); // ✅ Professional font
-    doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
-    
-    doc.setFontSize(8);
-    doc.setFont('times', 'italic'); // ✅ Professional font
-    doc.text('This is a computer-generated invoice', 105, yPos + 4, { align: 'center' });
-    
-    // Save PDF
+    const doc = buildPDF(bill, 'invoice');
     const pdfBlob = doc.output('blob');
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    
-    // Open in new tab
+    const pdfUrl  = URL.createObjectURL(pdfBlob);
     window.open(pdfUrl, '_blank');
-    
-    // Trigger download
-    const link = document.createElement('a');
-    link.href = pdfUrl;
-    link.download = `Invoice_${bill.bill_number || bill.id}_${new Date().getTime()}.pdf`;
-    link.click();
-    
-    // Cleanup
+    const a = document.createElement('a');
+    a.href = pdfUrl;
+    a.download = `Invoice_${bill.bill_number || bill.id}_${Date.now()}.pdf`;
+    a.click();
     setTimeout(() => URL.revokeObjectURL(pdfUrl), 100);
   };
 
