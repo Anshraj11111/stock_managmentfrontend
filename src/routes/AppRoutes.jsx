@@ -32,6 +32,7 @@ import CustomerDetail from "../pages/customers/CustomerDetail";
 import Subscription from "../pages/subscription/Subscription";
 import TrialExpired from "../pages/subscription/TrialExpired";
 import FeatureLock from "../components/common/FeatureLock";
+import Quotations from "../pages/quotations/Quotations";
 
 // Test pages (only in development)
 import AnalyticsTest from "../pages/test/AnalyticsTest";
@@ -269,6 +270,17 @@ const AppRoutes = () => {
           <ProtectedRoute>
             <Layout>
               <Settings />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/quotations"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <Quotations />
             </Layout>
           </ProtectedRoute>
         }

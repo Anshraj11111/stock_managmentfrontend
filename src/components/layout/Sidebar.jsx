@@ -13,6 +13,7 @@ import {
   Wallet,
   CreditCard,
   Lock,
+  ClipboardList,
 } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../../store/AuthContext";
@@ -73,8 +74,14 @@ const Sidebar = ({ isOpen, onToggle }) => {
       gradient: "from-emerald-500 to-teal-600",
       feature: "customers",
     },
-  
-    
+
+    {
+      name: "Quotations",
+      href: "/quotations",
+      icon: ClipboardList,
+      current: location.pathname.startsWith("/quotations"),
+      gradient: "from-emerald-500 to-teal-600",
+    },
 
     // ✅ OWNER ONLY STAFF SECTION
     ...(isOwner
