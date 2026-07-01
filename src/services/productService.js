@@ -2,11 +2,17 @@ import api from './api';
 
 export const productService = {
   // Get all products
-  getProducts: async () => {
-    const response = await api.get('/products');
-    // Backend now returns { products: [...], pagination: {...} }
-    // Extract just the products array for backward compatibility
-    return response.data.products || response.data;
+  getProducts: async (search = '') => {
+    const params = new URLSearchParams({ limit: 1000, page: 1 });
+    if (search) params.append('search', search);
+    const response = await api.get(`/products?${params}`);
+    // Backend returns { products: [...], pagination: {...} }
+    // Return full response so caller can access pagination.totalCount
+    if (response.data.products) {
+      return response.data.products;
+    }
+    // Fallback for old API format (plain array)
+    return Array.isArray(response.data) ? response.data : [];
   },
 
   // Add new product

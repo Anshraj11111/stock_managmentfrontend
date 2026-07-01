@@ -27,6 +27,7 @@ const Products = () => {
 
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [totalProductCount, setTotalProductCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
@@ -77,8 +78,10 @@ const Products = () => {
   const fetchProducts = async () => {
     try {
       const data = await productService.getProducts();
-      setProducts(data || []);
-      setFilteredProducts(data || []);
+      const list = Array.isArray(data) ? data : [];
+      setProducts(list);
+      setFilteredProducts(list);
+      setTotalProductCount(list.length);
     } catch {
       toast.error(t('products.fetchFailed'));
     } finally {
@@ -236,7 +239,7 @@ const Products = () => {
   };
 
   const stats = {
-    total: products.length,
+    total: totalProductCount,
     lowStock: products.filter((p) => {
       const qty = typeof p.stock_quantity === 'string' 
         ? parseFloat(p.stock_quantity.replace(/[^0-9.]/g, '')) || 0
