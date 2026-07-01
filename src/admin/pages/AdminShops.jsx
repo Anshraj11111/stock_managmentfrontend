@@ -261,7 +261,7 @@ const AdminShops = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                             shop.subscription_active
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                               : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                           }`}>
                             {shop.subscription_active ? 'Active' : 'Inactive'}
@@ -281,7 +281,7 @@ const AdminShops = () => {
                               className={`p-2 rounded-lg transition-colors ${
                                 shop.subscription_active
                                   ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
-                                  : 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                                  : 'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                               }`}
                               title={shop.subscription_active ? 'Deactivate' : 'Activate'}
                             >
@@ -301,7 +301,7 @@ const AdminShops = () => {
                               onClick={() => handleSuspend(shop.id, shop.isSuspended)}
                               className={`p-2 rounded-lg transition-colors ${
                                 shop.isSuspended
-                                  ? 'text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20'
+                                  ? 'text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'
                                   : 'text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20'
                               }`}
                               title={shop.isSuspended ? 'Unsuspend' : 'Suspend'}
@@ -331,7 +331,7 @@ const AdminShops = () => {
                       </div>
                       <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                         shop.subscription_active
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                           : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                       }`}>
                         {shop.subscription_active ? 'Active' : 'Inactive'}
@@ -368,7 +368,7 @@ const AdminShops = () => {
                         className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                           shop.subscription_active
                             ? 'text-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30'
-                            : 'text-green-600 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30'
+                            : 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
                         }`}
                       >
                         {shop.subscription_active ? <ToggleRight className="w-4 h-4" /> : <ToggleLeft className="w-4 h-4" />}
@@ -452,13 +452,13 @@ const AdminShops = () => {
                 </button>
                 <button
                   onClick={() => setExtendDays(30)}
-                  className="px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors font-medium"
+                  className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium"
                 >
                   +30 Days
                 </button>
                 <button
                   onClick={() => setExtendDays(60)}
-                  className="px-4 py-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors font-medium"
+                  className="px-4 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors font-medium"
                 >
                   +60 Days
                 </button>
@@ -563,9 +563,9 @@ const AdminShops = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Products</p>
                       <p className="text-2xl font-bold text-blue-600">{shopProducts.length}</p>
                     </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-4 border border-green-200 dark:border-green-800">
+                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Stock</p>
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-2xl font-bold text-blue-600">
                         {shopProducts.reduce((sum, p) => sum + p.stock_quantity, 0)}
                       </p>
                     </div>
@@ -620,7 +620,7 @@ const AdminShops = () => {
                               </td>
                               <td className="px-4 py-3 whitespace-nowrap text-sm">
                                 <span className={`font-semibold ${
-                                  product.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                                  product.profit >= 0 ? 'text-blue-600' : 'text-red-600'
                                 }`}>
                                   ₹{product.profit.toFixed(2)}
                                 </span>
@@ -628,7 +628,7 @@ const AdminShops = () => {
                               <td className="px-4 py-3 whitespace-nowrap text-sm">
                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                   product.profit_margin >= 20
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                                     : product.profit_margin >= 10
                                     ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
                                     : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
@@ -639,7 +639,7 @@ const AdminShops = () => {
                               <td className="px-4 py-3 whitespace-nowrap text-sm">
                                 <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                   product.stock_quantity > 10
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                                     : product.stock_quantity > 0
                                     ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
                                     : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
@@ -672,7 +672,7 @@ const AdminShops = () => {
                             <div>
                               <span className="text-gray-500 dark:text-gray-400">Profit:</span>
                               <span className={`ml-2 font-semibold ${
-                                product.profit >= 0 ? 'text-green-600' : 'text-red-600'
+                                product.profit >= 0 ? 'text-blue-600' : 'text-red-600'
                               }`}>
                                 ₹{product.profit.toFixed(2)}
                               </span>

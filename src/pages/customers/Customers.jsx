@@ -153,7 +153,7 @@ const Customers = () => {
                         <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg font-semibold ${
                           parseFloat(customer.total_due) > 0
                             ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                            : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                         }`}>
                           <IndianRupee className="w-4 h-4" />
                           {parseFloat(customer.total_due).toFixed(2)}
@@ -215,7 +215,7 @@ const Customers = () => {
                       <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-bold text-sm ${
                         parseFloat(customer.total_due) > 0
                           ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                          : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                          : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                       }`}>
                         <IndianRupee className="w-4 h-4" />
                         {parseFloat(customer.total_due).toFixed(2)}
@@ -258,12 +258,12 @@ const Customers = () => {
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-200 dark:border-green-800 p-6">
+        <div className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 p-6">
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Cleared Accounts</h3>
-            <Users className="w-5 h-5 text-green-600" />
+            <Users className="w-5 h-5 text-blue-600" />
           </div>
-          <p className="text-3xl font-bold text-green-600">
+          <p className="text-3xl font-bold text-blue-600">
             {customers.filter(c => parseFloat(c.total_due) === 0).length}
           </p>
         </div>

@@ -1,22 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Package,
-  Users,
-  Receipt,
-  BarChart3,
-  FileText,
-  Settings,
-  X,
-  Sparkles,
-  Plus,
-  Wallet,
-  CreditCard,
-  Lock,
-  ClipboardList,
+  LayoutDashboard, Package, Users, Receipt, BarChart3,
+  FileText, Settings, X, Zap, Plus, Wallet, CreditCard,
+  Lock, ClipboardList, ChevronUp,
 } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { useAuth } from "../../store/AuthContext";
+import { useTheme } from "../../store/ThemeContext";
 import { cn } from "../../utils/cn";
 import { useState, useEffect } from "react";
 import { getCurrentSubscription } from "../../services/subscriptionService";
@@ -25,7 +15,23 @@ const Sidebar = ({ isOpen, onToggle }) => {
   const location = useLocation();
   const { t } = useTranslation();
   const { isOwner } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [lockedFeatures, setLockedFeatures] = useState([]);
+  const [planName, setPlanName] = useState('');
+
+  // Theme-aware colors
+  const bg         = isDark ? '#0d1117'  : '#ffffff';
+  const border     = isDark ? '#21262d'  : '#e2e8f0';
+  const textColor  = isDark ? '#8b949e'  : '#64748b';
+  const hoverBg    = isDark ? '#161b22'  : '#f1f5f9';
+  const hoverText  = isDark ? '#e6edf3'  : '#0f172a';
+  const activeBg   = isDark ? 'rgba(37,99,235,0.12)' : 'rgba(219,234,254,0.7)';
+  const activeBorder = isDark ? '#2563eb' : '#3b82f6';
+  const activeText = isDark ? '#388bfd'  : '#2563eb';
+  const badgeBg    = isDark ? 'linear-gradient(135deg,#1c2333,#1f2937)' : 'linear-gradient(135deg,#eff6ff,#dbeafe)';
+  const badgeBorder= isDark ? '#21262d'  : '#bfdbfe';
+  const badgeAccent= isDark ? '#388bfd'  : '#2563eb';
 
   useEffect(() => {
     fetchSubscription();
@@ -35,14 +41,13 @@ const Sidebar = ({ isOpen, onToggle }) => {
     try {
       const response = await getCurrentSubscription();
       setLockedFeatures(response.subscription.features_locked || []);
+      setPlanName(response.subscription.plan_name || 'trial');
     } catch (error) {
       console.error('Error fetching subscription:', error);
     }
   };
 
-  const isFeatureLocked = (feature) => {
-    return lockedFeatures.includes(feature);
-  };
+  const isFeatureLocked = (feature) => lockedFeatures.includes(feature);
 
   const navigation = [
     {
@@ -50,40 +55,32 @@ const Sidebar = ({ isOpen, onToggle }) => {
       href: "/dashboard",
       icon: LayoutDashboard,
       current: location.pathname === "/dashboard",
-      gradient: "from-emerald-500 to-teal-600",
     },
     {
       name: t('sidebar.products'),
       href: "/products",
       icon: Package,
-      current: location.pathname === "/products",
-      gradient: "from-emerald-500 to-teal-600",
+      current: location.pathname.startsWith("/products"),
     },
     {
       name: t('sidebar.billing'),
       href: "/billing",
       icon: Receipt,
       current: location.pathname === "/billing",
-      gradient: "from-emerald-500 to-teal-600",
     },
     {
       name: "Customers (Udhar)",
       href: "/customers",
       icon: Wallet,
       current: location.pathname.startsWith("/customers"),
-      gradient: "from-emerald-500 to-teal-600",
       feature: "customers",
     },
-
     {
       name: "Quotations",
       href: "/quotations",
       icon: ClipboardList,
       current: location.pathname.startsWith("/quotations"),
-      gradient: "from-emerald-500 to-teal-600",
     },
-
-    // ✅ OWNER ONLY STAFF SECTION
     ...(isOwner
       ? [
           {
@@ -91,17 +88,6 @@ const Sidebar = ({ isOpen, onToggle }) => {
             href: "/staff",
             icon: Users,
             current: location.pathname === "/staff",
-            gradient: "from-emerald-500 to-teal-600",
-            feature: "staff",
-          },
-          {
-            name: t('sidebar.addStaff'),
-            href: "/staff?add=true",
-            icon: Plus,
-            current:
-              location.pathname === "/staff" &&
-              location.search.includes("add=true"),
-            gradient: "from-emerald-500 to-teal-600",
             feature: "staff",
           },
           {
@@ -109,7 +95,6 @@ const Sidebar = ({ isOpen, onToggle }) => {
             href: "/reports",
             icon: BarChart3,
             current: location.pathname === "/reports",
-            gradient: "from-emerald-500 to-teal-600",
             feature: "reports",
           },
           {
@@ -117,121 +102,132 @@ const Sidebar = ({ isOpen, onToggle }) => {
             href: "/invoices",
             icon: FileText,
             current: location.pathname === "/invoices",
-            gradient: "from-emerald-500 to-teal-600",
           },
         ]
       : []),
-
-    {
-      name: "Subscription",
-      href: "/subscription",
-      icon: CreditCard,
-      current: location.pathname === "/subscription",
-      gradient: "from-emerald-500 to-teal-600",
-    },
-
     {
       name: t('sidebar.settings'),
       href: "/settings",
       icon: Settings,
       current: location.pathname === "/settings",
-      gradient: "from-slate-500 to-slate-600",
     },
   ];
+
+  const planLabel = planName?.startsWith('premium') ? 'Premium Plan'
+    : planName?.startsWith('business') ? 'Business Plan'
+    : planName?.startsWith('starter')  ? 'Starter Plan'
+    : planName?.startsWith('founder')  ? '🔥 Founder Plan'
+    : 'Free Trial';
 
   return (
     <>
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 backdrop-blur-sm lg:hidden"
+          style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
           onClick={onToggle}
         />
       )}
 
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-secondary-950 border-r border-secondary-200 dark:border-secondary-800 transform transition-all duration-300 ease-in-out lg:translate-x-0 shadow-xl lg:shadow-none",
+          "fixed inset-y-0 left-0 z-50 w-64 transform transition-all duration-300 ease-in-out lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
+        style={{
+          backgroundColor: bg,
+          borderRight: `1px solid ${border}`,
+          boxShadow: isDark ? 'none' : '2px 0 16px rgba(0,0,0,0.06)',
+        }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-secondary-200 dark:border-secondary-800 bg-emerald-600 dark:bg-emerald-600">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+        {/* ── Logo Header ── */}
+        <div
+          className="flex items-center justify-between h-16 px-5"
+          style={{ borderBottom: `1px solid ${border}` }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)' }}
+            >
+              <Zap className="w-4 h-4 text-white" />
             </div>
-            <h1 className="text-xl font-bold text-white">StockSaaS</h1>
+            <span className="text-base font-bold" style={{ color: isDark ? '#e6edf3' : '#0f172a' }}>
+              StockSaaS
+            </span>
           </div>
           <button
             onClick={onToggle}
-            className="p-1.5 rounded-lg hover:bg-white/20 lg:hidden"
+            className="p-1.5 rounded-lg lg:hidden transition-colors"
+            style={{ color: textColor }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = hoverBg}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto max-h-[calc(100vh-16rem)]">
-          {navigation.map((item, index) => {
+        {/* ── Navigation ── */}
+        <nav className="px-3 py-4 space-y-0.5 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 9rem)' }}>
+          {navigation.map((item) => {
             const Icon = item.icon;
             const locked = item.feature && isFeatureLocked(item.feature);
-            
+
             return (
               <Link
                 key={item.name}
                 to={item.href}
-                className={cn(
-                  "group relative flex items-center gap-4 px-4 py-3.5 rounded-xl font-medium transition-all duration-300",
+                onClick={onToggle}
+                className={cn("group flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all duration-200 relative", locked && "opacity-60")}
+                style={
                   item.current
-                    ? "bg-gradient-to-r " +
-                        item.gradient +
-                        " text-white shadow-lg transform scale-[1.02]"
-                    : "text-secondary-700 dark:text-secondary-300 hover:bg-secondary-100 dark:hover:bg-secondary-800 hover:transform hover:scale-[1.02]",
-                  locked && "opacity-75"
-                )}
-                onClick={() => onToggle()}
-                style={{ animationDelay: `${index * 40}ms` }}
+                    ? { backgroundColor: activeBg, borderLeft: `3px solid ${activeBorder}`, paddingLeft: '9px', color: activeText }
+                    : { color: textColor, borderLeft: '3px solid transparent' }
+                }
+                onMouseEnter={e => {
+                  if (!item.current) {
+                    e.currentTarget.style.backgroundColor = hoverBg;
+                    e.currentTarget.style.color = hoverText;
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!item.current) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = textColor;
+                  }
+                }}
               >
-                {item.current && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 bg-white rounded-r-full"></div>
-                )}
-
-                <div
-                  className={cn(
-                    "flex items-center justify-center w-11 h-11 rounded-xl transition-all duration-300",
-                    item.current
-                      ? "bg-white/20 shadow-lg"
-                      : "bg-secondary-100 dark:bg-secondary-900 group-hover:bg-secondary-200 dark:group-hover:bg-secondary-800"
-                  )}
-                >
-                  <Icon
-                    className={cn(
-                      "w-5 h-5 transition-all duration-300",
-                      item.current
-                        ? "text-white"
-                        : "text-secondary-600 dark:text-secondary-400 group-hover:text-secondary-700 dark:group-hover:text-secondary-300"
-                    )}
-                  />
-                </div>
-
-                <span className="flex-1 text-sm font-medium">{item.name}</span>
-                
-                {locked && (
-                  <Lock className="w-4 h-4 text-emerald-500 dark:text-emerald-300" />
-                )}
+                <Icon className="w-4 h-4 flex-shrink-0" />
+                <span className="flex-1 text-sm">{item.name}</span>
+                {locked && <Lock className="w-3.5 h-3.5 flex-shrink-0" style={{ color: isDark ? '#6e7681' : '#94a3b8' }} />}
               </Link>
             );
           })}
         </nav>
 
-        {/* Bottom section */}
-        <div className="p-6 border-t border-secondary-200 dark:border-secondary-800">
-          <div className="rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-emerald-600 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-500 p-5 text-white text-sm shadow-lg">
-            <div className="font-semibold mb-1">{t('sidebar.premiumPlan')}</div>
-            <div className="text-xs opacity-90 leading-relaxed">
-              {t('sidebar.unlimitedAccess')}
+        {/* ── Plan Badge ── */}
+        <div
+          className="absolute bottom-0 left-0 right-0 p-4"
+          style={{ borderTop: `1px solid ${border}`, backgroundColor: bg }}
+        >
+          <div
+            className="rounded-xl p-4 relative overflow-hidden"
+            style={{ background: badgeBg, border: `1px solid ${badgeBorder}` }}
+          >
+            <div
+              className="absolute top-0 left-0 right-0 h-0.5 rounded-t-xl"
+              style={{ background: 'linear-gradient(90deg,#2563eb,#3b82f6)' }}
+            />
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold" style={{ color: badgeAccent }}>
+                {planLabel}
+              </span>
+              <ChevronUp className="w-3.5 h-3.5" style={{ color: isDark ? '#6e7681' : '#94a3b8' }} />
             </div>
+            <p className="text-xs" style={{ color: isDark ? '#6e7681' : '#64748b' }}>
+              {t('sidebar.unlimitedAccess')}
+            </p>
           </div>
         </div>
       </div>

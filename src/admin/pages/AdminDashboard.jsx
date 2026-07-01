@@ -54,9 +54,9 @@ const AdminDashboard = () => {
       value: stats?.shops?.total || 0,
       subtitle: `${stats?.shops?.active || 0} active`,
       icon: Store,
-      color: 'bg-green-500',
-      bgColor: 'bg-green-50 dark:bg-green-900/20',
-      textColor: 'text-green-600',
+      color: 'bg-blue-500',
+      bgColor: 'bg-blue-50 dark:bg-blue-900/20',
+      textColor: 'text-blue-600',
       link: '/admin/shops'
     },
     {
@@ -171,7 +171,7 @@ const AdminDashboard = () => {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">Monthly Revenue:</span>
-                <span className="font-bold text-green-600">
+                <span className="font-bold text-blue-600">
                   ₹{stats?.revenue?.monthly?.toFixed(2) || 0}
                 </span>
               </div>
@@ -192,7 +192,7 @@ const AdminDashboard = () => {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600 dark:text-gray-400">Active Users:</span>
-                <span className="font-bold text-green-600">
+                <span className="font-bold text-blue-600">
                   {stats?.users?.active || 0}
                 </span>
               </div>

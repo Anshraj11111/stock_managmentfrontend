@@ -218,7 +218,7 @@ const CustomerDetail = () => {
           {parseFloat(customer.total_due) > 0 && (
             <button
               onClick={() => setShowPaymentModal(true)}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base"
             >
               <Wallet className="w-4 h-4" />
               Record Payment
@@ -247,19 +247,19 @@ const CustomerDetail = () => {
                 className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 sm:p-4 rounded-xl border ${
                   entry.type === 'debit'
                     ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800'
-                    : 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800'
+                    : 'bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800'
                 }`}
               >
                 <div className="flex items-start gap-3 sm:gap-4 flex-1">
                   <div className={`p-2 sm:p-3 rounded-full flex-shrink-0 ${
                     entry.type === 'debit'
                       ? 'bg-red-100 dark:bg-red-900/30'
-                      : 'bg-green-100 dark:bg-green-900/30'
+                      : 'bg-blue-100 dark:bg-blue-900/30'
                   }`}>
                     {entry.type === 'debit' ? (
                       <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
                     ) : (
-                      <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                      <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -288,7 +288,7 @@ const CustomerDetail = () => {
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-3 pl-9 sm:pl-0">
                   <div className={`text-left sm:text-right ${
-                    entry.type === 'debit' ? 'text-red-600' : 'text-green-600'
+                    entry.type === 'debit' ? 'text-red-600' : 'text-blue-600'
                   }`}>
                     <p className="text-xl sm:text-2xl font-bold">
                       {entry.type === 'debit' ? '+' : '-'}₹{parseFloat(entry.amount).toFixed(2)}
@@ -338,7 +338,7 @@ const CustomerDetail = () => {
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
                   placeholder="Enter amount"
-                  className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -350,7 +350,7 @@ const CustomerDetail = () => {
                 <select
                   value={paymentMode}
                   onChange={(e) => setPaymentMode(e.target.value)}
-                  className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="cash">Cash</option>
                   <option value="upi">UPI</option>
@@ -367,7 +367,7 @@ const CustomerDetail = () => {
                   onChange={(e) => setPaymentDescription(e.target.value)}
                   placeholder="Add a note..."
                   rows="2"
-                  className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -382,7 +382,7 @@ const CustomerDetail = () => {
                 <button
                   onClick={handleRecordPayment}
                   disabled={submitting}
-                  className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
                 >
                   {submitting ? 'Recording...' : 'Record Payment'}
                 </button>
@@ -532,7 +532,7 @@ const CustomerDetail = () => {
                         <p className="text-indigo-100 text-xs sm:text-sm font-medium uppercase tracking-wide">Status</p>
                         <span className={`inline-flex items-center px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-bold ${
                           selectedBill.status === 'PAID' 
-                            ? 'bg-green-500 text-white'
+                            ? 'bg-blue-500 text-white'
                             : 'bg-amber-500 text-white'
                         }`}>
                           {selectedBill.status === 'PAID' ? '✓ PAID' : '⏱ PENDING'}
@@ -631,7 +631,7 @@ const CustomerDetail = () => {
                       {selectedBill.discount_amount > 0 && (
                         <div className="flex justify-between items-center text-sm sm:text-base">
                           <span className="font-semibold text-gray-700 dark:text-gray-300">Discount</span>
-                          <span className="text-base sm:text-xl font-bold text-green-600 dark:text-green-400">
+                          <span className="text-base sm:text-xl font-bold text-blue-600 dark:text-blue-400">
                             -₹{selectedBill.discount_amount}
                           </span>
                         </div>
@@ -661,8 +661,8 @@ const CustomerDetail = () => {
                   {selectedBill.Payments && selectedBill.Payments.length > 0 && (
                     <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-200 dark:border-gray-700">
                       <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-                        <div className="p-1.5 sm:p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                          <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 dark:text-green-400" />
+                        <div className="p-1.5 sm:p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                          <Wallet className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
                         </div>
                         <h3 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white">
                           Payment Details
@@ -673,7 +673,7 @@ const CustomerDetail = () => {
                         {selectedBill.Payments.map((payment, index) => (
                           <div
                             key={index}
-                            className="flex justify-between items-center p-3 sm:p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg sm:rounded-xl border-2 border-green-200 dark:border-green-800 shadow-sm"
+                            className="flex justify-between items-center p-3 sm:p-5 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-lg sm:rounded-xl border-2 border-blue-200 dark:border-blue-800 shadow-sm"
                           >
                             <div className="min-w-0 flex-1">
                               <p className="text-sm sm:text-lg font-bold text-gray-900 dark:text-white uppercase tracking-wide">
@@ -685,7 +685,7 @@ const CustomerDetail = () => {
                                 </p>
                               )}
                             </div>
-                            <span className="text-xl sm:text-3xl font-black text-green-600 dark:text-green-400 ml-2">
+                            <span className="text-xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 ml-2">
                               ₹{payment.amount}
                             </span>
                           </div>

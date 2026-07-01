@@ -239,8 +239,8 @@
 //             Select products and generate invoices
 //           </p>
 //         </div>
-//         <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-6 py-3 rounded-xl border border-emerald-200 dark:border-emerald-600">
-//           <ShoppingCart className="w-5 h-5 text-emerald-600" />
+//         <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 px-6 py-3 rounded-xl border border-blue-200 dark:border-blue-600">
+//           <ShoppingCart className="w-5 h-5 text-blue-600" />
 //           <div>
 //             <p className="text-xs text-gray-600 dark:text-gray-400">Items in Cart</p>
 //             <p className="text-xl font-bold text-secondary-900 dark:text-secondary-100">{selectedItems.length}</p>
@@ -288,7 +288,7 @@
 //                     <div className="absolute top-2 right-2">
 //                       <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${
 //                         product.stock_quantity > 10 
-//                           ? 'bg-green-100 text-green-700' 
+//                           ? 'bg-blue-100 text-blue-700' 
 //                           : product.stock_quantity > 0 
 //                           ? 'bg-orange-100 text-orange-700' 
 //                           : 'bg-red-100 text-red-700'
@@ -302,8 +302,8 @@
 //                         {product.product_name}
 //                       </h3>
 //                       <div className="flex items-center gap-2">
-//                         <DollarSign className="w-4 h-4 text-emerald-600" />
-//                         <span className="text-2xl font-bold text-emerald-600">
+//                         <DollarSign className="w-4 h-4 text-blue-600" />
+//                         <span className="text-2xl font-bold text-blue-600">
 //                           ₹{product.selling_price}
 //                         </span>
 //                       </div>
@@ -404,9 +404,9 @@
 
 //           {/* Bill Preview */}
 //           {previewData && (
-//             <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-600 p-6">
+//             <div className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-600 p-6">
 //               <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-//                 <Receipt className="w-5 h-5 text-emerald-600" />
+//                 <Receipt className="w-5 h-5 text-blue-600" />
 //                 Bill Preview
 //               </h2>
 
@@ -423,10 +423,10 @@
 //                 ))}
 //               </div>
 
-//               <div className="border-t border-emerald-200 dark:border-emerald-500 pt-3 mb-4">
+//               <div className="border-t border-blue-200 dark:border-blue-500 pt-3 mb-4">
 //                 <div className="flex justify-between items-center">
 //                   <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Total:</span>
-//                   <span className="text-2xl font-bold text-emerald-600">
+//                   <span className="text-2xl font-bold text-blue-600">
 //                     ₹{previewData.total_amount}
 //                   </span>
 //                 </div>
@@ -434,7 +434,7 @@
 
 //               <button
 //                 onClick={() => setShowPaymentModal(true)}
-//                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+//                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
 //               >
 //                 <Receipt className="w-5 h-5" />
 //                 Proceed to Payment
@@ -581,6 +581,10 @@ const Billing = () => {
   const [discountType, setDiscountType] = useState('percentage'); // 'percentage' or 'fixed'
   const [discountValue, setDiscountValue] = useState(''); // Empty string instead of 0
 
+  // ✅ Manual item add state
+  const [showManualItem, setShowManualItem] = useState(false);
+  const [manualItem, setManualItem] = useState({ name: '', price: '', quantity: 1 });
+
   // ✅ REMOVED: Complex payment array - using simple state instead
 
   useEffect(() => {
@@ -672,6 +676,31 @@ const Billing = () => {
     }, 100);
   };
 
+  // ✅ Add a manually typed item (no product_id needed)
+  const addManualItemToBill = () => {
+    const name = manualItem.name.trim();
+    const price = parseFloat(manualItem.price);
+    const quantity = parseInt(manualItem.quantity) || 1;
+
+    if (!name) { toast.error('Item name is required'); return; }
+    if (!price || price <= 0) { toast.error('Enter a valid price'); return; }
+
+    // Use a unique key for manual items — timestamp-based
+    const manualKey = `manual_${Date.now()}`;
+    setSelectedItems(prev => [...prev, {
+      product_id: manualKey,  // unique identifier
+      name,
+      price,
+      quantity,
+      total: parseFloat((price * quantity).toFixed(2)),
+      isManual: true,         // flag to skip stock check
+    }]);
+
+    setManualItem({ name: '', price: '', quantity: 1 });
+    setShowManualItem(false);
+    toast.success(`"${name}" added to bill`);
+  };
+
   const updateQuantity = (productId, newQuantity) => {
     // ✅ Handle direct input - parse as number
     const quantity = parseInt(newQuantity);
@@ -722,8 +751,15 @@ const Billing = () => {
     setPreviewLoading(true);
     try {
       // ✅ Include GST and Discount in preview request
+      // Filter manual items — send product_id only for real products
+      const billItems = selectedItems.map(item => ({
+        ...(item.isManual
+          ? { item_name: item.name, price: item.price, quantity: item.quantity, unit: 'pcs' }
+          : { product_id: item.product_id, quantity: item.quantity }
+        )
+      }));
       const requestData = {
-        items: selectedItems,
+        items: billItems,
         ...(gstEnabled && { gst_percentage: gstPercentage }),
         ...(discountEnabled && discountValue > 0 && {
           discount_type: discountType,
@@ -815,8 +851,15 @@ const Billing = () => {
       }
 
       // ✅ Include customer details and GST in bill creation
+      // Build items for API — manual items use item_name, real items use product_id
+      const apiBillItems = selectedItems.map(item => ({
+        ...(item.isManual
+          ? { item_name: item.name, price: item.price, quantity: item.quantity, unit: 'pcs' }
+          : { product_id: item.product_id, quantity: item.quantity }
+        )
+      }));
       const billData = {
-        items: selectedItems,
+        items: apiBillItems,
         payments: payments,
         ...(customerId && { customer_id: customerId }),
         ...(customerDetails.name && { customer_name: customerDetails.name }),
@@ -1248,12 +1291,12 @@ const Billing = () => {
       {/* Header - Fixed */}
       <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-gray-800 px-4 sm:px-6 py-3 shadow-md border-b border-gray-200 dark:border-gray-700">
         <div>
-          <h1 className="text-2xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 dark:from-emerald-400 dark:via-teal-400 dark:to-emerald-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 dark:from-blue-400 dark:via-blue-400 dark:to-blue-400 bg-clip-text text-transparent">
             {t('billing.title')}
           </h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">{t('billing.subtitle')}</p>
         </div>
-        <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 px-5 py-2.5 rounded-xl shadow-lg">
+        <div className="flex items-center gap-3 bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 px-5 py-2.5 rounded-xl shadow-lg">
           <ShoppingCart className="w-5 h-5 text-white" />
           <div>
             <p className="text-xs text-white/90 font-bold uppercase tracking-wider">{t('billing.itemsInCart')}</p>
@@ -1267,23 +1310,95 @@ const Billing = () => {
         {/* LEFT - scrollable */}
         <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
           <div className="grid grid-cols-1 gap-4">
-          {/* Search */}
-          <div className="relative">
+          {/* Search + Manual Add */}
+          <div className="flex gap-2">
+          <div className="relative flex-1">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-500" />
             <input
               type="text"
               placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-emerald-400 focus:border-emerald-500 transition-all font-medium shadow-md placeholder-gray-400"
+              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-400 focus:border-blue-500 transition-all font-medium shadow-md placeholder-gray-400"
             />
           </div>
+
+          {/* ── Add Manual Item Button ── */}
+          <button
+            onClick={() => setShowManualItem(v => !v)}
+            className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all flex-shrink-0 shadow-md"
+            style={{
+              background: showManualItem
+                ? 'linear-gradient(135deg,#f85149,#da3633)'
+                : 'linear-gradient(135deg,#1f6feb,#388bfd)',
+              color: '#fff',
+            }}
+          >
+            <Plus className={`w-4 h-4 transition-transform duration-200 ${showManualItem ? 'rotate-45' : ''}`} />
+            <span className="hidden sm:inline">{showManualItem ? 'Cancel' : 'Add Manual Item'}</span>
+            <span className="sm:hidden">{showManualItem ? '✕' : 'Manual'}</span>
+          </button>
+          </div>
+
+          {/* ── Manual Item Form (inline, expands on click) ── */}
+          {showManualItem && (
+            <div
+              className="rounded-xl p-4 animate-fade-in"
+              style={{ backgroundColor: '#161b22', border: '1px solid #21262d' }}
+            >
+              <p className="text-sm font-bold mb-3" style={{ color: '#388bfd' }}>
+                ✏️ Add Custom Item to Bill
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <input
+                  className="input-field"
+                  placeholder="Item / Service name *"
+                  value={manualItem.name}
+                  onChange={e => setManualItem(p => ({ ...p, name: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && addManualItemToBill()}
+                />
+                <input
+                  className="input-field"
+                  placeholder="Price (₹) *"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={manualItem.price}
+                  onChange={e => setManualItem(p => ({ ...p, price: e.target.value }))}
+                  onKeyDown={e => e.key === 'Enter' && addManualItemToBill()}
+                />
+                <div className="flex gap-2">
+                  <input
+                    className="input-field flex-1"
+                    placeholder="Qty"
+                    type="number"
+                    min="1"
+                    value={manualItem.quantity}
+                    onChange={e => setManualItem(p => ({ ...p, quantity: e.target.value }))}
+                    onKeyDown={e => e.key === 'Enter' && addManualItemToBill()}
+                  />
+                  <button
+                    onClick={addManualItemToBill}
+                    className="px-4 py-2 rounded-lg font-semibold text-sm text-white transition-all"
+                    style={{ background: 'linear-gradient(135deg,#238636,#3fb950)' }}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+              {manualItem.name && manualItem.price && (
+                <p className="text-xs mt-2" style={{ color: '#6e7681' }}>
+                  Preview: {manualItem.name} × {manualItem.quantity || 1} = ₹{((parseFloat(manualItem.price) || 0) * (parseInt(manualItem.quantity) || 1)).toFixed(2)}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Products Grid */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-md">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-emerald-600" />
+                <Package className="w-5 h-5 text-blue-600" />
                 {t('billing.availableProducts')}
                 {filteredProducts.length > 0 && (
                   <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1">
@@ -1350,12 +1465,12 @@ const Billing = () => {
                 {filteredProducts.map((product, index) => (
                   <div
                     key={product.id}
-                    className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 border border-secondary-200 dark:border-secondary-700 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
+                    className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 border border-secondary-200 dark:border-secondary-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
                   >
                     <div className="absolute top-2 right-2">
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${
                         product.stock_quantity > 10
-                          ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                           : product.stock_quantity > 0
                           ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
                           : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
@@ -1366,14 +1481,14 @@ const Billing = () => {
                     <div className="mb-3 pr-16">
                       <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1 text-sm truncate">{product.product_name}</h3>
                       <div className="flex items-center gap-1">
-                        <DollarSign className="w-3 h-3 text-emerald-600" />
-                        <span className="text-lg font-bold text-emerald-600">₹{product.selling_price}</span>
+                        <DollarSign className="w-3 h-3 text-blue-600" />
+                        <span className="text-lg font-bold text-blue-600">₹{product.selling_price}</span>
                       </div>
                     </div>
                     <button
                       onClick={() => addToBill(product)}
                       disabled={product.stock_quantity === 0}
-                      className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                     >
                       <Plus className="w-3 h-3" />
                       {t('billing.addToBill')}
@@ -1385,18 +1500,18 @@ const Billing = () => {
           </div>
 
           {/* Customer Details */}
-          <div id="customer-section" className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-600 p-4 sm:p-6">
+          <div id="customer-section" className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-600 p-4 sm:p-6">
             <h3 className="text-base font-bold text-secondary-900 dark:text-secondary-100 mb-3 flex items-center gap-2">
-              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               Customer Details
               <span className="text-red-500 text-xs font-normal">(Required to preview)</span>
             </h3>
             {existingCustomer && (
-              <div className="mb-3 p-3 bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700 rounded-lg">
-                <p className="text-sm font-semibold text-green-800 dark:text-green-300">✓ Existing Customer Found</p>
-                <p className="text-sm text-green-700 dark:text-green-400">Previous Due: ₹{parseFloat(existingCustomer.total_due).toFixed(2)}</p>
+              <div className="mb-3 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 rounded-lg">
+                <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">✓ Existing Customer Found</p>
+                <p className="text-sm text-blue-700 dark:text-blue-400">Previous Due: ₹{parseFloat(existingCustomer.total_due).toFixed(2)}</p>
               </div>
             )}
             <div className="space-y-3">
@@ -1433,15 +1548,15 @@ const Billing = () => {
           </div>
 
           {/* GST Section */}
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border border-green-200 dark:border-green-800 p-4 sm:p-6">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 p-4 sm:p-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-base font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                 </svg>
                 GST (Optional)
               </h3>
-              <button onClick={() => setGstEnabled(!gstEnabled)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${gstEnabled ? 'bg-emerald-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
+              <button onClick={() => setGstEnabled(!gstEnabled)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${gstEnabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'}`}>
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${gstEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
@@ -1457,9 +1572,9 @@ const Billing = () => {
                 {selectedItems.length > 0 && (
                   <div className="bg-white dark:bg-secondary-800 rounded-lg p-3 space-y-1 text-sm">
                     <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Subtotal:</span><span className="font-semibold">₹{calculateTotal().toFixed(2)}</span></div>
-                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span><span className="font-semibold text-green-600">₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span><span className="font-semibold text-blue-600">₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-1"></div>
-                    <div className="flex justify-between text-base"><span className="font-bold">Total:</span><span className="font-bold text-green-600">₹{(calculateTotal() + (calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>
+                    <div className="flex justify-between text-base"><span className="font-bold">Total:</span><span className="font-bold text-blue-600">₹{(calculateTotal() + (calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>
                   </div>
                 )}
               </div>
@@ -1501,7 +1616,7 @@ const Billing = () => {
                 {selectedItems.length > 0 && discountValue && parseFloat(discountValue) > 0 && (
                   <div className="bg-white dark:bg-secondary-800 rounded-lg p-3 space-y-1 text-sm">
                     <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">Subtotal:</span><span className="font-semibold">₹{calculateTotal().toFixed(2)}</span></div>
-                    {gstEnabled && <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span><span className="font-semibold text-green-600">₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>}
+                    {gstEnabled && <div className="flex justify-between"><span className="text-gray-600 dark:text-gray-400">GST ({gstPercentage}%):</span><span className="font-semibold text-blue-600">₹{((calculateTotal() * gstPercentage) / 100).toFixed(2)}</span></div>}
                     <div className="flex justify-between text-red-600"><span>Discount:</span><span className="font-semibold">-₹{calculateDiscountAmount().toFixed(2)}</span></div>
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-1"></div>
                     <div className="flex justify-between text-base"><span className="font-bold">Final Total:</span><span className="font-bold text-orange-600">₹{calculateFinalTotal().toFixed(2)}</span></div>
@@ -1520,7 +1635,7 @@ const Billing = () => {
           {/* Scrollable items list */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             <h2 className="text-base font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2 sticky top-0 bg-white dark:bg-gray-800 py-2 z-10 border-b border-gray-100 dark:border-gray-700">
-              <Receipt className="w-4 h-4 text-emerald-600" />
+              <Receipt className="w-4 h-4 text-blue-600" />
               {t('billing.currentBill')}
             </h2>
 
@@ -1540,7 +1655,7 @@ const Billing = () => {
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><Minus className="w-3 h-3" /></button>
                       <input type="number" value={item.quantity} onChange={(e) => updateQuantity(item.product_id, e.target.value)} min="1"
-                        className="w-10 text-center font-semibold text-sm border border-secondary-300 dark:border-secondary-700 rounded bg-white dark:bg-secondary-800 focus:ring-1 focus:ring-emerald-500" />
+                        className="w-10 text-center font-semibold text-sm border border-secondary-300 dark:border-secondary-700 rounded bg-white dark:bg-secondary-800 focus:ring-1 focus:ring-blue-500" />
                       <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><Plus className="w-3 h-3" /></button>
                       <button onClick={() => removeFromBill(item.product_id)} className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 className="w-3 h-3" /></button>
                     </div>
@@ -1551,13 +1666,13 @@ const Billing = () => {
 
             {/* Bill Preview */}
             {previewData && (
-              <div className="mt-3 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-200 dark:border-emerald-600 p-4">
+              <div className="mt-3 bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-600 p-4">
                 <h3 className="text-sm font-bold text-secondary-900 dark:text-secondary-100 mb-3 flex items-center gap-2">
-                  <Receipt className="w-4 h-4 text-emerald-600" />
+                  <Receipt className="w-4 h-4 text-blue-600" />
                   {t('billing.billPreview')}
                 </h3>
                 {(customerDetails.name || customerDetails.phone) && (
-                  <div className="mb-3 pb-2 border-b border-emerald-200 dark:border-emerald-500">
+                  <div className="mb-3 pb-2 border-b border-blue-200 dark:border-blue-500">
                     <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">Customer:</p>
                     {customerDetails.name && <p className="text-xs text-gray-600 dark:text-gray-400">{customerDetails.name}</p>}
                     {customerDetails.phone && <p className="text-xs text-gray-600 dark:text-gray-400">{customerDetails.phone}</p>}
@@ -1571,13 +1686,13 @@ const Billing = () => {
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-emerald-200 dark:border-emerald-500 pt-2 space-y-1">
+                <div className="border-t border-blue-200 dark:border-blue-500 pt-2 space-y-1">
                   <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">Subtotal:</span><span className="font-semibold">₹{previewData.subtotal || previewData.total_amount}</span></div>
-                  {previewData.gst_amount && <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">GST ({previewData.gst_percentage}%):</span><span className="font-semibold text-green-600">+₹{previewData.gst_amount}</span></div>}
+                  {previewData.gst_amount && <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">GST ({previewData.gst_percentage}%):</span><span className="font-semibold text-blue-600">+₹{previewData.gst_amount}</span></div>}
                   {previewData.discount_amount && <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">Discount:</span><span className="font-semibold text-red-600">-₹{previewData.discount_amount}</span></div>}
-                  <div className="flex justify-between items-center pt-1 border-t border-emerald-300 dark:border-emerald-600">
+                  <div className="flex justify-between items-center pt-1 border-t border-blue-300 dark:border-blue-600">
                     <span className="text-sm font-bold text-secondary-900 dark:text-secondary-100">Total:</span>
-                    <span className="text-lg font-black text-emerald-600">₹{previewData.total_amount}</span>
+                    <span className="text-lg font-black text-blue-600">₹{previewData.total_amount}</span>
                   </div>
                 </div>
               </div>
@@ -1599,7 +1714,7 @@ const Billing = () => {
               className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 text-sm
                 ${!customerDetails.name.trim() || selectedItems.length === 0
                   ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white hover:shadow-lg'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white hover:shadow-lg'
                 }`}
             >
               {previewLoading ? t('common.loading') : (
@@ -1628,7 +1743,7 @@ const Billing = () => {
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-4 duration-300 border border-gray-200 dark:border-gray-700 overflow-hidden">
             
             {/* Header - Premium Gradient with Better Colors */}
-            <div className="p-6 bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-600 dark:from-emerald-700 dark:via-teal-700 dark:to-emerald-700 shadow-xl">
+            <div className="p-6 bg-gradient-to-br from-blue-600 via-blue-600 to-blue-600 dark:from-blue-700 dark:via-blue-700 dark:to-blue-700 shadow-xl">
               <h2 className="text-2xl font-bold text-white flex items-center gap-3 drop-shadow-lg">
                 <Receipt className="w-7 h-7 text-white" />
                 Payment Details
@@ -1639,7 +1754,7 @@ const Billing = () => {
             <div className="flex-1 overflow-y-auto p-6 space-y-5 bg-gray-50 dark:bg-gray-900">
               
               {/* Total Amount Display - Indigo/Purple Theme - Mobile Responsive */}
-              <div className="text-center p-4 sm:p-8 bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-600 dark:from-emerald-700 dark:via-teal-700 dark:to-emerald-700 rounded-2xl shadow-2xl border-2 border-emerald-400 dark:border-emerald-600">
+              <div className="text-center p-4 sm:p-8 bg-gradient-to-br from-blue-600 via-blue-600 to-blue-600 dark:from-blue-700 dark:via-blue-700 dark:to-blue-700 rounded-2xl shadow-2xl border-2 border-blue-400 dark:border-blue-600">
                 <p className="text-xs sm:text-sm text-white/90 font-bold mb-1 sm:mb-2 tracking-wide uppercase">Total Amount</p>
                 <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white drop-shadow-2xl tracking-tight break-all">
                   ₹{previewData.total_amount}
@@ -1661,7 +1776,7 @@ const Billing = () => {
                     <option value="upi">📱 Online (UPI)</option>
                   </select>
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                    <svg className="w-6 h-6 text-emerald-600 dark:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-6 h-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                     </svg>
                   </div>
@@ -1734,9 +1849,9 @@ const Billing = () => {
 
               {/* QR Code - Show only for UPI payment */}
               {paymentMode === 'upi' && shop?.upi_id && paidAmount && parseFloat(paidAmount) > 0 && (
-                <div className="w-full flex flex-col items-center bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 p-5 rounded-xl border-2 border-emerald-400 dark:border-emerald-500 shadow-lg">
+                <div className="w-full flex flex-col items-center bg-gradient-to-br from-blue-100 to-blue-100 dark:from-blue-900/40 dark:to-blue-900/40 p-5 rounded-xl border-2 border-blue-400 dark:border-blue-500 shadow-lg">
                   <p className="text-sm font-bold mb-3 text-gray-900 dark:text-white flex items-center gap-2">
-                    <Smartphone className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+                    <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-300" />
                     Scan QR to Pay
                   </p>
 
@@ -1776,9 +1891,9 @@ const Billing = () => {
               )}
 
               {/* Payment Summary */}
-              <div className="bg-gradient-to-br from-emerald-50 via-teal-50 to-emerald-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl p-5 border-2 border-emerald-200 dark:border-gray-700 shadow-lg">
+              <div className="bg-gradient-to-br from-blue-50 via-blue-50 to-blue-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 rounded-xl p-5 border-2 border-blue-200 dark:border-gray-700 shadow-lg">
                 <p className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                   Payment Summary
@@ -1791,11 +1906,11 @@ const Billing = () => {
                     </span>
                   </div>
                   {paidAmount && parseFloat(paidAmount) > 0 && (
-                    <div className="flex justify-between text-sm bg-emerald-50 dark:bg-emerald-500/15 p-3 rounded-lg">
+                    <div className="flex justify-between text-sm bg-blue-50 dark:bg-blue-500/15 p-3 rounded-lg">
                       <span className="text-gray-700 dark:text-gray-200 font-medium">
                         Paid ({paymentMode === 'cash' ? 'Cash' : 'UPI'}):
                       </span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-300">
+                      <span className="font-bold text-blue-600 dark:text-blue-300">
                         ₹{parseFloat(paidAmount)}
                       </span>
                     </div>
@@ -1808,12 +1923,12 @@ const Billing = () => {
                       </span>
                     </div>
                   )}
-                  <div className="border-t-2 border-emerald-200 dark:border-gray-600 pt-3 mt-3"></div>
+                  <div className="border-t-2 border-blue-200 dark:border-gray-600 pt-3 mt-3"></div>
                   <div className="flex justify-between text-base bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 p-3 rounded-lg">
                     <span className="font-bold text-gray-900 dark:text-gray-100">Balance:</span>
                     <span className={`font-bold text-lg ${
                       Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - previewData.total_amount) < 0.01
-                        ? 'text-emerald-600 dark:text-emerald-300'
+                        ? 'text-blue-600 dark:text-blue-300'
                         : 'text-red-600 dark:text-red-400'
                     }`}>
                       ₹{Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - previewData.total_amount)}

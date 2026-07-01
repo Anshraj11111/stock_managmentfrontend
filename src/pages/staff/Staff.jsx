@@ -181,10 +181,10 @@
 //           <p className="text-sm text-secondary-600 dark:text-secondary-400 mt-1">Total Staff</p>
 //         </div>
 
-//         <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
+//         <div className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
 //           <div className="flex items-center justify-between mb-4">
-//             <UserCheck className="w-8 h-8 text-green-600" />
-//             <span className="text-xs font-semibold px-3 py-1 bg-green-100 text-green-700 rounded-full">Active</span>
+//             <UserCheck className="w-8 h-8 text-blue-600" />
+//             <span className="text-xs font-semibold px-3 py-1 bg-blue-100 text-blue-700 rounded-full">Active</span>
 //           </div>
 //           <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100">{stats.active}</p>
 //           <p className="text-sm text-secondary-600 dark:text-secondary-400 mt-1">Active Members</p>
@@ -244,7 +244,7 @@
 //                 </div>
 //                 <span className={`px-3 py-1 rounded-lg text-xs font-semibold ${
 //                   member.isActive 
-//                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+//                     ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
 //                     : 'bg-secondary-100 text-secondary-700 dark:bg-secondary-800 dark:text-secondary-400'
 //                 }`}>
 //                   {member.isActive ? 'Active' : 'Inactive'}
@@ -276,7 +276,7 @@
 //                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg transition-colors ${
 //                     member.isActive
 //                       ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30'
-//                       : 'bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
+//                       : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30'
 //                   }`}
 //                 >
 //                   {member.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
@@ -517,7 +517,7 @@ const Staff = () => {
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
+          className="flex items-center justify-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors text-sm sm:text-base"
         >
           <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
           <span className="hidden sm:inline">{t('staff.addStaffMember')}</span>
@@ -533,12 +533,12 @@ const Staff = () => {
             className="bg-white dark:bg-secondary-900 p-4 sm:p-6 rounded-xl border border-secondary-200 dark:border-secondary-800 hover:shadow-lg transition-shadow"
           >
             <div className="flex items-start justify-between mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
                 <Users className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <span className={`px-2 sm:px-3 py-1 rounded-lg text-xs font-semibold ${
                 member.isActive 
-                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
                   : 'bg-secondary-100 text-secondary-700 dark:bg-secondary-800 dark:text-secondary-400'
               }`}>
                 {member.isActive ? 'Active' : 'Inactive'}
@@ -566,7 +566,7 @@ const Staff = () => {
                 className={`flex-1 min-w-0 p-2 rounded-lg transition-colors flex items-center justify-center gap-1 text-sm ${
                   member.isActive
                     ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30'
-                    : 'bg-green-50 dark:bg-green-900/20 text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30'
+                    : 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30'
                 }`}
               >
                 {member.isActive ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
@@ -634,7 +634,7 @@ const Staff = () => {
                 <button 
                   type="submit" 
                   disabled={submitting}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg disabled:opacity-50 transition-colors"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-50 transition-colors"
                 >
                   {editingStaff ? "Update" : "Add"}
                 </button>

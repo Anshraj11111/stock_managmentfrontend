@@ -265,13 +265,13 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4">
       <div className="w-full max-w-md">
         <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-8">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-emerald-600 dark:text-emerald-300">StockSaaS</h1>
+            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-300">StockSaaS</h1>
             <p className="text-secondary-600 dark:text-secondary-400 mt-1">
-              {t('auth.selectedPlan')}: <span className="font-semibold bg-emerald-100 dark:bg-emerald-600 text-emerald-700 dark:text-white px-2 py-0.5 rounded">{selectedPlan.toUpperCase()}</span>
+              {t('auth.selectedPlan')}: <span className="font-semibold bg-blue-100 dark:bg-blue-600 text-blue-700 dark:text-white px-2 py-0.5 rounded">{selectedPlan.toUpperCase()}</span>
             </p>
           </div>
 
@@ -329,7 +329,7 @@ const Signup = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 pr-10 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2 pr-10 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={t('auth.createPassword')}
                 />
                 <button
@@ -366,7 +366,7 @@ const Signup = () => {
                 value={formData.address}
                 onChange={handleChange}
                 rows="2"
-                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Enter shop address"
               />
             </div>
@@ -377,7 +377,7 @@ const Signup = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">{t('auth.selectCategory')}</option>
                 <option value="grocery">{t('categories.grocery')}</option>
@@ -397,7 +397,7 @@ const Signup = () => {
 
           <p className="text-center text-sm mt-6 text-secondary-600 dark:text-secondary-400">
             {t('auth.alreadyHaveAccount')}{" "}
-            <Link to="/login" className="text-emerald-600 dark:text-emerald-300 font-medium hover:text-emerald-700 dark:hover:text-emerald-200">
+            <Link to="/login" className="text-blue-600 dark:text-blue-300 font-medium hover:text-blue-700 dark:hover:text-blue-200">
               {t('auth.signIn')}
             </Link>
           </p>
@@ -436,7 +436,7 @@ const Signup = () => {
                     value={formData.address}
                     onChange={handleChange}
                     rows="2"
-                    className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                     placeholder="Enter shop address"
                   />
                 </div>
@@ -447,7 +447,7 @@ const Signup = () => {
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="">{t('auth.selectCategory')}</option>
                     <option value="grocery">{t('categories.grocery')}</option>
@@ -469,7 +469,7 @@ const Signup = () => {
                     setShowGoogleSignupForm(false);
                     setGoogleCredential(null);
                   }}
-                  className="w-full text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-300"
+                  className="w-full text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-300"
                 >
                   Back to signup options
                 </button>

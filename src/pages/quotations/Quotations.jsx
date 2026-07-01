@@ -24,7 +24,7 @@ import api from "../../utils/api";
 const STATUS_CONFIG = {
   draft:     { label: "Draft",     color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",     icon: Clock },
   sent:      { label: "Sent",      color: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",  icon: Send },
-  accepted:  { label: "Accepted",  color: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300", icon: CheckCircle },
+  accepted:  { label: "Accepted",  color: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300", icon: CheckCircle },
   rejected:  { label: "Rejected",  color: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",     icon: XCircle },
   expired:   { label: "Expired",   color: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300", icon: Clock },
   converted: { label: "Converted", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300", icon: ArrowRightLeft },
@@ -107,8 +107,8 @@ const QuotationModal = ({ onClose, onSaved, editing }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-secondary-200 dark:border-secondary-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center">
-              <ClipboardList className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center">
+              <ClipboardList className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <h2 className="text-lg font-semibold text-secondary-900 dark:text-white">
               {editing ? "Edit Quotation" : "New Quotation"}
@@ -136,7 +136,7 @@ const QuotationModal = ({ onClose, onSaved, editing }) => {
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-secondary-700 dark:text-secondary-300 uppercase tracking-wide">Items</h3>
-              <button onClick={addItem} className="flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400 hover:underline">
+              <button onClick={addItem} className="flex items-center gap-1.5 text-sm text-blue-600 dark:text-blue-400 hover:underline">
                 <Plus className="w-4 h-4" /> Add Item
               </button>
             </div>
@@ -210,7 +210,7 @@ const QuotationModal = ({ onClose, onSaved, editing }) => {
               </div>
             )}
             <div className="flex justify-between font-bold text-secondary-900 dark:text-white border-t border-secondary-200 dark:border-secondary-700 pt-1 mt-1">
-              <span>Total</span><span className="text-emerald-600 dark:text-emerald-400">{fmt(total)}</span>
+              <span>Total</span><span className="text-blue-600 dark:text-blue-400">{fmt(total)}</span>
             </div>
           </div>
         </div>
@@ -220,7 +220,7 @@ const QuotationModal = ({ onClose, onSaved, editing }) => {
           <button onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl border border-secondary-300 dark:border-secondary-600 text-secondary-700 dark:text-secondary-300 hover:bg-secondary-50 dark:hover:bg-secondary-800 font-medium">
             Cancel
           </button>
-          <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+          <button onClick={handleSave} disabled={saving} className="flex-1 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 flex items-center justify-center gap-2">
             {saving && <RefreshCw className="w-4 h-4 animate-spin" />}
             {editing ? "Update Quotation" : "Create Quotation"}
           </button>
@@ -326,8 +326,8 @@ const Quotations = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/40 rounded-xl flex items-center justify-center">
-            <ClipboardList className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/40 rounded-xl flex items-center justify-center">
+            <ClipboardList className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-secondary-900 dark:text-white">Quotations</h1>
@@ -336,7 +336,7 @@ const Quotations = () => {
         </div>
         <button
           onClick={() => { setEditing(null); setShowModal(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all"
         >
           <Plus className="w-4 h-4" /> New Quotation
         </button>
@@ -348,7 +348,7 @@ const Quotations = () => {
           { key: "total",     label: "Total",     color: "text-secondary-700 dark:text-secondary-300" },
           { key: "draft",     label: "Draft",     color: "text-gray-600 dark:text-gray-400" },
           { key: "sent",      label: "Sent",      color: "text-blue-600 dark:text-blue-400" },
-          { key: "accepted",  label: "Accepted",  color: "text-green-600 dark:text-green-400" },
+          { key: "accepted",  label: "Accepted",  color: "text-blue-600 dark:text-blue-400" },
           { key: "rejected",  label: "Rejected",  color: "text-red-600 dark:text-red-400" },
           { key: "converted", label: "Converted", color: "text-purple-600 dark:text-purple-400" },
         ].map(({ key, label, color }) => (
@@ -358,7 +358,7 @@ const Quotations = () => {
             className={cn(
               "bg-white dark:bg-secondary-900 rounded-xl p-4 text-left border-2 transition-all hover:shadow-md",
               statusFilter === (key === "total" ? "" : key)
-                ? "border-emerald-500 shadow-md"
+                ? "border-blue-500 shadow-md"
                 : "border-transparent"
             )}
           >
@@ -395,13 +395,13 @@ const Quotations = () => {
       <div className="bg-white dark:bg-secondary-900 rounded-2xl shadow-sm border border-secondary-200 dark:border-secondary-800 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <RefreshCw className="w-7 h-7 text-emerald-500 animate-spin" />
+            <RefreshCw className="w-7 h-7 text-blue-500 animate-spin" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-secondary-400 dark:text-secondary-500">
             <ClipboardList className="w-12 h-12 mb-3 opacity-40" />
             <p className="text-sm">No quotations found</p>
-            <button onClick={() => { setEditing(null); setShowModal(true); }} className="mt-3 text-sm text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1">
+            <button onClick={() => { setEditing(null); setShowModal(true); }} className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1">
               <Plus className="w-4 h-4" /> Create your first quotation
             </button>
           </div>
@@ -429,7 +429,7 @@ const Quotations = () => {
                       <div className="font-medium text-secondary-900 dark:text-white">{q.customer_name || "—"}</div>
                       {q.customer_phone && <div className="text-xs text-secondary-500">{q.customer_phone}</div>}
                     </td>
-                    <td className="px-4 py-3 font-semibold text-emerald-600 dark:text-emerald-400">
+                    <td className="px-4 py-3 font-semibold text-blue-600 dark:text-blue-400">
                       {fmt(q.total_amount)}
                     </td>
                     <td className="px-4 py-3">
@@ -447,7 +447,7 @@ const Quotations = () => {
                         <button
                           title="Download PDF"
                           onClick={() => handleDownloadPDF(q.id, q.quotation_number)}
-                          className="p-1.5 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 transition-colors"
+                          className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-colors"
                         >
                           <FileDown className="w-4 h-4" />
                         </button>
@@ -488,7 +488,7 @@ const Quotations = () => {
                               title="Mark Accepted"
                               disabled={actionLoading === q.id + "_status"}
                               onClick={() => handleStatusChange(q.id, "accepted")}
-                              className="p-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 text-green-600 transition-colors disabled:opacity-50"
+                              className="p-1.5 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 transition-colors disabled:opacity-50"
                             >
                               <CheckCircle className="w-4 h-4" />
                             </button>

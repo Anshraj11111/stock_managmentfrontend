@@ -104,7 +104,7 @@ const AdminSubscription = () => {
         {/* Message */}
         {message.text && (
           <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
-            message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            message.type === 'success' ? 'bg-blue-50 text-blue-800' : 'bg-red-50 text-red-800'
           }`}>
             {message.type === 'success' ? (
               <CheckCircle size={20} />
@@ -218,7 +218,7 @@ const AdminSubscription = () => {
                       </button>
                       <button
                         onClick={() => handleVerifyPayment(payment.payment_id, 'approved')}
-                        className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition text-sm"
+                        className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition text-sm"
                       >
                         Approve
                       </button>
@@ -263,7 +263,7 @@ const AdminSubscription = () => {
               <div className="flex gap-3">
                 <button
                   onClick={() => handleVerifyPayment(selectedPayment.payment_id, 'approved')}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition"
+                  className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
                 >
                   Approve Payment
                 </button>

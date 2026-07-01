@@ -11,10 +11,10 @@ const Footer = () => {
           {/* Company Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-emerald-600 dark:bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-blue-600 dark:bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Zap className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-emerald-600 dark:text-emerald-300">
+              <h3 className="text-xl font-bold text-blue-600 dark:text-blue-300">
                 StockSaaS
               </h3>
             </div>
@@ -23,22 +23,22 @@ const Footer = () => {
             </p>
             <div className="flex items-center gap-2 text-xs text-secondary-500 dark:text-secondary-500">
               <span>Powered by</span>
-              <span className="font-bold text-emerald-600 dark:text-emerald-300">A5X</span>
+              <span className="font-bold text-blue-600 dark:text-blue-300">A5X</span>
             </div>
           </div>
 
           {/* Contact Email */}
           <div>
             <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-              <Mail className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+              <Mail className="w-5 h-5 text-blue-600 dark:text-blue-300" />
               Email Us
             </h3>
             <div className="space-y-3">
               <a 
                 href="mailto:support@stocksaas.com" 
-                className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
+                className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
               >
-                <span className="text-emerald-600 dark:text-emerald-300 mt-0.5">•</span>
+                <span className="text-blue-600 dark:text-blue-300 mt-0.5">•</span>
                 <div>
                   <div className="font-medium group-hover:underline">anshrajbaghel30@gmail.com</div>
                   <div className="text-xs text-secondary-500">General Support</div>
@@ -46,9 +46,9 @@ const Footer = () => {
               </a>
               <a 
                 href="mailto:sales@stocksaas.com" 
-                className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
+                className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
               >
-                <span className="text-emerald-600 dark:text-emerald-300 mt-0.5">•</span>
+                <span className="text-blue-600 dark:text-blue-300 mt-0.5">•</span>
                 <div>
                   <div className="font-medium group-hover:underline"> a5xrobotics@gmail.com</div>
                   <div className="text-xs text-secondary-500">Sales & Inquiries</div>
@@ -60,15 +60,15 @@ const Footer = () => {
           {/* Contact Phone */}
           <div>
             <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-              <Phone className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+              <Phone className="w-5 h-5 text-blue-600 dark:text-blue-300" />
               Call Us
             </h3>
             <div className="space-y-3">
               <a 
                 href="tel:+918269858259" 
-                className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
+                className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
               >
-                <span className="text-emerald-600 dark:text-emerald-300 mt-0.5">•</span>
+                <span className="text-blue-600 dark:text-blue-300 mt-0.5">•</span>
                 <div>
                   <div className="font-medium group-hover:underline">+91 8269858259</div>
                   <div className="text-xs text-secondary-500">Support Line</div>
@@ -76,9 +76,9 @@ const Footer = () => {
               </a>
               <a 
                 href="tel:+91 8839076135" 
-                className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors group"
+                className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
               >
-                <span className="text-emerald-600 dark:text-emerald-300 mt-0.5">•</span>
+                <span className="text-blue-600 dark:text-blue-300 mt-0.5">•</span>
                 <div>
                   <div className="font-medium group-hover:underline">+91 8839076135</div>
                   <div className="text-xs text-secondary-500">Sales Line</div>
@@ -95,19 +95,19 @@ const Footer = () => {
             <div className="space-y-2 mb-6">
               <a 
                 href="mailto:support@stocksaas.com?subject=Help Request" 
-                className="block text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors hover:translate-x-1 transform duration-200"
+                className="block text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors hover:translate-x-1 transform duration-200"
               >
                 → Help Center
               </a>
               <a 
                 href="mailto:support@stocksaas.com?subject=Feature Request" 
-                className="block text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors hover:translate-x-1 transform duration-200"
+                className="block text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors hover:translate-x-1 transform duration-200"
               >
                 → Feature Request
               </a>
               <a 
                 href="mailto:support@stocksaas.com?subject=Bug Report" 
-                className="block text-sm text-secondary-600 dark:text-secondary-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors hover:translate-x-1 transform duration-200"
+                className="block text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors hover:translate-x-1 transform duration-200"
               >
                 → Report a Bug
               </a>
@@ -115,7 +115,7 @@ const Footer = () => {
             
             {/* Location */}
             <div className="flex items-start gap-2 text-sm text-secondary-600 dark:text-secondary-400">
-              <MapPin className="w-4 h-4 text-emerald-600 dark:text-emerald-300 mt-0.5 flex-shrink-0" />
+              <MapPin className="w-4 h-4 text-blue-600 dark:text-blue-300 mt-0.5 flex-shrink-0" />
               <div>
                 <div className="font-medium">Jabalpur, India</div>
                 <div className="text-xs text-secondary-500">Serving Nationwide</div>
@@ -131,7 +131,7 @@ const Footer = () => {
               <span>© {currentYear} StockSaaS. All rights reserved.</span>
               <span className="hidden sm:inline">•</span>
               <span className="flex items-center gap-1">
-                Powered by <span className="font-bold text-emerald-600 dark:text-emerald-300">A5X</span>
+                Powered by <span className="font-bold text-blue-600 dark:text-blue-300">A5X</span>
               </span>
             </div>
             <div className="flex items-center gap-6">

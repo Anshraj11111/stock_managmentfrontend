@@ -113,10 +113,10 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4">
       <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl shadow-xl">
 
-        <h1 className="text-3xl font-bold text-emerald-600 dark:text-emerald-300 mb-6 text-center">
+        <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-300 mb-6 text-center">
           Login
         </h1>
 
@@ -138,7 +138,7 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg pr-10 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg pr-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter password"
               />
               <button
@@ -184,7 +184,7 @@ const Login = () => {
 
         <p className="text-center text-sm mt-6 text-secondary-600 dark:text-secondary-400">
           {t('auth.dontHaveAccount')}{" "}
-          <Link to="/signup" className="text-emerald-600 dark:text-emerald-300 font-medium hover:text-emerald-700 dark:hover:text-emerald-200">
+          <Link to="/signup" className="text-blue-600 dark:text-blue-300 font-medium hover:text-blue-700 dark:hover:text-blue-200">
             {t('auth.createOne')}
           </Link>
         </p>

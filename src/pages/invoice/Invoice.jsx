@@ -519,13 +519,13 @@ const Invoice = () => {
                         </p>
                       </div>
                       <div className="text-right space-y-1">
-                        <p className="text-sm font-bold text-emerald-600">
+                        <p className="text-sm font-bold text-blue-600">
                           ₹{parseFloat(bill.total_amount).toFixed(2)}
                         </p>
                         {/* Status badge */}
                         <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
                           bill.status === 'PAID'
-                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
                             : bill.status === 'PARTIAL'
                             ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
                             : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
@@ -677,7 +677,7 @@ const Invoice = () => {
                     )}
                     <div className="flex justify-between font-bold pt-2 border-t border-secondary-200 dark:border-secondary-700">
                       <span className="text-gray-600 dark:text-gray-400">Total:</span>
-                      <span className="text-emerald-600 text-base">
+                      <span className="text-blue-600 text-base">
                         ₹{parseFloat(selectedBill.total_amount).toFixed(2)}
                       </span>
                     </div>
@@ -705,7 +705,7 @@ const Invoice = () => {
         <div className="space-y-4">
           <div className="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
-              <FileCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-300" />
+              <FileCheck className="w-6 h-6 text-blue-600 dark:text-blue-300" />
               <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">
                 Recent Invoices
               </h2>
@@ -746,7 +746,7 @@ const Invoice = () => {
                 filteredInvoices.map((invoice, index) => (
                   <div
                     key={index}
-                    className="p-3 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-emerald-50 dark:bg-emerald-500/10"
+                    className="p-3 border border-secondary-200 dark:border-secondary-700 rounded-lg bg-blue-50 dark:bg-blue-500/10"
                   >
                     <div className="flex justify-between items-start mb-1">
                       <div>
@@ -764,10 +764,10 @@ const Invoice = () => {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-bold text-emerald-600">
+                        <p className="text-sm font-bold text-blue-600">
                           ₹{parseFloat(invoice.amount).toFixed(2)}
                         </p>
-                        <span className="text-xs px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 rounded-full">
                           PAID
                         </span>
                       </div>
@@ -782,7 +782,7 @@ const Invoice = () => {
                           toast.error('Failed to download invoice');
                         }
                       }}
-                      className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+                      className="mt-2 w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
                     >
                       <Download className="w-3 h-3" />
                       Re-download

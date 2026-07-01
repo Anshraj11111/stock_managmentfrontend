@@ -65,7 +65,7 @@ const LanguageSelector = () => {
                 key={lang.code}
                 onClick={() => changeLanguage(lang.code)}
                 className={`w-full flex items-center justify-between px-4 py-3 hover:bg-secondary-50 dark:hover:bg-secondary-800 transition-colors ${
-                  i18n.language === lang.code ? 'bg-emerald-50 dark:bg-emerald-500/10' : ''
+                  i18n.language === lang.code ? 'bg-blue-50 dark:bg-blue-500/10' : ''
                 }`}
               >
                 <div className="flex flex-col items-start">
@@ -77,7 +77,7 @@ const LanguageSelector = () => {
                   </span>
                 </div>
                 {i18n.language === lang.code && (
-                  <Check className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+                  <Check className="w-5 h-5 text-blue-600 dark:text-blue-300" />
                 )}
               </button>
             ))}

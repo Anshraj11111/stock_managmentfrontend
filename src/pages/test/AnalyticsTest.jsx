@@ -85,7 +85,7 @@ const AnalyticsTest = () => {
 
             <button
               onClick={testLogin}
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition"
             >
               🔐 Test Login Event
             </button>
@@ -106,7 +106,7 @@ const AnalyticsTest = () => {
 
             <button
               onClick={testBillCreated}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-6 rounded-lg transition"
+              className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition"
             >
               💰 Test Bill Created
             </button>

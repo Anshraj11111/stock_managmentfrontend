@@ -5,11 +5,11 @@ const TrialExpired = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
         {/* Icon */}
         <div className="flex justify-center mb-6">
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-500 w-24 h-24 rounded-full flex items-center justify-center">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-500 w-24 h-24 rounded-full flex items-center justify-center">
             <AlertCircle className="text-white" size={56} />
           </div>
         </div>
@@ -20,24 +20,24 @@ const TrialExpired = () => {
         </h1>
 
         {/* Message */}
-        <div className="bg-emerald-50 dark:bg-emerald-500/10 border-l-4 border-emerald-500 p-6 rounded-lg mb-6">
+        <div className="bg-blue-50 dark:bg-blue-500/10 border-l-4 border-blue-500 p-6 rounded-lg mb-6">
           <p className="text-lg text-gray-800 dark:text-gray-200 mb-4">
-            Your 31-day free trial has ended. To continue using the app, please pay a refundable deposit of <span className="font-bold text-2xl text-green-600">₹100</span>.
+            Your 31-day free trial has ended. To continue using the app, please pay a refundable deposit of <span className="font-bold text-2xl text-blue-600">₹100</span>.
           </p>
           
           <div className="bg-white dark:bg-slate-800 rounded-lg p-4 mb-4 border border-slate-200 dark:border-slate-700">
             <h3 className="font-bold text-gray-900 dark:text-white mb-2">Important Information:</h3>
             <ul className="space-y-2 text-gray-700 dark:text-gray-300">
               <li className="flex items-start gap-2">
-                <span className="text-green-500 font-bold">✓</span>
+                <span className="text-blue-500 font-bold">✓</span>
                 <span>Deposit Amount: <strong>₹100</strong></span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-500 font-bold">✓</span>
+                <span className="text-blue-500 font-bold">✓</span>
                 <span><strong>100% Refundable</strong> after 2 months of subscription</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-500 font-bold">✓</span>
+                <span className="text-blue-500 font-bold">✓</span>
                 <span>Unlock all features after payment verification</span>
               </li>
             </ul>
@@ -45,11 +45,11 @@ const TrialExpired = () => {
         </div>
 
         {/* Contact Information */}
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 rounded-xl p-6 mb-6 border border-emerald-200 dark:border-emerald-500">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-500/10 dark:to-blue-500/10 rounded-xl p-6 mb-6 border border-blue-200 dark:border-blue-500">
           <h3 className="font-bold text-gray-900 dark:text-white mb-3 text-center">
             Contact Us to Make Payment
           </h3>
-          <div className="flex items-center justify-center gap-3 text-emerald-600 dark:text-emerald-300">
+          <div className="flex items-center justify-center gap-3 text-blue-600 dark:text-blue-300">
             <Phone size={24} />
             <a 
               href="tel:+918269858259" 
@@ -67,7 +67,7 @@ const TrialExpired = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             onClick={() => navigate('/subscription')}
-            className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-xl font-bold text-lg hover:from-emerald-700 hover:to-teal-700 transition shadow-lg"
+            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-700 transition shadow-lg"
           >
             View Subscription Plans
           </button>

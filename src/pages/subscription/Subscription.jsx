@@ -250,9 +250,9 @@ const Subscription = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                <div className="w-10 h-10 bg-green-100 dark:bg-green-800 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Clock className="text-green-600 dark:text-green-400" size={20} />
+              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Clock className="text-blue-600 dark:text-blue-400" size={20} />
                 </div>
                 <div>
                   <p className="text-xs text-gray-600 dark:text-gray-400">Days Remaining</p>
@@ -261,9 +261,9 @@ const Subscription = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg">
-                <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Calendar className="text-emerald-600 dark:text-emerald-300" size={20} />
+              <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg">
+                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Calendar className="text-blue-600 dark:text-blue-300" size={20} />
                 </div>
                 <div>
                   <p className="text-xs text-gray-600 dark:text-gray-400">Expires On</p>
@@ -278,11 +278,11 @@ const Subscription = () => {
               <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
                   currentSub.deposit_paid 
-                    ? 'bg-green-100 dark:bg-green-800' 
+                    ? 'bg-blue-100 dark:bg-blue-800' 
                     : 'bg-red-100 dark:bg-red-800'
                 }`}>
                   {currentSub.deposit_paid ? (
-                    <Check className="text-green-600 dark:text-green-400" size={20} />
+                    <Check className="text-blue-600 dark:text-blue-400" size={20} />
                   ) : (
                     <X className="text-red-600 dark:text-red-400" size={20} />
                   )}
@@ -312,7 +312,7 @@ const Subscription = () => {
 
         {/* Deposit Section - only show if user is authenticated and deposit not paid */}
         {currentSub && !currentSub?.deposit_paid && (
-          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-emerald-400 to-teal-500 p-6 sm:p-8 mb-6 sm:mb-8 text-white shadow-xl">
+          <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-r from-blue-400 to-blue-500 p-6 sm:p-8 mb-6 sm:mb-8 text-white shadow-xl">
             <div className="absolute inset-0 bg-black/10"></div>
             <div className="relative z-10">
               <h2 className="text-2xl sm:text-3xl font-bold mb-3">Refundable Deposit</h2>
@@ -321,7 +321,7 @@ const Subscription = () => {
               </p>
               <button
                 onClick={() => handleSelectPlan('deposit', null)}
-                className="bg-white text-emerald-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-lg"
+                className="bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition shadow-lg"
               >
                 Pay ₹100 Deposit
               </button>
@@ -356,21 +356,21 @@ const Subscription = () => {
                     </div>
                     <button
                       onClick={() => handleSelectPlan('basic', plan.duration)}
-                      className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 text-white px-6 py-2.5 rounded-lg hover:from-emerald-700 hover:to-teal-700 transition font-semibold shadow-md"
+                      className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-blue-600 text-white px-6 py-2.5 rounded-lg hover:from-blue-700 hover:to-blue-700 transition font-semibold shadow-md"
                     >
                       Select
                     </button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                       <Check size={16} className="flex-shrink-0" />
                       <span className="text-sm">Dashboard</span>
                     </div>
-                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                       <Check size={16} className="flex-shrink-0" />
                       <span className="text-sm">Products Management</span>
                     </div>
-                    <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                       <Check size={16} className="flex-shrink-0" />
                       <span className="text-sm">Billing</span>
                     </div>
@@ -404,7 +404,7 @@ const Subscription = () => {
               {plans?.premium.map((plan) => (
                 <div
                   key={plan.duration}
-                  className="relative overflow-hidden bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-all duration-200 text-white"
+                  className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-600 rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-all duration-200 text-white"
                 >
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
                   <div className="relative z-10">
@@ -418,7 +418,7 @@ const Subscription = () => {
                       </div>
                       <button
                         onClick={() => handleSelectPlan('premium', plan.duration)}
-                        className="w-full sm:w-auto bg-white text-emerald-600 px-6 py-2.5 rounded-lg hover:bg-gray-100 transition font-semibold shadow-md"
+                        className="w-full sm:w-auto bg-white text-blue-600 px-6 py-2.5 rounded-lg hover:bg-gray-100 transition font-semibold shadow-md"
                       >
                         Select
                       </button>
@@ -453,16 +453,16 @@ const Subscription = () => {
           <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 py-8 overflow-y-auto">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl my-auto">
               {/* Modal Header */}
-              <div className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white p-6 rounded-t-2xl">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-600 text-white p-6 rounded-t-2xl">
                 <h2 className="text-2xl font-bold text-center">Complete Payment</h2>
-                <p className="text-emerald-100 text-sm text-center mt-1">Scan QR or use UPI ID to pay</p>
+                <p className="text-blue-100 text-sm text-center mt-1">Scan QR or use UPI ID to pay</p>
               </div>
 
               <div className="p-6 space-y-5">
                 {/* Amount Section */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 border-2 border-green-200 text-center">
+                <div className="bg-gradient-to-r from-blue-50 to-blue-50 rounded-xl p-5 border-2 border-blue-200 text-center">
                   <p className="text-sm text-gray-600 mb-1 font-medium">Amount to Pay</p>
-                  <p className="text-5xl font-bold text-green-600">₹{paymentData.amount}</p>
+                  <p className="text-5xl font-bold text-blue-600">₹{paymentData.amount}</p>
                 </div>
 
                 {/* Two Column Layout for UPI and QR */}
@@ -487,7 +487,7 @@ const Subscription = () => {
                   </div>
 
                   {/* QR Code Section */}
-                  <div className="bg-white rounded-xl p-5 border-2 border-emerald-200">
+                  <div className="bg-white rounded-xl p-5 border-2 border-blue-200">
                     {paymentData.qr_code ? (
                       <>
                         <p className="text-sm text-gray-600 mb-3 font-semibold text-center">Scan QR Code</p>
@@ -531,17 +531,17 @@ const Subscription = () => {
                       />
                       <label
                         htmlFor="screenshot-upload"
-                        className="flex items-center justify-center gap-3 w-full border-2 border-dashed border-gray-400 rounded-xl p-6 cursor-pointer hover:border-emerald-500 hover:bg-emerald-50 transition"
+                        className="flex items-center justify-center gap-3 w-full border-2 border-dashed border-gray-400 rounded-xl p-6 cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition"
                       >
-                        <Upload className={screenshot ? "text-green-500" : "text-gray-400"} size={28} />
-                        <span className={`font-medium ${screenshot ? "text-green-600" : "text-gray-600"}`}>
+                        <Upload className={screenshot ? "text-blue-500" : "text-gray-400"} size={28} />
+                        <span className={`font-medium ${screenshot ? "text-blue-600" : "text-gray-600"}`}>
                           {screenshot ? '✓ Screenshot Uploaded' : 'Click to Upload Screenshot'}
                         </span>
                       </label>
                     </div>
                     {screenshot && (
                       <div className="mt-3 flex justify-center">
-                        <img src={screenshot} alt="Preview" className="w-40 h-40 object-cover rounded-lg border-2 border-green-300 shadow-md" />
+                        <img src={screenshot} alt="Preview" className="w-40 h-40 object-cover rounded-lg border-2 border-blue-300 shadow-md" />
                       </div>
                     )}
                   </div>
@@ -555,7 +555,7 @@ const Subscription = () => {
                       type="text"
                       value={transactionId}
                       onChange={(e) => setTransactionId(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-xl p-3 text-base focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                      className="w-full border-2 border-gray-300 rounded-xl p-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                       placeholder="Enter UPI transaction ID"
                     />
                   </div>
@@ -569,7 +569,7 @@ const Subscription = () => {
                       type="text"
                       value={upiRef}
                       onChange={(e) => setUpiRef(e.target.value)}
-                      className="w-full border-2 border-gray-300 rounded-xl p-3 text-base focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
+                      className="w-full border-2 border-gray-300 rounded-xl p-3 text-base focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                       placeholder="Enter UPI reference (optional)"
                     />
                   </div>
@@ -579,7 +579,7 @@ const Subscription = () => {
                     <button
                       onClick={handleSubmitPayment}
                       disabled={submitting || !screenshot || !transactionId}
-                      className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 rounded-xl font-bold text-lg hover:from-emerald-700 hover:to-teal-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                      className="flex-1 bg-gradient-to-r from-blue-600 to-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:from-blue-700 hover:to-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                     >
                       {submitting ? (
                         <span className="flex items-center justify-center gap-2">

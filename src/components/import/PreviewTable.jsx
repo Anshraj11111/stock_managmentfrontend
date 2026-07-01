@@ -8,7 +8,7 @@ const PreviewTable = ({ products, onProductsChange }) => {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'ok':
-        return <FiCheck className="text-green-500" />;
+        return <FiCheck className="text-blue-500" />;
       case 'warning':
         return <FiAlertTriangle className="text-yellow-500" />;
       case 'error':
@@ -20,7 +20,7 @@ const PreviewTable = ({ products, onProductsChange }) => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      ok: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+      ok: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
       warning: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
       error: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
     };
@@ -165,7 +165,7 @@ const PreviewTable = ({ products, onProductsChange }) => {
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleSave(index)}
-                      className="text-green-600 hover:text-green-800 dark:text-green-400"
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400"
                     >
                       Save
                     </button>

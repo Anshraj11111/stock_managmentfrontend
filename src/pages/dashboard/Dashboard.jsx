@@ -1,83 +1,289 @@
-import { useState, useEffect } from 'react';
-import { Package, Users, Receipt, TrendingUp, DollarSign, ArrowRight, BarChart3, Settings, ShoppingCart, AlertCircle, Activity, Calendar } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import {
+  Package, Users, Receipt, TrendingUp, DollarSign,
+  ArrowRight, BarChart3, ShoppingCart, AlertCircle,
+  Activity, Calendar, Layers, ArrowUpRight,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { productService } from '../../services/productService';
 import { reportService } from '../../services/reportService';
 import { useAuth } from '../../store/AuthContext';
+import { useTheme } from '../../store/ThemeContext';
 import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
 
-const Dashboard = () => {
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    totalSales: 0,
-    totalBills: 0,
-    lowStockProducts: 0,
-    performanceChange: 0, // Real performance percentage
-  });
-  const [loading, setLoading] = useState(true);
-  const { isOwner, user } = useAuth();
+// ─────────────────────────────────────────────────────────────────────────────
+// Theme-aware style helpers
+// ─────────────────────────────────────────────────────────────────────────────
+const getStyles = (isDark) => ({
+  page:       isDark ? '#0d1117' : '#f0f4ff',
+  card:       isDark ? 'rgba(22,27,34,0.75)'   : 'rgba(255,255,255,0.85)',
+  cardBorder: isDark ? 'rgba(48,54,61,0.8)'    : 'rgba(219,234,254,0.9)',
+  cardHover:  isDark ? 'rgba(28,35,51,0.9)'    : 'rgba(239,246,255,0.95)',
+  borderHover:isDark ? 'rgba(56,139,253,0.5)'  : 'rgba(59,130,246,0.5)',
+  textPrimary:isDark ? '#e6edf3'  : '#0f172a',
+  textSecond: isDark ? '#8b949e'  : '#64748b',
+  textMuted:  isDark ? '#6e7681'  : '#94a3b8',
+  accent:     '#2563eb',
+  accentLight:isDark ? '#388bfd'  : '#3b82f6',
+  heroBg:     isDark
+    ? 'linear-gradient(135deg,#0d1a3a 0%,#0d2046 50%,#0a1628 100%)'
+    : 'linear-gradient(135deg,#eff6ff 0%,#dbeafe 50%,#e0f2fe 100%)',
+  heroBorder: isDark ? 'rgba(31,111,235,0.3)' : 'rgba(147,197,253,0.6)',
+  heroTitle:  isDark ? '#ffffff'  : '#1e3a8a',
+  heroSub:    isDark ? '#93c5fd'  : '#3b82f6',
+  heroBody:   isDark ? '#6e9fcf'  : '#64748b',
+  badgeBg:    isDark ? 'rgba(31,111,235,0.2)' : 'rgba(219,234,254,0.8)',
+  badgeBorder:isDark ? 'rgba(56,139,253,0.3)' : 'rgba(147,197,253,0.8)',
+  badgeText:  isDark ? '#93c5fd' : '#1d4ed8',
+  miniWidget: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.7)',
+  miniWidgetBorder: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(147,197,253,0.5)',
+  progressBg: isDark ? '#21262d' : '#e2e8f0',
+  actionBg:   isDark ? 'rgba(22,27,34,0.7)' : 'rgba(255,255,255,0.8)',
+  actionBorder:isDark ? 'rgba(48,54,61,0.8)': 'rgba(219,234,254,0.9)',
+  sectionLine:isDark
+    ? 'linear-gradient(90deg,rgba(37,99,235,0.5),transparent)'
+    : 'linear-gradient(90deg,rgba(59,130,246,0.4),transparent)',
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Animated counter
+// ─────────────────────────────────────────────────────────────────────────────
+const Counter = ({ value, prefix = '', suffix = '' }) => {
+  const ref = useRef(null);
+  const objRef = useRef({ val: 0 });
 
   useEffect(() => {
-    fetchDashboardData();
+    const target = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^0-9.]/g, '')) || 0;
+    gsap.to(objRef.current, {
+      val: target,
+      duration: 1.4,
+      ease: 'power2.out',
+      onUpdate: () => {
+        if (ref.current) {
+          ref.current.textContent = `${prefix}${Math.round(objRef.current.val).toLocaleString()}${suffix}`;
+        }
+      },
+    });
+  }, [value]);
+
+  return <span ref={ref}>{prefix}0{suffix}</span>;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stat Card
+// ─────────────────────────────────────────────────────────────────────────────
+const StatCard = ({ icon: Icon, title, value, badge, badgeColor, subtext, glowColor, onClick, isDark, s }) => {
+  const [hovered, setHovered] = useState(false);
+  const cardRef = useRef(null);
+
+  useEffect(() => {
+    if (cardRef.current) {
+      gsap.fromTo(cardRef.current,
+        { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', delay: 0.1 }
+      );
+    }
   }, []);
+
+  return (
+    <div
+      ref={cardRef}
+      onClick={onClick}
+      onMouseEnter={() => {
+        setHovered(true);
+        gsap.to(cardRef.current, { scale: 1.02, duration: 0.2, ease: 'power1.out' });
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        gsap.to(cardRef.current, { scale: 1, duration: 0.2, ease: 'power1.out' });
+      }}
+      className="rounded-2xl p-5 relative overflow-hidden transition-all duration-300"
+      style={{
+        background: hovered ? s.cardHover : s.card,
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: `1px solid ${hovered ? s.borderHover : s.cardBorder}`,
+        boxShadow: hovered
+          ? `0 8px 32px rgba(0,0,0,${isDark ? 0.4 : 0.1}), 0 0 20px ${glowColor}22`
+          : `0 2px 12px rgba(0,0,0,${isDark ? 0.3 : 0.06})`,
+        cursor: onClick ? 'pointer' : 'default',
+      }}
+    >
+      {/* Glow orb */}
+      <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full blur-3xl transition-opacity duration-300 pointer-events-none"
+        style={{ backgroundColor: glowColor, opacity: hovered ? 0.18 : 0.08 }} />
+
+      <div className="relative z-10">
+        <div className="flex items-start justify-between mb-4">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center"
+            style={{ background: `${glowColor}18`, border: `1px solid ${glowColor}33` }}>
+            <Icon className="w-5 h-5" style={{ color: glowColor }} />
+          </div>
+          {badge && (
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
+              style={{ background: `${badgeColor}18`, color: badgeColor, border: `1px solid ${badgeColor}33` }}>
+              {badge}
+            </span>
+          )}
+        </div>
+
+        <p className="text-xs font-medium mb-1" style={{ color: s.textSecond }}>{title}</p>
+        <p className="text-2xl font-bold mb-2" style={{ color: s.textPrimary }}>
+          {typeof value === 'string' && value.startsWith('₹')
+            ? <><span>₹</span><Counter value={parseFloat(value.replace(/[^0-9.]/g, '')) || 0} /></>
+            : <Counter value={typeof value === 'number' ? value : 0} />
+          }
+        </p>
+
+        {subtext && (
+          <div className="flex items-center gap-1.5 text-xs" style={{ color: s.textMuted }}>
+            <Activity className="w-3 h-3" />
+            <span>{subtext}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Bottom accent line */}
+      <div className="absolute bottom-0 left-0 h-0.5 transition-all duration-500 rounded-b-2xl"
+        style={{
+          background: `linear-gradient(90deg,${glowColor},transparent)`,
+          width: hovered ? '100%' : '0%',
+        }} />
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Action Card
+// ─────────────────────────────────────────────────────────────────────────────
+const ActionCard = ({ icon: Icon, title, description, gradient, shadowColor, onClick, isDark, s }) => {
+  const [hovered, setHovered] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (ref.current) {
+      gsap.fromTo(ref.current,
+        { opacity: 0, y: 24 },
+        { opacity: 1, y: 0, duration: 0.55, ease: 'power2.out', delay: 0.15 }
+      );
+    }
+  }, []);
+
+  return (
+    <button
+      ref={ref}
+      onClick={onClick}
+      onMouseEnter={() => {
+        setHovered(true);
+        gsap.to(ref.current, { y: -4, duration: 0.2, ease: 'power1.out' });
+      }}
+      onMouseLeave={() => {
+        setHovered(false);
+        gsap.to(ref.current, { y: 0, duration: 0.2, ease: 'power1.out' });
+      }}
+      className="group relative rounded-2xl p-5 text-left overflow-hidden w-full transition-all duration-300"
+      style={{
+        background: s.actionBg,
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: `1px solid ${hovered ? s.borderHover : s.actionBorder}`,
+        boxShadow: hovered
+          ? `0 16px 40px rgba(0,0,0,${isDark ? 0.4 : 0.12}), 0 0 20px ${shadowColor}22`
+          : `0 2px 12px rgba(0,0,0,${isDark ? 0.25 : 0.06})`,
+      }}
+    >
+      {/* Shine sweep */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 pointer-events-none" />
+
+      {/* Background gradient on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
+        style={{ background: isDark ? `${shadowColor}0a` : `${shadowColor}08` }} />
+
+      {/* Glow orb */}
+      <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full blur-2xl opacity-0 group-hover:opacity-25 transition-opacity duration-300 pointer-events-none"
+        style={{ background: gradient }} />
+
+      <div className="relative z-10">
+        <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+          style={{ background: gradient, boxShadow: `0 4px 16px ${shadowColor}40` }}>
+          <Icon className="w-5 h-5 text-white" />
+        </div>
+
+        <h3 className="font-bold text-sm mb-1" style={{ color: s.textPrimary }}>{title}</h3>
+        <p className="text-xs mb-4" style={{ color: s.textSecond }}>{description}</p>
+
+        <div className="flex items-center gap-1 text-xs font-semibold" style={{ color: s.accentLight }}>
+          <span>Open</span>
+          <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+        </div>
+      </div>
+    </button>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Dashboard
+// ─────────────────────────────────────────────────────────────────────────────
+const Dashboard = () => {
+  const navigate  = useNavigate();
+  const { t }     = useTranslation();
+  const { isOwner, user } = useAuth();
+  const { theme } = useTheme();
+  const isDark    = theme === 'dark';
+  const s         = getStyles(isDark);
+
+  const heroRef   = useRef(null);
+  const pageRef   = useRef(null);
+
+  const [stats, setStats]   = useState({ totalProducts: 0, totalSales: 0, totalBills: 0, lowStockProducts: 0 });
+  const [loading, setLoading] = useState(true);
+  const [time, setTime]     = useState(new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 60000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => { fetchDashboardData(); }, []);
+
+  // Hero entrance animation
+  useEffect(() => {
+    if (heroRef.current) {
+      gsap.fromTo(heroRef.current,
+        { opacity: 0, y: -30 },
+        { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }
+      );
+    }
+  }, [loading]);
 
   const fetchDashboardData = async () => {
     try {
-      const [productsResponse, todayReportResponse] = await Promise.all([
+      const [productsResponse, todayReport] = await Promise.all([
         productService.getProducts(),
         reportService.getDailyReport(),
       ]);
 
-      const products = Array.isArray(productsResponse) 
-        ? productsResponse 
-        : Array.isArray(productsResponse.data) 
-          ? productsResponse.data 
-          : [];
-      
-      const todayData = todayReportResponse || {};
+      const products = Array.isArray(productsResponse)
+        ? productsResponse
+        : (productsResponse?.products || []);
 
-      const totalProducts = products.length;
-      const lowStockProducts = products.filter(p => p.stock_quantity < 10).length;
-      const totalSales = todayData.total_sales || 0;
-      const totalBills = todayData.total_bills || 0;
-
-      // Calculate real performance: Compare today vs yesterday
-      let performanceChange = 0;
-      try {
-        // Get yesterday's date
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        // Fetch yesterday's data (we'll need to add this endpoint or calculate from existing data)
-        // For now, we'll calculate based on monthly average
-        const currentMonth = new Date().getMonth() + 1;
-        const currentYear = new Date().getFullYear();
-        
-        const monthlyReport = await reportService.getMonthlyReport(currentMonth, currentYear);
-        const monthlyAverage = (monthlyReport.total_sales || 0) / new Date().getDate();
-        
-        if (monthlyAverage > 0) {
-          performanceChange = ((totalSales - monthlyAverage) / monthlyAverage * 100).toFixed(1);
-        }
-      } catch (error) {
-        console.log('Could not calculate performance change:', error);
-        performanceChange = 0;
-      }
+      const today = todayReport || {};
 
       setStats({
-        totalProducts,
-        totalSales,
-        totalBills,
-        lowStockProducts,
-        performanceChange,
+        totalProducts:    products.length,
+        totalSales:       today.total_sales || 0,
+        totalBills:       today.total_bills || 0,
+        lowStockProducts: products.filter(p => {
+          const qty = parseFloat(String(p.stock_quantity).replace(/[^0-9.]/g, '')) || 0;
+          return qty < (p.low_stock_threshold || 10) && qty > 0;
+        }).length,
       });
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast.error('Failed to load dashboard data');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load dashboard');
     } finally {
       setLoading(false);
     }
@@ -91,394 +297,263 @@ const Dashboard = () => {
     );
   }
 
-  const getCurrentDate = () => {
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date().toLocaleDateString('en-US', options);
-  };
-
-  // const statCards = [
-  //   {
-  //     title: 'Total Revenue',
-  //     value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
-  //     change: '+12.5%',
-  //     changeType: 'positive',
-  //     icon: DollarSign,
-  //     gradient: 'from-emerald-500 to-teal-600',
-  //     bgGradient: 'from-emerald-50 to-teal-50',
-  //     iconBg: 'bg-emerald-100',
-  //     iconColor: 'text-emerald-600',
-  //   },
-  //   {
-  //     title: 'Total Orders',
-  //     value: stats.totalBills,
-  //     change: '+8.2%',
-  //     changeType: 'positive',
-  //     icon: ShoppingCart,
-  //     gradient: 'from-blue-500 to-indigo-600',
-  //     bgGradient: 'from-blue-50 to-indigo-50',
-  //     iconBg: 'bg-blue-100',
-  //     iconColor: 'text-blue-600',
-  //   },
-  //   {
-  //     title: 'Products',
-  //     value: stats.totalProducts,
-  //     change: '+3.1%',
-  //     changeType: 'positive',
-  //     icon: Package,
-  //     gradient: 'from-purple-500 to-pink-600',
-  //     bgGradient: 'from-purple-50 to-pink-50',
-  //     iconBg: 'bg-purple-100',
-  //     iconColor: 'text-purple-600',
-  //   },
-  //   {
-  //     title: 'Low Stock Alert',
-  //     value: stats.lowStockProducts,
-  //     change: 'Needs Attention',
-  //     changeType: 'warning',
-  //     icon: AlertCircle,
-  //     gradient: 'from-orange-500 to-red-600',
-  //     bgGradient: 'from-orange-50 to-red-50',
-  //     iconBg: 'bg-orange-100',
-  //     iconColor: 'text-orange-600',
-  //   },
-  // ];
+  const dateStr = time.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const hour    = time.getHours();
+  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
 
   const statCards = [
-  ...(isOwner
-    ? [
-        {
-          title: t('dashboard.totalRevenue'),
-          value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
-          change: '+12.5%',
-          changeType: 'positive',
-          icon: DollarSign,
-          gradient: 'from-emerald-500 to-teal-600',
-          bgGradient: 'from-emerald-50 to-teal-50',
-          iconBg: 'bg-emerald-100',
-          iconColor: 'text-emerald-600',
-        },
-      ]
-    : []),
+    ...(isOwner ? [{
+      icon: DollarSign, title: 'Total Revenue',
+      value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
+      badge: '+12.5%', badgeColor: '#22c55e',
+      subtext: 'vs last month', glowColor: '#2563eb',
+    }] : []),
+    {
+      icon: ShoppingCart, title: 'Total Orders',
+      value: stats.totalBills,
+      badge: '+8.2%', badgeColor: '#3b82f6',
+      subtext: 'Click to view details', glowColor: '#3b82f6',
+      onClick: () => navigate('/reports'),
+    },
+    {
+      icon: Package, title: 'Products',
+      value: stats.totalProducts,
+      badge: '+3.1%', badgeColor: '#8b5cf6',
+      subtext: 'vs last month', glowColor: '#8b5cf6',
+    },
+    ...(isOwner ? [{
+      icon: AlertCircle, title: 'Low Stock Alert',
+      value: stats.lowStockProducts,
+      badge: stats.lowStockProducts > 0 ? 'Needs Attention' : 'All Good',
+      badgeColor: stats.lowStockProducts > 0 ? '#f59e0b' : '#22c55e',
+      subtext: 'vs last month',
+      glowColor: stats.lowStockProducts > 0 ? '#f59e0b' : '#22c55e',
+      onClick: () => navigate('/products'),
+    }] : []),
+  ];
 
-  {
-    title: t('dashboard.totalOrders'),
-    value: stats.totalBills,
-    change: '+8.2%',
-    changeType: 'positive',
-    icon: ShoppingCart,
-    gradient: 'from-blue-500 to-cyan-600',
-    bgGradient: 'from-blue-50 to-cyan-50',
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    clickable: true,
-    onClick: () => navigate('/reports'),
-  },
-
-  {
-    title: t('dashboard.products'),
-    value: stats.totalProducts,
-    change: '+3.1%',
-    changeType: 'positive',
-    icon: Package,
-    gradient: 'from-emerald-500 to-teal-600',
-    bgGradient: 'from-emerald-50 to-teal-50',
-    iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-600',
-  },
-
-  ...(isOwner
-    ? [
-        {
-          title: t('dashboard.lowStockAlert'),
-          value: stats.lowStockProducts,
-          change: t('dashboard.needsAttention'),
-          changeType: 'warning',
-          icon: AlertCircle,
-          gradient: 'from-orange-500 to-red-600',
-          bgGradient: 'from-orange-50 to-red-50',
-          iconBg: 'bg-orange-100',
-          iconColor: 'text-orange-600',
-        },
-      ]
-    : []),
-];
-
-
-  // const quickActions = [
-  //   {
-  //     title: 'Create Bill',
-  //     description: 'Generate new invoice',
-  //     icon: Receipt,
-  //     color: 'from-violet-500 to-purple-600',
-  //     hoverColor: 'hover:from-violet-600 hover:to-purple-700',
-  //     route: '/billing',
-  //   },
-  //   {
-  //     title: 'Manage Products',
-  //     description: 'Update inventory',
-  //     icon: Package,
-  //     color: 'from-blue-500 to-cyan-600',
-  //     hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
-  //     route: '/products',
-  //   },
-  //   {
-  //     title: 'View Reports',
-  //     description: 'Analytics & insights',
-  //     icon: BarChart3,
-  //     color: 'from-emerald-500 to-green-600',
-  //     hoverColor: 'hover:from-emerald-600 hover:to-green-700',
-  //     route: '/reports',
-  //   },
-  //   {
-  //     title: isOwner ? 'Manage Staff' : 'Settings',
-  //     description: isOwner ? 'Team management' : 'Account settings',
-  //     icon: isOwner ? Users : Settings,
-  //     color: 'from-pink-500 to-rose-600',
-  //     hoverColor: 'hover:from-pink-600 hover:to-rose-700',
-  //     route: isOwner ? '/staff' : '/settings',
-  //   },
-  // ];
-
-const quickActions = [
-  {
-    title: t('dashboard.createBill'),
-    description: t('dashboard.generateInvoice'),
-    icon: Receipt,
-    color: 'from-blue-500 to-cyan-600',
-    hoverColor: 'hover:from-blue-600 hover:to-cyan-700',
-    route: '/billing',
-  },
-  {
-    title: t('dashboard.manageProducts'),
-    description: t('dashboard.updateInventory'),
-    icon: Package,
-    color: 'from-emerald-500 to-teal-600',
-    hoverColor: 'hover:from-emerald-600 hover:to-teal-700',
-    route: '/products',
-  },
-
-  ...(isOwner
-    ? [
-        {
-          title: t('dashboard.viewReports'),
-          description: t('dashboard.analyticsInsights'),
-          icon: BarChart3,
-          color: 'from-emerald-500 to-green-600',
-          hoverColor: 'hover:from-emerald-600 hover:to-green-700',
-          route: '/reports',
-        },
-        {
-          title: t('dashboard.manageStaff'),
-          description: t('dashboard.teamManagement'),
-          icon: Users,
-          color: 'from-pink-500 to-rose-600',
-          hoverColor: 'hover:from-pink-600 hover:to-rose-700',
-          route: '/staff',
-        },
-      ]
-    : []),
-];
-
+  const quickActions = [
+    {
+      icon: Receipt, title: 'Create Bill',
+      description: 'Generate new invoice',
+      gradient: 'linear-gradient(135deg,#2563eb,#3b82f6)',
+      shadowColor: '#2563eb', route: '/billing',
+    },
+    {
+      icon: Package, title: 'Manage Products',
+      description: 'Update inventory',
+      gradient: 'linear-gradient(135deg,#1d4ed8,#2563eb)',
+      shadowColor: '#1d4ed8', route: '/products',
+    },
+    ...(isOwner ? [
+      {
+        icon: BarChart3, title: 'View Reports',
+        description: 'Analytics & insights',
+        gradient: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+        shadowColor: '#7c3aed', route: '/reports',
+      },
+      {
+        icon: Users, title: 'Manage Staff',
+        description: 'Team management',
+        gradient: 'linear-gradient(135deg,#db2777,#ec4899)',
+        shadowColor: '#db2777', route: '/staff',
+      },
+    ] : []),
+  ];
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      {/* Premium Header Section */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-600 p-6 sm:p-8 shadow-2xl">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -right-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute -bottom-1/2 -left-1/2 w-64 h-64 sm:w-96 sm:h-96 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+    <div ref={pageRef} className="space-y-6">
+
+      {/* ── HERO BANNER ──────────────────────────────────────────────────── */}
+      <div
+        ref={heroRef}
+        className="relative overflow-hidden rounded-2xl p-6 sm:p-8"
+        style={{
+          background: s.heroBg,
+          border: `1px solid ${s.heroBorder}`,
+          boxShadow: isDark
+            ? '0 0 40px rgba(31,111,235,0.08), inset 0 1px 0 rgba(255,255,255,0.04)'
+            : '0 4px 24px rgba(59,130,246,0.1)',
+        }}
+      >
+        {/* Animated blobs */}
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full blur-3xl animate-pulse pointer-events-none"
+          style={{ background: isDark ? 'radial-gradient(circle,rgba(37,99,235,0.25),transparent 70%)' : 'radial-gradient(circle,rgba(147,197,253,0.4),transparent 70%)' }} />
+        <div className="absolute -bottom-16 -left-8 w-48 h-48 rounded-full blur-3xl animate-pulse pointer-events-none"
+          style={{ background: isDark ? 'radial-gradient(circle,rgba(56,139,253,0.15),transparent 70%)' : 'radial-gradient(circle,rgba(191,219,254,0.5),transparent 70%)', animationDelay: '1s' }} />
+
+        {/* Subtle grid */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+          style={{ backgroundImage: 'linear-gradient(rgba(0,0,0,.15) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.15) 1px,transparent 1px)', backgroundSize: '32px 32px' }} />
+
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center gap-6">
+          <div className="flex-1">
+            {/* Greeting badge */}
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-4"
+              style={{ background: s.badgeBg, border: `1px solid ${s.badgeBorder}` }}>
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: s.accentLight }} />
+              <span className="text-xs font-semibold" style={{ color: s.badgeText }}>{greeting} 👋</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2" style={{ color: s.heroTitle }}>
+              Welcome back, <span style={{ color: s.accentLight }}>{user?.name}</span>!
+            </h1>
+
+            <div className="flex items-center gap-2 mb-3 text-sm" style={{ color: s.heroSub }}>
+              <Calendar className="w-4 h-4" />
+              <span>{dateStr}</span>
+            </div>
+
+            <p className="text-sm" style={{ color: s.heroBody }}>
+              Here's what's happening with your business today.
+            </p>
+          </div>
+
+          {/* Right mini widgets */}
+          <div className="hidden lg:flex items-center gap-3">
+            {[
+              { label: 'Revenue', val: `₹${Math.round(stats.totalSales).toLocaleString()}`, icon: TrendingUp, color: s.accentLight },
+              { label: 'Orders',  val: stats.totalBills, icon: ShoppingCart, color: '#8b5cf6' },
+            ].map(item => (
+              <div key={item.label}
+                className="flex flex-col items-center gap-1 px-5 py-4 rounded-xl"
+                style={{ background: s.miniWidget, border: `1px solid ${s.miniWidgetBorder}`, backdropFilter: 'blur(8px)' }}
+              >
+                <item.icon className="w-4 h-4 mb-1" style={{ color: item.color }} />
+                <span className="text-lg font-bold" style={{ color: s.textPrimary }}>{item.val}</span>
+                <span className="text-xs" style={{ color: s.textMuted }}>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── STAT CARDS ───────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((card, i) => (
+          <StatCard key={i} {...card} isDark={isDark} s={s} />
+        ))}
+      </div>
+
+      {/* ── QUICK ACTIONS ────────────────────────────────────────────────── */}
+      <div>
+        <div className="flex items-center gap-4 mb-5">
+          <h2 className="text-base font-bold whitespace-nowrap" style={{ color: s.textPrimary }}>
+            Quick Actions
+          </h2>
+          <div className="flex-1 h-px" style={{ background: s.sectionLine }} />
         </div>
 
-        <div className="relative z-10">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-8">
-            <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center flex-shrink-0">
-                  <Activity className="w-6 h-6 text-white" />
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action, i) => (
+            <ActionCard
+              key={i}
+              icon={action.icon}
+              title={action.title}
+              description={action.description}
+              gradient={action.gradient}
+              shadowColor={action.shadowColor}
+              onClick={() => navigate(action.route)}
+              isDark={isDark}
+              s={s}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ── BOTTOM WIDGETS ───────────────────────────────────────────────── */}
+      {isOwner && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {[
+            {
+              icon: Package,
+              title: 'Inventory Health',
+              sub: 'Stock status',
+              value: stats.lowStockProducts,
+              label: 'items need restocking',
+              color: stats.lowStockProducts > 0 ? '#f59e0b' : '#22c55e',
+              pct: stats.totalProducts > 0 ? (stats.lowStockProducts / stats.totalProducts) * 100 : 0,
+              pctGradient: 'linear-gradient(90deg,#f59e0b,#f87171)',
+              ctaLabel: 'View Products',
+              ctaColor: '#f59e0b',
+              route: '/products',
+            },
+            {
+              icon: DollarSign,
+              title: "Today's Sales",
+              sub: 'Revenue generated',
+              value: `₹${Math.round(stats.totalSales).toLocaleString()}`,
+              label: `from ${stats.totalBills} transaction${stats.totalBills !== 1 ? 's' : ''}`,
+              color: s.accentLight,
+              pct: 100,
+              pctGradient: 'linear-gradient(90deg,#2563eb,#3b82f6)',
+              ctaLabel: 'View Reports',
+              ctaColor: s.accentLight,
+              route: '/reports',
+            },
+            {
+              icon: Layers,
+              title: 'Total Products',
+              sub: 'Active in inventory',
+              value: stats.totalProducts,
+              label: 'products managed',
+              color: '#8b5cf6',
+              pct: 100,
+              pctGradient: 'linear-gradient(90deg,#7c3aed,#8b5cf6)',
+              ctaLabel: 'Manage Products',
+              ctaColor: '#8b5cf6',
+              route: '/products',
+            },
+          ].map((w, i) => (
+            <div key={i}
+              className="rounded-2xl p-5 transition-all duration-300"
+              style={{
+                background: s.card,
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: `1px solid ${s.cardBorder}`,
+                boxShadow: `0 2px 12px rgba(0,0,0,${isDark ? 0.3 : 0.06})`,
+              }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                  style={{ background: `${w.color}18`, border: `1px solid ${w.color}33` }}>
+                  <w.icon className="w-4 h-4" style={{ color: w.color }} />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">
-                    {t('dashboard.welcomeBack')}, {user?.name}!
-                  </h1>
-                  <p className="text-white/80 text-sm flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {getCurrentDate()}
-                  </p>
-                </div>
-              </div>
-              <p className="text-white/90 text-sm sm:text-base">
-                {t('dashboard.happeningToday')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {statCards.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={index}
-              onClick={stat.clickable ? stat.onClick : undefined}
-              className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-4 sm:p-6 hover:border-transparent transition-all duration-500 hover:shadow-2xl hover:scale-105 ${stat.clickable ? 'cursor-pointer' : ''}`}
-              style={{ animationDelay: `${index * 100}ms` }}
-            >
-              {/* Animated gradient overlay */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
-              
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-3 sm:mb-4">
-                  <div className={`${stat.iconBg} dark:bg-secondary-800 p-2.5 sm:p-3 rounded-lg sm:rounded-xl group-hover:scale-110 transition-transform duration-300`}>
-                    <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.iconColor} dark:text-secondary-300`} />
-                  </div>
-                  <span className={`text-xs font-semibold px-2.5 sm:px-3 py-1 rounded-full ${
-                    stat.changeType === 'positive' 
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                      : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
-                  }`}>
-                    {stat.change}
-                  </span>
-                </div>
-                
-                <h3 className="text-secondary-600 dark:text-secondary-400 text-xs sm:text-sm font-medium mb-1 sm:mb-2">{stat.title}</h3>
-                <p className="text-2xl sm:text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-1">{stat.value}</p>
-                
-                <div className="flex items-center gap-1 text-xs text-secondary-500 dark:text-secondary-400 mt-2">
-                  <Activity className="w-3 h-3" />
-                  <span>{stat.clickable ? 'Click to view details' : t('dashboard.vsLastMonth')}</span>
+                  <h3 className="text-sm font-semibold" style={{ color: s.textPrimary }}>{w.title}</h3>
+                  <p className="text-xs" style={{ color: s.textMuted }}>{w.sub}</p>
                 </div>
               </div>
 
-              {/* Hover effect line */}
-              <div className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${stat.gradient} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500`}></div>
-            </div>
-          );
-        })}
-      </div>
+              <div className="text-2xl font-bold mb-1" style={{ color: s.textPrimary }}>{w.value}</div>
+              <p className="text-xs mb-4" style={{ color: s.textSecond }}>{w.label}</p>
 
-      {/* Quick Actions Section */}
-      <div>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h2 className="text-xl sm:text-2xl font-bold text-secondary-900 dark:text-secondary-100">{t('dashboard.quickActions')}</h2>
-          <div className="h-1 flex-1 ml-0 sm:ml-6 bg-gradient-to-r from-emerald-500 via-teal-500 to-transparent rounded-full"></div>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {quickActions.map((action, index) => {
-            const Icon = action.icon;
-            return (
+              {/* Progress bar */}
+              <div className="w-full h-1.5 rounded-full mb-4" style={{ background: s.progressBg }}>
+                <div className="h-1.5 rounded-full transition-all duration-700"
+                  style={{ width: `${Math.min(100, w.pct)}%`, background: w.pctGradient }} />
+              </div>
+
+              <div className="flex items-center gap-1.5 text-xs font-medium" style={{ color: w.color }}>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+                <span>+12.5% vs last month</span>
+              </div>
+
               <button
-                key={index}
-                onClick={() => navigate(action.route)}
-                className={`group relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br ${action.color} ${action.hoverColor} p-4 sm:p-6 text-left transition-all duration-500 hover:shadow-2xl hover:scale-105 transform`}
-                style={{ animationDelay: `${index * 100}ms` }}
+                onClick={() => navigate(w.route)}
+                className="mt-3 flex items-center gap-1.5 text-xs font-semibold group transition-opacity duration-200 hover:opacity-70"
+                style={{ color: w.ctaColor }}
               >
-                {/* Animated shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
-                
-                <div className="relative z-10">
-                  <div className="bg-white/20 backdrop-blur-sm p-2.5 sm:p-3 rounded-lg sm:rounded-xl w-fit mb-3 sm:mb-4 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                  </div>
-                  
-                  <h3 className="text-white font-bold text-base sm:text-lg mb-1">{action.title}</h3>
-                  <p className="text-white/80 text-sm">{action.description}</p>
-                  
-                  <div className="mt-3 sm:mt-4 flex items-center text-white/90 text-sm font-medium">
-                    <span>{t('dashboard.getStarted')}</span>
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    
-
-    
-      {/* Bottom Stats Section */}
-      {isOwner && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Inventory Status */}
-          <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 hover:shadow-xl transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full -mr-16 -mt-16"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-amber-100 dark:bg-amber-900/30 p-3 rounded-xl">
-                  <Package className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                </div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{t('dashboard.inventoryStatus')}</h3>
-              </div>
-              <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
-                {stats.lowStockProducts}
-              </p>
-              <p className="text-sm text-secondary-600 dark:text-secondary-400">{t('dashboard.itemsNeedRestocking')}</p>
-              <button 
-                onClick={() => navigate('/products')}
-                className="mt-4 text-amber-600 dark:text-amber-400 font-medium text-sm hover:text-amber-700 dark:hover:text-amber-300 flex items-center gap-1 group"
-              >
-                {t('dashboard.viewDetails')}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {w.ctaLabel}
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </button>
             </div>
-          </div>
-
-          {/* Sales Overview */}
-          <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 hover:shadow-xl transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full -mr-16 -mt-16"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-emerald-100 dark:bg-emerald-500/15 p-3 rounded-xl">
-                  <DollarSign className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-                </div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{t('dashboard.todaysSales')}</h3>
-              </div>
-              <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
-                ₹{Math.round(stats.totalSales).toLocaleString()}
-              </p>
-              <p className="text-sm text-secondary-600 dark:text-secondary-400">{t('dashboard.fromTransactions', { count: stats.totalBills })}</p>
-              <button 
-                onClick={() => navigate('/reports')}
-                className="mt-4 text-emerald-600 dark:text-emerald-300 font-medium text-sm hover:text-emerald-700 dark:hover:text-emerald-200 flex items-center gap-1 group"
-              >
-                {t('dashboard.viewReports')}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
-
-          {/* Product Count */}
-          <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 p-6 hover:shadow-xl transition-all duration-300">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full -mr-16 -mt-16"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-emerald-100 dark:bg-emerald-500/15 p-3 rounded-xl">
-                  <BarChart3 className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
-                </div>
-                <h3 className="font-semibold text-secondary-900 dark:text-secondary-100">{t('dashboard.totalProducts')}</h3>
-              </div>
-              <p className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
-                {stats.totalProducts}
-              </p>
-              <p className="text-sm text-secondary-600 dark:text-secondary-400">{t('dashboard.activeInInventory')}</p>
-              <button 
-                onClick={() => navigate('/products')}
-                className="mt-4 text-emerald-600 dark:text-emerald-300 font-medium text-sm hover:text-emerald-700 dark:hover:text-emerald-200 flex items-center gap-1 group"
-              >
-                {t('dashboard.manageProducts')}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
+          ))}
         </div>
       )}
     </div>
   );
-
 };
 
 export default Dashboard;

@@ -117,7 +117,7 @@ const AdminAnalytics = () => {
                     const trend = calculateTrend(analyticsData.users);
                     return (
                       <div className={`flex items-center gap-1 text-sm font-semibold ${
-                        trend.isPositive ? 'text-green-600' : 'text-red-600'
+                        trend.isPositive ? 'text-blue-600' : 'text-red-600'
                       }`}>
                         {trend.isPositive ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                         {trend.value}%
@@ -143,7 +143,7 @@ const AdminAnalytics = () => {
                     const trend = calculateTrend(analyticsData.shops);
                     return (
                       <div className={`flex items-center gap-1 text-sm font-semibold ${
-                        trend.isPositive ? 'text-green-600' : 'text-red-600'
+                        trend.isPositive ? 'text-blue-600' : 'text-red-600'
                       }`}>
                         {trend.isPositive ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                         {trend.value}%
@@ -160,16 +160,16 @@ const AdminAnalytics = () => {
               </div>
 
               {/* Revenue */}
-              <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 bg-green-600 rounded-lg">
+                  <div className="p-3 bg-blue-600 rounded-lg">
                     <DollarSign className="w-6 h-6 text-white" />
                   </div>
                   {analyticsData?.revenue && (() => {
                     const trend = calculateTrend(analyticsData.revenue);
                     return (
                       <div className={`flex items-center gap-1 text-sm font-semibold ${
-                        trend.isPositive ? 'text-green-600' : 'text-red-600'
+                        trend.isPositive ? 'text-blue-600' : 'text-red-600'
                       }`}>
                         {trend.isPositive ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                         {trend.value}%
@@ -237,7 +237,7 @@ const AdminAnalytics = () => {
               {/* Revenue Chart */}
               <div className="bg-white dark:bg-secondary-900 rounded-xl p-6 border border-secondary-200 dark:border-secondary-800">
                 <h3 className="text-lg font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-green-600" />
+                  <DollarSign className="w-5 h-5 text-blue-600" />
                   Revenue Growth
                 </h3>
                 <div className="space-y-2">
@@ -249,7 +249,7 @@ const AdminAnalytics = () => {
                         </div>
                         <div className="flex-1 bg-gray-200 dark:bg-secondary-800 rounded-full h-6 overflow-hidden">
                           <div
-                            className="bg-gradient-to-r from-green-500 to-green-600 h-full flex items-center justify-end pr-2 text-xs text-white font-semibold"
+                            className="bg-gradient-to-r from-blue-500 to-blue-600 h-full flex items-center justify-end pr-2 text-xs text-white font-semibold"
                             style={{
                               width: `${Math.min((parseFloat(item.total) / Math.max(...analyticsData.revenue.map(r => parseFloat(r.total) || 0))) * 100, 100)}%`
                             }}
@@ -309,8 +309,8 @@ const AdminAnalytics = () => {
                     <p className="text-3xl font-bold text-blue-600">{conversionData.trial_count}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Trial Shops</p>
                   </div>
-                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <p className="text-3xl font-bold text-green-600">{conversionData.paid_count}</p>
+                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-3xl font-bold text-blue-600">{conversionData.paid_count}</p>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Paid Shops</p>
                   </div>
                   <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">

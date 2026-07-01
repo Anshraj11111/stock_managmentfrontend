@@ -529,7 +529,7 @@ const Settings = () => {
                 <span
                   className={`px-2 py-1 text-xs rounded-full ${
                     shopData.subscription_active
-                      ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                      ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                       : "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
                   }`}
                 >
@@ -542,7 +542,7 @@ const Settings = () => {
           {/* Voice Command Section */}
           <div className="border-t border-secondary-200 dark:border-secondary-700 pt-6">
             <h3 className="text-md font-semibold mb-1 text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
-              <Mic className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              <Mic className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               Voice Commands
             </h3>
             <p className="text-xs text-secondary-500 dark:text-secondary-400 mb-4">
@@ -551,9 +551,9 @@ const Settings = () => {
 
             <div className="flex items-center justify-between p-4 bg-secondary-50 dark:bg-secondary-800 border border-secondary-200 dark:border-secondary-700 rounded-xl">
               <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${voiceEnabled ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-secondary-200 dark:bg-secondary-700'}`}>
+                <div className={`p-2 rounded-lg ${voiceEnabled ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-secondary-200 dark:bg-secondary-700'}`}>
                   {voiceEnabled 
-                    ? <Mic className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                    ? <Mic className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     : <MicOff className="w-5 h-5 text-secondary-500 dark:text-secondary-400" />
                   }
                 </div>
@@ -575,7 +575,7 @@ const Settings = () => {
                 onClick={() => handleVoiceToggle(!voiceEnabled)}
                 className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none ${
                   voiceEnabled 
-                    ? 'bg-emerald-500' 
+                    ? 'bg-blue-500' 
                     : 'bg-secondary-300 dark:bg-secondary-600'
                 }`}
               >

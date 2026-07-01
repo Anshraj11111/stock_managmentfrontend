@@ -112,8 +112,8 @@ const Invoices = () => {
         <div className="xl:col-span-1">
           <div className="rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6 bg-white dark:bg-secondary-900 shadow-lg hover:shadow-xl transition-shadow">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-secondary-900 dark:text-secondary-100">
-              <div className="p-2 bg-emerald-100 dark:bg-emerald-500/15 rounded-lg">
-                <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+              <div className="p-2 bg-blue-100 dark:bg-blue-500/15 rounded-lg">
+                <FileText className="w-5 h-5 text-blue-600 dark:text-blue-300" />
               </div>
               {t('invoices.generateInvoice')}
             </h2>
@@ -125,14 +125,14 @@ const Invoices = () => {
                   value={billId}
                   onChange={(e) => setBillId(e.target.value)}
                   placeholder="Enter Bill ID"
-                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 dark:placeholder-secondary-400 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-secondary-500 dark:placeholder-secondary-400 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
 
               <button
                 disabled={loading}
                 onClick={() => generateInvoice()}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
               >
                 <Download className="w-5 h-5" />
                 {loading ? t('invoices.generating') : t('invoices.downloadInvoice')}
@@ -145,15 +145,15 @@ const Invoices = () => {
         <div className="xl:col-span-2">
           <div className="bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-secondary-900 dark:text-secondary-100">
-              <div className="p-2 bg-emerald-100 dark:bg-emerald-500/15 rounded-lg">
-                <Clock className="w-5 h-5 text-emerald-600 dark:text-emerald-300" />
+              <div className="p-2 bg-blue-100 dark:bg-blue-500/15 rounded-lg">
+                <Clock className="w-5 h-5 text-blue-600 dark:text-blue-300" />
               </div>
               {t('invoices.recentInvoices')}
             </h2>
 
             {loadingData ? (
               <div className="flex flex-col items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-200 dark:border-emerald-500 border-t-emerald-600 dark:border-t-emerald-400"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 dark:border-blue-500 border-t-blue-600 dark:border-t-blue-400"></div>
                 <span className="mt-4 text-secondary-500 dark:text-secondary-400 font-medium">Loading invoices...</span>
               </div>
             ) : recentInvoices.length === 0 ? (
@@ -169,7 +169,7 @@ const Invoices = () => {
                 {recentInvoices.map((inv) => (
                   <div
                     key={inv.id}
-                    className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-secondary-200 dark:border-secondary-700 bg-gradient-to-r from-secondary-50 to-white dark:from-secondary-800 dark:to-secondary-850 rounded-xl hover:shadow-md hover:border-emerald-300 dark:hover:border-emerald-500 transition-all"
+                    className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-secondary-200 dark:border-secondary-700 bg-gradient-to-r from-secondary-50 to-white dark:from-secondary-800 dark:to-secondary-850 rounded-xl hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500 transition-all"
                   >
                     {/* LEFT SIDE - Bill Info */}
                     <div className="flex-1 min-w-0">
@@ -195,7 +195,7 @@ const Invoices = () => {
                         <span
                           className={`inline-block text-xs px-3 py-1 rounded-full font-medium ${
                             inv.status === "PAID"
-                              ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                              ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                               : "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
                           }`}
                         >
@@ -206,7 +206,7 @@ const Invoices = () => {
                       {/* RIGHT SIDE - Download Button */}
                       <button
                         onClick={() => generateInvoice(inv.id)}
-                        className="p-3 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 rounded-lg transition-all transform hover:scale-110 active:scale-95"
+                        className="p-3 text-blue-600 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded-lg transition-all transform hover:scale-110 active:scale-95"
                         title="Download Invoice"
                       >
                         <Download className="w-5 h-5" />
@@ -243,11 +243,11 @@ const StatCard = ({ title, value, icon: Icon, color = "indigo" }) => {
       badge: "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
     },
     green: {
-      bg: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20",
-      border: "border-green-200 dark:border-green-800",
-      icon: "text-green-600 dark:text-green-400",
-      iconBg: "bg-green-100 dark:bg-green-900/30",
-      badge: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+      bg: "bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20",
+      border: "border-blue-200 dark:border-blue-800",
+      icon: "text-blue-600 dark:text-blue-400",
+      iconBg: "bg-blue-100 dark:bg-blue-900/30",
+      badge: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
     },
     orange: {
       bg: "bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20",

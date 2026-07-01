@@ -252,7 +252,7 @@ const Reports = () => {
 
   // Prepare pie chart data for revenue breakdown
   const pieChartData = [
-    { name: 'Received Amount', value: totals.totalReceived, color: '#10b981' },
+    { name: 'Received Amount', value: totals.totalReceived, color: '#2563eb' },
     { name: 'Due Amount', value: totals.totalSales - totals.totalReceived, color: '#f59e0b' },
   ];
 
@@ -263,7 +263,7 @@ const Reports = () => {
     color: `hsl(${(index * 360) / reports.length}, 70%, 60%)`,
   }));
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
+  const COLORS = ['#3b82f6', '#2563eb', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
   if (loading) {
     return (
@@ -287,7 +287,7 @@ const Reports = () => {
         <button
           onClick={handleExport}
           disabled={exporting || reports.length === 0}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
         >
           <Download className="w-5 h-5" />
           {exporting ? 'Exporting...' : t('reports.exportReport')}
@@ -295,14 +295,14 @@ const Reports = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-500">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full -mr-16 -mt-16"></div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-500/10 dark:to-blue-500/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-500">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/15 rounded-xl flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-500/15 rounded-xl flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-blue-600" />
               </div>
-              <span className="flex items-center gap-1 text-sm font-semibold text-green-600">
+              <span className="flex items-center gap-1 text-sm font-semibold text-blue-600">
                 <ArrowUpRight className="w-4 h-4" />
                 +12.5%
               </span>
@@ -321,7 +321,7 @@ const Reports = () => {
               <div className="w-12 h-12 bg-slate-100 dark:bg-slate-900/30 rounded-xl flex items-center justify-center">
                 <Receipt className="w-6 h-6 text-slate-600" />
               </div>
-              <span className="flex items-center gap-1 text-sm font-semibold text-green-600">
+              <span className="flex items-center gap-1 text-sm font-semibold text-blue-600">
                 <ArrowUpRight className="w-4 h-4" />
                 +8.2%
               </span>
@@ -333,14 +333,14 @@ const Reports = () => {
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 rounded-2xl p-6 border border-emerald-200 dark:border-emerald-500">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full -mr-16 -mt-16"></div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-500/10 dark:to-blue-500/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-500">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-400/10 rounded-full -mr-16 -mt-16"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/15 rounded-xl flex items-center justify-center">
-                <Activity className="w-6 h-6 text-emerald-600" />
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-500/15 rounded-xl flex items-center justify-center">
+                <Activity className="w-6 h-6 text-blue-600" />
               </div>
-              <span className="flex items-center gap-1 text-sm font-semibold text-green-600">
+              <span className="flex items-center gap-1 text-sm font-semibold text-blue-600">
                 <ArrowUpRight className="w-4 h-4" />
                 +15.3%
               </span>
@@ -355,7 +355,7 @@ const Reports = () => {
 
       <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-emerald-600" />
+          <Filter className="w-5 h-5 text-blue-600" />
           <h2 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">{t('reports.filterReports')}</h2>
         </div>
         
@@ -367,7 +367,7 @@ const Reports = () => {
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
-              className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+              className="w-full px-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             >
               <option value="daily">{t('reports.dailyReport')}</option>
               <option value="singleDay">Single Day Report</option>
@@ -387,7 +387,7 @@ const Reports = () => {
                   type="date"
                   value={singleDate}
                   onChange={(e) => setSingleDate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 />
               </div>
             </div>
@@ -405,7 +405,7 @@ const Reports = () => {
                     type="date"
                     value={dateRange.startDate}
                     onChange={(e) => setDateRange({ ...dateRange, startDate: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -419,7 +419,7 @@ const Reports = () => {
                     type="date"
                     value={dateRange.endDate}
                     onChange={(e) => setDateRange({ ...dateRange, endDate: e.target.value })}
-                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className="w-full pl-10 pr-4 py-3 border border-secondary-300 dark:border-secondary-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
                 </div>
               </div>
@@ -433,7 +433,7 @@ const Reports = () => {
           <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 overflow-hidden">
             <div className="p-6 border-b border-secondary-200 dark:border-secondary-800">
               <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-emerald-600" />
+                <BarChart3 className="w-5 h-5 text-blue-600" />
                 {t('reports.detailedReports')}
               </h2>
             </div>
@@ -471,12 +471,12 @@ const Reports = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-sm font-semibold text-emerald-600">
+                        <span className="text-sm font-semibold text-blue-600">
                           ₹{(report.received_amount || 0).toLocaleString()}
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg text-xs font-semibold">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-lg text-xs font-semibold">
                           <TrendingUp className="w-3.5 h-3.5" />
                           {t('reports.active')}
                         </span>
@@ -493,7 +493,7 @@ const Reports = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-2">
                 <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                     <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                   Sales Analytics Dashboard
@@ -552,10 +552,10 @@ const Reports = () => {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-emerald-50 dark:bg-emerald-500/10 rounded-lg border border-emerald-200 dark:border-emerald-500">
+                  <div className="text-center p-3 bg-blue-50 dark:bg-blue-500/10 rounded-lg border border-blue-200 dark:border-blue-500">
                     <p className="text-xs text-secondary-600 dark:text-secondary-400 mb-1 font-medium">Received</p>
-                    <p className="text-lg font-bold text-emerald-600">₹{totals.totalReceived.toLocaleString()}</p>
-                    <p className="text-xs text-emerald-600 mt-1">
+                    <p className="text-lg font-bold text-blue-600">₹{totals.totalReceived.toLocaleString()}</p>
+                    <p className="text-xs text-blue-600 mt-1">
                       {totals.totalSales > 0 ? ((totals.totalReceived / totals.totalSales) * 100).toFixed(1) : 0}%
                     </p>
                   </div>
@@ -631,7 +631,7 @@ const Reports = () => {
                     <span className="text-xs font-medium text-secondary-600 dark:text-secondary-400">Total Sales</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600"></div>
+                    <div className="w-3 h-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600"></div>
                     <span className="text-xs font-medium text-secondary-600 dark:text-secondary-400">Received</span>
                   </div>
                 </div>
@@ -644,8 +644,8 @@ const Reports = () => {
                       <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.7}/>
                     </linearGradient>
                     <linearGradient id="colorReceived" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.9}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.7}/>
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.9}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0.7}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" opacity={0.5} />
