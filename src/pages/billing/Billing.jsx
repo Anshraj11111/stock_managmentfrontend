@@ -1281,10 +1281,62 @@ const Billing = () => {
 
           {/* Products Grid */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-md">
-            <h2 className="text-lg font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <Package className="w-5 h-5 text-emerald-600" />
-              {t('billing.availableProducts')}
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <Package className="w-5 h-5 text-emerald-600" />
+                {t('billing.availableProducts')}
+                {filteredProducts.length > 0 && (
+                  <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1">
+                    ({filteredProducts.length})
+                  </span>
+                )}
+              </h2>
+
+              {/* Add All to Bill button */}
+              {filteredProducts.length > 0 && (
+                <button
+                  onClick={() => {
+                    const inStockProducts = filteredProducts.filter(p => parseFloat(p.stock_quantity) > 0);
+                    if (inStockProducts.length === 0) {
+                      toast.error('No in-stock products to add');
+                      return;
+                    }
+
+                    // Build new items list in one shot — avoid stale state in loop
+                    setSelectedItems(prev => {
+                      const updated = [...prev];
+                      inStockProducts.forEach(product => {
+                        const existingIdx = updated.findIndex(i => i.product_id === product.id);
+                        if (existingIdx >= 0) {
+                          // Already in bill — increment qty (capped at stock)
+                          const maxQty = parseFloat(product.stock_quantity);
+                          updated[existingIdx] = {
+                            ...updated[existingIdx],
+                            quantity: Math.min(updated[existingIdx].quantity + 1, maxQty),
+                            total: product.selling_price * Math.min(updated[existingIdx].quantity + 1, maxQty),
+                          };
+                        } else {
+                          updated.push({
+                            product_id: product.id,
+                            name: product.product_name,
+                            price: product.selling_price,
+                            quantity: 1,
+                            total: product.selling_price,
+                          });
+                        }
+                      });
+                      return updated;
+                    });
+
+                    toast.success(`${inStockProducts.length} products added to bill`);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-xs font-semibold transition-all shadow-md hover:shadow-lg"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add All to Bill
+                </button>
+              )}
+            </div>
 
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
