@@ -30,4 +30,16 @@ export const billService = {
     const response = await api.get('/bills/recent');
     return response.data;
   },
+
+  // Edit existing bill
+  editBill: async (billId, billData) => {
+    const response = await api.put(`/bills/${billId}`, billData);
+    return response.data;
+  },
+
+  // Get full bill details for View modal
+  getBillDetails: async (billId) => {
+    const response = await api.get(`/bills/${billId}/detail`);
+    return response.data;
+  },
 };

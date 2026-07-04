@@ -1,542 +1,10 @@
-// import { useState, useEffect } from 'react';
-// import { Plus, Minus, Trash2, Receipt, CreditCard, Smartphone, Banknote, ShoppingCart, DollarSign, Package, Search } from 'lucide-react';
-// import jsPDF from 'jspdf';
-// import { productService } from '../../services/productService';
-// import { billService } from '../../services/billService';
-// import Button from '../../components/common/Button';
-// import Loader from '../../components/common/Loader';
-// import toast from 'react-hot-toast';
-
-// const Billing = () => {
-//   const [products, setProducts] = useState([]);
-//   const [filteredProducts, setFilteredProducts] = useState([]);
-//   const [selectedItems, setSelectedItems] = useState([]);
-//   const [previewData, setPreviewData] = useState(null);
-//   const [loading, setLoading] = useState(true);
-//   const [previewLoading, setPreviewLoading] = useState(false);
-//   const [createLoading, setCreateLoading] = useState(false);
-//   const [showPaymentModal, setShowPaymentModal] = useState(false);
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [paymentData, setPaymentData] = useState({
-//     payments: [{ mode: 'cash', amount: '' }],
-//   });
-
-//   useEffect(() => {
-//     fetchProducts();
-//   }, []);
-
-//   useEffect(() => {
-//     const filtered = products.filter(product =>
-//       product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
-//     );
-//     setFilteredProducts(filtered);
-//   }, [searchTerm, products]);
-
-//   const fetchProducts = async () => {
-//     try {
-//       const data = await productService.getProducts();
-//       setProducts(data);
-//       setFilteredProducts(data);
-//     } catch (error) {
-//       toast.error('Failed to fetch products');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const addToBill = (product) => {
-//     const existing = selectedItems.find(item => item.product_id === product.id);
-//     if (existing) {
-//       updateQuantity(product.id, existing.quantity + 1);
-//     } else {
-//       setSelectedItems([...selectedItems, {
-//         product_id: product.id,
-//         name: product.product_name,
-//         price: product.selling_price,
-//         quantity: 1,
-//         total: product.selling_price,
-//       }]);
-//     }
-//   };
-
-//   const updateQuantity = (productId, newQuantity) => {
-//     if (newQuantity <= 0) {
-//       removeFromBill(productId);
-//       return;
-//     }
-
-//     setSelectedItems(selectedItems.map(item =>
-//       item.product_id === productId
-//         ? { ...item, quantity: newQuantity, total: item.price * newQuantity }
-//         : item
-//     ));
-//   };
-
-//   const removeFromBill = (productId) => {
-//     setSelectedItems(selectedItems.filter(item => item.product_id !== productId));
-//   };
-
-//   const previewBill = async () => {
-//     if (selectedItems.length === 0) {
-//       toast.error('Please add items to the bill');
-//       return;
-//     }
-
-//     setPreviewLoading(true);
-//     try {
-//       const data = await billService.previewBill(selectedItems);
-//       setPreviewData(data);
-//     } catch (error) {
-//       toast.error(error.response?.data?.message || 'Failed to preview bill');
-//     } finally {
-//       setPreviewLoading(false);
-//     }
-//   };
-
-//   const createBill = async () => {
-//     if (!previewData) {
-//       toast.error('Please preview the bill first');
-//       return;
-//     }
-
-//     const paymentsWithNumbers = paymentData.payments.map(p => ({
-//       ...p,
-//       amount: parseFloat(p.amount) || 0,
-//     }));
-
-//     const totalPaid = paymentsWithNumbers.reduce((sum, p) => sum + p.amount, 0);
-//     const tolerance = 0.01;
-    
-//     if (Math.abs(totalPaid - previewData.total_amount) > tolerance) {
-//       toast.error(`Payment amount (₹${totalPaid.toFixed(2)}) must match bill total (₹${previewData.total_amount.toFixed(2)})`);
-//       return;
-//     }
-
-//     setCreateLoading(true);
-//     try {
-//       const billResponse = await billService.createBill({
-//         items: selectedItems,
-//         payments: paymentsWithNumbers,
-//       });
-
-//       toast.success('Bill created successfully!');
-      
-//       const billDataForPrint = {
-//         id: billResponse.bill_id || billResponse.data?.bill_id || 'N/A',
-//         items: previewData.items,
-//         total_amount: previewData.total_amount,
-//         payments: paymentsWithNumbers,
-//       };
-      
-//       printBill(billDataForPrint);
-      
-//       setSelectedItems([]);
-//       setPreviewData(null);
-//       setShowPaymentModal(false);
-//       setPaymentData({ payments: [{ mode: 'cash', amount: '' }] });
-//     } catch (error) {
-//       const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create bill';
-//       toast.error(errorMsg);
-//     } finally {
-//       setCreateLoading(false);
-//     }
-//   };
-
-//   const printBill = (billData) => {
-//     const doc = new jsPDF();
-//     doc.setFontSize(20);
-//     doc.text('Shop Bill', 105, 20, { align: 'center' });
-//     doc.setFontSize(12);
-//     doc.text('Shop Name: Your Shop Name', 20, 40);
-//     doc.text(`Bill ID: ${billData.id || 'N/A'}`, 20, 50);
-//     doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 60);
-
-//     let yPosition = 80;
-//     doc.setFontSize(10);
-//     doc.text('Item', 20, yPosition);
-//     doc.text('Qty', 100, yPosition);
-//     doc.text('Price', 130, yPosition);
-//     doc.text('Total', 160, yPosition);
-
-//     yPosition += 10;
-//     doc.line(20, yPosition, 190, yPosition);
-//     yPosition += 10;
-
-//     previewData.items.forEach(item => {
-//       doc.text(item.name, 20, yPosition);
-//       doc.text(item.quantity.toString(), 100, yPosition);
-//       doc.text(`₹${item.price}`, 130, yPosition);
-//       doc.text(`₹${item.total}`, 160, yPosition);
-//       yPosition += 10;
-//     });
-
-//     yPosition += 10;
-//     doc.line(20, yPosition, 190, yPosition);
-//     yPosition += 10;
-//     doc.setFontSize(12);
-//     doc.text(`Total Amount: ₹${previewData.total_amount}`, 130, yPosition);
-
-//     yPosition += 20;
-//     doc.text('Payment Details:', 20, yPosition);
-//     yPosition += 10;
-//     paymentData.payments.forEach(payment => {
-//       doc.text(`${payment.mode.toUpperCase()}: ₹${payment.amount}`, 30, yPosition);
-//       yPosition += 10;
-//     });
-
-//     doc.save(`bill_${billData.id || Date.now()}.pdf`);
-//   };
-
-//   const addPaymentMethod = () => {
-//     setPaymentData({
-//       ...paymentData,
-//       payments: [...paymentData.payments, { mode: 'cash', amount: '' }]
-//     });
-//   };
-
-//   const updatePayment = (index, field, value) => {
-//     const updatedPayments = [...paymentData.payments];
-//     updatedPayments[index] = { ...updatedPayments[index], [field]: value };
-//     setPaymentData({ ...paymentData, payments: updatedPayments });
-//   };
-
-//   const removePayment = (index) => {
-//     if (paymentData.payments.length > 1) {
-//       setPaymentData({
-//         ...paymentData,
-//         payments: paymentData.payments.filter((_, i) => i !== index)
-//       });
-//     }
-//   };
-
-//   const paymentIcons = {
-//     cash: Banknote,
-//     upi: Smartphone,
-//     card: CreditCard,
-//   };
-
-//   const calculateTotal = () => {
-//     return selectedItems.reduce((sum, item) => sum + item.total, 0);
-//   };
-
-//   if (loading) {
-//     return (
-//       <div className="flex items-center justify-center min-h-96">
-//         <Loader size="lg" />
-//       </div>
-//     );
-//   }
-
-//   return (
-//     <div className="px-6 pb-10 space-y-6">
-//       {/* Header */}
-//       <div className="flex items-center justify-between flex-wrap gap-4">
-//         <div>
-//           <h1 className="text-3xl font-bold text-secondary-900 dark:text-secondary-100 mb-2">
-//             Create New Bill
-//           </h1>
-//           <p className="text-gray-600 dark:text-gray-400">
-//             Select products and generate invoices
-//           </p>
-//         </div>
-//         <div className="flex items-center gap-3 bg-gradient-to-r from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 px-6 py-3 rounded-xl border border-blue-200 dark:border-blue-600">
-//           <ShoppingCart className="w-5 h-5 text-blue-600" />
-//           <div>
-//             <p className="text-xs text-gray-600 dark:text-gray-400">Items in Cart</p>
-//             <p className="text-xl font-bold text-secondary-900 dark:text-secondary-100">{selectedItems.length}</p>
-//           </div>
-//         </div>
-//       </div>
-
-//       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-//         {/* Products List */}
-//         <div className="lg:col-span-2 space-y-6">
-//           {/* Search */}
-//           <div className="relative">
-//             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-//             <input
-//               type="text"
-//               placeholder="Search products..."
-//               value={searchTerm}
-//               onChange={(e) => setSearchTerm(e.target.value)}
-//               className="w-full pl-12 pr-4 py-3 bg-white dark:bg-secondary-900 border border-secondary-200 dark:border-secondary-800 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-//             />
-//           </div>
-
-//           {/* Products Grid */}
-//           <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6">
-//             <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-//               <Package className="w-5 h-5 text-indigo-600" />
-//               Available Products
-//             </h2>
-
-//             {filteredProducts.length === 0 ? (
-//               <div className="text-center py-12">
-//                 <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-//                 <p className="text-gray-600 dark:text-gray-400">
-//                   {searchTerm ? 'No products found' : 'No products available'}
-//                 </p>
-//               </div>
-//             ) : (
-//               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-2">
-//                 {filteredProducts.map((product, index) => (
-//                   <div
-//                     key={product.id}
-//                     className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-4 border border-secondary-200 dark:border-secondary-700 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
-//                     style={{ animationDelay: `${index * 50}ms` }}
-//                   >
-//                     <div className="absolute top-2 right-2">
-//                       <span className={`text-xs font-semibold px-2 py-1 rounded-lg ${
-//                         product.stock_quantity > 10 
-//                           ? 'bg-blue-100 text-blue-700' 
-//                           : product.stock_quantity > 0 
-//                           ? 'bg-orange-100 text-orange-700' 
-//                           : 'bg-red-100 text-red-700'
-//                       }`}>
-//                         Stock: {product.stock_quantity}
-//                       </span>
-//                     </div>
-
-//                     <div className="mb-3">
-//                       <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1 pr-20">
-//                         {product.product_name}
-//                       </h3>
-//                       <div className="flex items-center gap-2">
-//                         <DollarSign className="w-4 h-4 text-blue-600" />
-//                         <span className="text-2xl font-bold text-blue-600">
-//                           ₹{product.selling_price}
-//                         </span>
-//                       </div>
-//                     </div>
-
-//                     <button
-//                       onClick={() => addToBill(product)}
-//                       disabled={product.stock_quantity === 0}
-//                       className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group-hover:shadow-lg"
-//                     >
-//                       <Plus className="w-4 h-4" />
-//                       Add to Bill
-//                     </button>
-//                   </div>
-//                 ))}
-//               </div>
-//             )}
-//           </div>
-//         </div>
-
-//         {/* Bill Summary */}
-//         <div className="space-y-6">
-//           {/* Current Bill */}
-//           <div className="bg-white dark:bg-secondary-900 rounded-2xl border border-secondary-200 dark:border-secondary-800 p-6 sticky top-20">
-//             <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-//               <Receipt className="w-5 h-5 text-purple-600" />
-//               Current Bill
-//             </h2>
-
-//             {selectedItems.length === 0 ? (
-//               <div className="text-center py-12">
-//                 <ShoppingCart className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-//                 <p className="text-gray-600 dark:text-gray-400 text-sm">
-//                   No items added yet
-//                 </p>
-//               </div>
-//             ) : (
-//               <div className="space-y-4">
-//                 <div className="max-h-64 overflow-y-auto space-y-2 pr-2">
-//                   {selectedItems.map((item, index) => (
-//                     <div
-//                       key={item.product_id}
-//                       className="flex items-center gap-3 p-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-secondary-200 dark:border-secondary-700"
-//                       style={{ animationDelay: `${index * 50}ms` }}
-//                     >
-//                       <div className="flex-1 min-w-0">
-//                         <p className="font-semibold text-secondary-900 dark:text-secondary-100 truncate">
-//                           {item.name}
-//                         </p>
-//                         <p className="text-sm text-gray-600 dark:text-gray-400">
-//                           ₹{item.price} × {item.quantity} = ₹{item.total}
-//                         </p>
-//                       </div>
-//                       <div className="flex items-center gap-1">
-//                         <button
-//                           onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-//                           className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-//                         >
-//                           <Minus className="w-4 h-4" />
-//                         </button>
-//                         <span className="w-8 text-center font-semibold">{item.quantity}</span>
-//                         <button
-//                           onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-//                           className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-//                         >
-//                           <Plus className="w-4 h-4" />
-//                         </button>
-//                         <button
-//                           onClick={() => removeFromBill(item.product_id)}
-//                           className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ml-1"
-//                         >
-//                           <Trash2 className="w-4 h-4" />
-//                         </button>
-//                       </div>
-//                     </div>
-//                   ))}
-//                 </div>
-
-//                 <div className="border-t border-secondary-200 dark:border-secondary-800 pt-4">
-//                   <div className="flex justify-between items-center mb-4">
-//                     <span className="text-gray-600 dark:text-gray-400">Subtotal:</span>
-//                     <span className="text-2xl font-bold text-secondary-900 dark:text-secondary-100">
-//                       ₹{calculateTotal().toFixed(2)}
-//                     </span>
-//                   </div>
-
-//                   <button
-//                     onClick={previewBill}
-//                     disabled={previewLoading}
-//                     className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50"
-//                   >
-//                     {previewLoading ? 'Loading...' : 'Preview Bill'}
-//                   </button>
-//                 </div>
-//               </div>
-//             )}
-//           </div>
-
-//           {/* Bill Preview */}
-//           {previewData && (
-//             <div className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-600 p-6">
-//               <h2 className="text-xl font-bold text-secondary-900 dark:text-secondary-100 mb-4 flex items-center gap-2">
-//                 <Receipt className="w-5 h-5 text-blue-600" />
-//                 Bill Preview
-//               </h2>
-
-//               <div className="space-y-3 mb-4">
-//                 {previewData.items.map((item, index) => (
-//                   <div key={index} className="flex justify-between text-sm">
-//                     <span className="text-gray-700 dark:text-gray-300">
-//                       {item.name} × {item.quantity}
-//                     </span>
-//                     <span className="font-semibold text-secondary-900 dark:text-secondary-100">
-//                       ₹{item.total}
-//                     </span>
-//                   </div>
-//                 ))}
-//               </div>
-
-//               <div className="border-t border-blue-200 dark:border-blue-500 pt-3 mb-4">
-//                 <div className="flex justify-between items-center">
-//                   <span className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Total:</span>
-//                   <span className="text-2xl font-bold text-blue-600">
-//                     ₹{previewData.total_amount}
-//                   </span>
-//                 </div>
-//               </div>
-
-//               <button
-//                 onClick={() => setShowPaymentModal(true)}
-//                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
-//               >
-//                 <Receipt className="w-5 h-5" />
-//                 Proceed to Payment
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-
-//       {/* Payment Modal */}
-//       {showPaymentModal && (
-//         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-//           <div className="bg-white dark:bg-secondary-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4 duration-300">
-//             <h2 className="text-2xl font-bold text-secondary-900 dark:text-secondary-100 mb-6">
-//               Payment Details
-//             </h2>
-
-//             <div className="space-y-4">
-//               <div className="text-center p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl border border-indigo-200 dark:border-indigo-800">
-//                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Amount</p>
-//                 <p className="text-4xl font-bold text-secondary-900 dark:text-secondary-100">
-//                   ₹{previewData.total_amount}
-//                 </p>
-//               </div>
-
-//               <div className="space-y-3">
-//                 {paymentData.payments.map((payment, index) => {
-//                   const Icon = paymentIcons[payment.mode];
-//                   return (
-//                     <div key={index} className="flex items-center gap-3 p-4 border border-secondary-200 dark:border-secondary-800 rounded-xl bg-gray-50 dark:bg-gray-700">
-//                       <Icon className="w-6 h-6 text-indigo-600" />
-//                       <select
-//                         value={payment.mode}
-//                         onChange={(e) => updatePayment(index, 'mode', e.target.value)}
-//                         className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 focus:ring-2 focus:ring-indigo-500"
-//                       >
-//                         <option value="cash">Cash</option>
-//                         <option value="upi">UPI</option>
-//                         <option value="card">Card</option>
-//                       </select>
-//                       <input
-//                         type="number"
-//                         step="0.01"
-//                         value={payment.amount}
-//                         onChange={(e) => updatePayment(index, 'amount', e.target.value)}
-//                         placeholder="Amount"
-//                         className="flex-1 px-3 py-2 border border-secondary-300 dark:border-secondary-700 rounded-lg bg-white dark:bg-secondary-900 focus:ring-2 focus:ring-indigo-500"
-//                         required
-//                       />
-//                       {paymentData.payments.length > 1 && (
-//                         <button
-//                           onClick={() => removePayment(index)}
-//                           className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-//                         >
-//                           <Trash2 className="w-5 h-5" />
-//                         </button>
-//                       )}
-//                     </div>
-//                   );
-//                 })}
-//               </div>
-
-//               <button
-//                 onClick={addPaymentMethod}
-//                 className="w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed border-secondary-300 dark:border-secondary-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 text-gray-600 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-//               >
-//                 <Plus className="w-5 h-5" />
-//                 Add Payment Method
-//               </button>
-
-//               <div className="flex justify-end gap-3 pt-4">
-//                 <button
-//                   type="button"
-//                   onClick={() => setShowPaymentModal(false)}
-//                   className="px-6 py-2.5 border border-secondary-300 dark:border-secondary-700 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
-//                 >
-//                   Cancel
-//                 </button>
-//                 <button
-//                   onClick={createBill}
-//                   disabled={createLoading}
-//                   className="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
-//                 >
-//                   {createLoading ? 'Creating...' : 'Create Bill'}
-//                 </button>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Billing;
-
 import { useState, useEffect } from 'react';
-import { Plus, Minus, Trash2, Receipt, CreditCard, Smartphone, Banknote, ShoppingCart, DollarSign, Package, Search } from 'lucide-react';
+import { Plus, Minus, Trash2, Receipt, CreditCard, Smartphone, Banknote, ShoppingCart, DollarSign, Package, Search, Clock, Download, Edit, Calendar, ChevronRight, Eye } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import jsPDF from 'jspdf';
 import { productService } from '../../services/productService';
 import { billService } from '../../services/billService';
+import { invoiceService } from '../../services/invoiceService';
 import { shopService } from '../../services/shopService';
 import { customerService } from '../../services/customerService';
 import Button from '../../components/common/Button';
@@ -585,6 +53,23 @@ const Billing = () => {
   const [showManualItem, setShowManualItem] = useState(false);
   const [manualItem, setManualItem] = useState({ name: '', price: '', quantity: 1 });
 
+  // ✅ Recent bills state
+  const [recentBills, setRecentBills] = useState([]);
+  const [recentLoading, setRecentLoading] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
+
+  // ✅ Bill Edit state
+  const [showBillEditModal, setShowBillEditModal] = useState(false);
+  const [editingBill, setEditingBill]       = useState(null);
+  const [editItems, setEditItems]           = useState([]);
+  const [editMeta, setEditMeta]             = useState({ customer_name: '', customer_phone: '', gst_percentage: '', discount_type: '', discount_value: '' });
+  const [editSaving, setEditSaving]         = useState(false);
+
+  // ✅ Bill View state
+  const [showBillViewModal, setShowBillViewModal] = useState(false);
+  const [viewingBill, setViewingBill]             = useState(null);
+  const [viewLoading, setViewLoading]             = useState(false);
+
   // ✅ REMOVED: Complex payment array - using simple state instead
 
   useEffect(() => {
@@ -592,17 +77,17 @@ const Billing = () => {
   }, []);
 
   useEffect(() => {
-  const fetchShop = async () => {
-    try {
-      const data = await shopService.getShopDetails();
-      setShop(data);
-    } catch (err) {
-      console.log("Shop fetch error");
-    }
-  };
-
-  fetchShop();
-}, []);
+    const fetchShop = async () => {
+      try {
+        const data = await shopService.getShopDetails();
+        setShop(data);
+      } catch (err) {
+        console.log("Shop fetch error");
+      }
+    };
+    fetchShop();
+    fetchRecentBills(); // ✅ Load recent bills on mount
+  }, []);
 
 
   useEffect(() => {
@@ -622,6 +107,156 @@ const Billing = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchRecentBills = async () => {
+    setRecentLoading(true);
+    try {
+      const data = await billService.getBills();
+      setRecentBills(Array.isArray(data) ? data.slice(0, 15) : []);
+    } catch (_) { /* silent */ } finally {
+      setRecentLoading(false);
+    }
+  };
+
+  const downloadBillPDF = async (billId, billNumber) => {
+    setDownloadingId(billId);
+    try {
+      const blob = await invoiceService.generateInvoice(billId);
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href = url; a.download = `bill-${billNumber}.pdf`;
+      a.click(); URL.revokeObjectURL(url);
+      toast.success('Bill downloaded');
+    } catch { toast.error('Download failed'); }
+    finally { setDownloadingId(null); }
+  };
+
+  // ── View Bill ──────────────────────────────────────────────────────────────
+  const openBillView = async (bill) => {
+    setViewLoading(true);
+    setShowBillViewModal(true);
+    try {
+      const data = await billService.getBillDetails(bill.id);
+      setViewingBill(data);
+    } catch {
+      toast.error('Failed to load bill details');
+      setShowBillViewModal(false);
+    } finally { setViewLoading(false); }
+  };
+
+  // ── Bill edit helpers ──────────────────────────────────────────────────────
+  const openBillEdit = async (bill) => {
+    try {
+      const full = await billService.getBillById(bill.id);
+      setEditingBill(full);
+      const rows = (full.BillItems || []).map(item => ({
+        product_id: item.product_id || null,
+        item_name:  item.Product?.product_name || '',
+        price:      item.price,
+        quantity:   item.quantity,
+      }));
+      setEditItems(rows.length > 0 ? rows : [{ product_id: null, item_name: '', price: '', quantity: 1 }]);
+      setEditMeta({
+        customer_name:  full.customer_name  || '',
+        customer_phone: full.customer_phone || '',
+        gst_percentage: full.gst_percentage || '',
+        discount_type:  full.discount_type  || '',
+        discount_value: full.discount_percentage || '',
+      });
+      setShowBillEditModal(true);
+    } catch { toast.error('Failed to load bill'); }
+  };
+
+  const updateEditItem = (idx, key, val) => {
+    setEditItems(prev => prev.map((item, i) => {
+      if (i !== idx) return item;
+      const updated = { ...item, [key]: val };
+      if (key === 'product_id' && val) {
+        const p = products.find(pr => pr.id === parseInt(val));
+        if (p) { updated.item_name = p.product_name; updated.price = p.selling_price; }
+      }
+      return updated;
+    }));
+  };
+
+  const calcEditTotal = () => {
+    const sub   = editItems.reduce((s, i) => s + (parseFloat(i.price) || 0) * (parseFloat(i.quantity) || 0), 0);
+    const gst   = parseFloat(editMeta.gst_percentage) > 0 ? (sub * editMeta.gst_percentage) / 100 : 0;
+    let   total = sub + gst;
+    if (editMeta.discount_type && parseFloat(editMeta.discount_value) > 0) {
+      const d = editMeta.discount_type === 'percentage'
+        ? (total * parseFloat(editMeta.discount_value)) / 100
+        : parseFloat(editMeta.discount_value);
+      total = Math.max(0, total - d);
+    }
+    return { sub: sub.toFixed(2), gst: gst.toFixed(2), total: total.toFixed(2) };
+  };
+
+  const saveBillEdit = async () => {
+    if (!editingBill) return;
+    const validItems = editItems.filter(i => i.item_name && parseFloat(i.price) > 0);
+    if (validItems.length === 0) { toast.error('Add at least one valid item'); return; }
+    setEditSaving(true);
+    try {
+      await billService.editBill(editingBill.id, {
+        items: validItems.map(i => ({
+          ...(i.product_id ? { product_id: parseInt(i.product_id) } : { item_name: i.item_name }),
+          price:    parseFloat(i.price),
+          quantity: parseFloat(i.quantity) || 1,
+        })),
+        customer_name:  editMeta.customer_name  || undefined,
+        customer_phone: editMeta.customer_phone || undefined,
+        gst_percentage: editMeta.gst_percentage  ? parseFloat(editMeta.gst_percentage)  : undefined,
+        discount_type:  editMeta.discount_type   || undefined,
+        discount_value: editMeta.discount_value  ? parseFloat(editMeta.discount_value)  : undefined,
+      });
+      toast.success('Bill updated ✓ — Preview loading...');
+      setShowBillEditModal(false);
+      setEditingBill(null);
+      fetchRecentBills();
+
+      // ✅ Load edited items into selectedItems and auto-preview
+      const previewItems = validItems.map(i => ({
+        product_id: i.product_id || `manual_${Date.now()}_${Math.random()}`,
+        name:       i.item_name || '',
+        price:      parseFloat(i.price),
+        quantity:   parseFloat(i.quantity) || 1,
+        total:      parseFloat(i.price) * (parseFloat(i.quantity) || 1),
+        isManual:   !i.product_id,
+      }));
+      setSelectedItems(previewItems);
+
+      // Set customer details from edit
+      if (editMeta.customer_name || editMeta.customer_phone) {
+        setCustomerDetails({
+          name:    editMeta.customer_name  || '',
+          phone:   editMeta.customer_phone || '',
+          address: '',
+        });
+      }
+
+      // Set GST/discount states
+      if (editMeta.gst_percentage) {
+        setGstEnabled(true);
+        setGstPercentage(parseFloat(editMeta.gst_percentage));
+      }
+      if (editMeta.discount_type && editMeta.discount_value) {
+        setDiscountEnabled(true);
+        setDiscountType(editMeta.discount_type);
+        setDiscountValue(editMeta.discount_value);
+      }
+
+      // Scroll to preview section after short delay
+      setTimeout(() => {
+        const el = document.getElementById('preview-bill-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 400);
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.response?.data?.error || 'Update failed');
+    } finally { setEditSaving(false); }
   };
 
   // ✅ NEW: Search customer by phone
@@ -916,6 +551,7 @@ const Billing = () => {
       setDiscountEnabled(false);
       setDiscountType('percentage');
       setDiscountValue(''); // Empty string instead of 0
+      fetchRecentBills(); // ✅ Refresh recent bills
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create bill';
       toast.error(errorMsg, { id: progressToast });
@@ -1287,58 +923,77 @@ const Billing = () => {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-900 overflow-hidden">
-      {/* Header - Fixed */}
-      <div className="flex-shrink-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white dark:bg-gray-800 px-4 sm:px-6 py-3 shadow-md border-b border-gray-200 dark:border-gray-700">
-        <div>
-          <h1 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 dark:from-blue-400 dark:via-blue-400 dark:to-blue-400 bg-clip-text text-transparent">
-            {t('billing.title')}
-          </h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('billing.subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-3 bg-gradient-to-r from-blue-600 via-blue-600 to-blue-600 px-5 py-2.5 rounded-xl shadow-lg">
-          <ShoppingCart className="w-5 h-5 text-white" />
-          <div>
-            <p className="text-xs text-white/90 font-bold uppercase tracking-wider">{t('billing.itemsInCart')}</p>
-            <p className="text-xl font-black text-white">{selectedItems.length}</p>
+    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#0d1117' }}>
+      {/* Premium Header */}
+      <div className="flex-shrink-0 relative overflow-hidden"
+        style={{ borderBottom: '1px solid #21262d' }}>
+        {/* Background gradient */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg,rgba(31,111,235,0.08) 0%,rgba(13,17,23,1) 60%)', pointerEvents: 'none' }} />
+        <div className="absolute top-0 left-0 w-64 h-full" style={{ background: 'radial-gradient(ellipse at left center, rgba(31,111,235,0.12), transparent 70%)', pointerEvents: 'none' }} />
+
+        <div className="relative flex items-center justify-between px-6 sm:px-8 py-5">
+          {/* Left — title + icon */}
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg,#1f6feb,#388bfd)', boxShadow: '0 0 20px rgba(31,111,235,0.35)' }}>
+              <Receipt className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight" style={{ color: '#e6edf3' }}>
+                {t('billing.title')}
+              </h1>
+              <p className="text-sm mt-0.5" style={{ color: '#6e7681' }}>
+                {t('billing.subtitle')}
+              </p>
+            </div>
+          </div>
+
+          {/* Right — cart badge + manual item button */}
+          <div className="flex items-center gap-3">
+            {selectedItems.length > 0 && (
+              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl"
+                style={{ backgroundColor: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,139,253,0.35)' }}>
+                <ShoppingCart className="w-5 h-5" style={{ color: '#388bfd' }} />
+                <div>
+                  <span className="text-base font-bold" style={{ color: '#388bfd' }}>
+                    {selectedItems.length}
+                  </span>
+                  <span className="text-sm ml-1" style={{ color: '#6e7681' }}>
+                    item{selectedItems.length !== 1 ? 's' : ''} in cart
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowManualItem(v => !v)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all"
+              style={{
+                background: showManualItem
+                  ? 'linear-gradient(135deg,#f85149,#da3633)'
+                  : 'linear-gradient(135deg,#1f6feb,#388bfd)',
+                color: '#fff',
+                boxShadow: showManualItem
+                  ? '0 4px 12px rgba(248,81,73,0.3)'
+                  : '0 4px 12px rgba(31,111,235,0.3)',
+              }}
+            >
+              <Plus className={`w-4 h-4 transition-transform duration-200 ${showManualItem ? 'rotate-45' : ''}`} />
+              {showManualItem ? 'Cancel' : '+ Add Manual Item'}
+            </button>
           </div>
         </div>
+
+        {/* Bottom accent line */}
+        <div className="absolute bottom-0 left-0 w-48 h-0.5"
+          style={{ background: 'linear-gradient(90deg,#1f6feb,transparent)' }} />
       </div>
 
-      {/* Two-column layout */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* LEFT - scrollable */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-          {/* Search + Manual Add */}
-          <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-500" />
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl focus:ring-4 focus:ring-blue-400 focus:border-blue-500 transition-all font-medium shadow-md placeholder-gray-400"
-            />
-          </div>
-
-          {/* ── Add Manual Item Button ── */}
-          <button
-            onClick={() => setShowManualItem(v => !v)}
-            className="flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all flex-shrink-0 shadow-md"
-            style={{
-              background: showManualItem
-                ? 'linear-gradient(135deg,#f85149,#da3633)'
-                : 'linear-gradient(135deg,#1f6feb,#388bfd)',
-              color: '#fff',
-            }}
-          >
-            <Plus className={`w-4 h-4 transition-transform duration-200 ${showManualItem ? 'rotate-45' : ''}`} />
-            <span className="hidden sm:inline">{showManualItem ? 'Cancel' : 'Add Manual Item'}</span>
-            <span className="sm:hidden">{showManualItem ? '✕' : 'Manual'}</span>
-          </button>
-          </div>
+      {/* Single column layout */}
+      <div className="flex-1 overflow-y-auto">
+        {/* All content - wider, premium sizing */}
+        <div className="max-w-5xl mx-auto px-6 sm:px-8 py-6 space-y-5">
+          <div className="grid grid-cols-1 gap-5">
 
           {/* ── Manual Item Form (inline, expands on click) ── */}
           {showManualItem && (
@@ -1394,127 +1049,148 @@ const Billing = () => {
             </div>
           )}
 
-          {/* Products Grid */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-4 sm:p-6 shadow-md">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                <Package className="w-5 h-5 text-blue-600" />
-                {t('billing.availableProducts')}
-                {filteredProducts.length > 0 && (
-                  <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-1">
-                    ({filteredProducts.length})
-                  </span>
-                )}
-              </h2>
-
-              {/* Add All to Bill button */}
-              {filteredProducts.length > 0 && (
+          {/* ── PRODUCT SEARCH DROPDOWN (replaces product grid) ── */}
+          <div className="relative">
+            {/* Search input */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: '#6e7681' }} />
+              <input
+                type="text"
+                placeholder="🔍  Search products to add to bill... (type product name)"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                onFocus={() => setSearchTerm(searchTerm)}
+                className="w-full pl-12 pr-4 py-4 rounded-2xl font-medium text-base"
+                style={{
+                  backgroundColor: '#161b22',
+                  border: '1px solid #30363d',
+                  color: '#e6edf3',
+                  outline: 'none',
+                  fontSize: '1rem',
+                }}
+                onFocusCapture={e => e.target.style.border = '2px solid #388bfd'}
+                onBlurCapture={e => e.target.style.border = '1px solid #30363d'}
+              />
+              {searchTerm && (
                 <button
-                  onClick={() => {
-                    const inStockProducts = filteredProducts.filter(p => parseFloat(p.stock_quantity) > 0);
-                    if (inStockProducts.length === 0) {
-                      toast.error('No in-stock products to add');
-                      return;
-                    }
-
-                    // Build new items list in one shot — avoid stale state in loop
-                    setSelectedItems(prev => {
-                      const updated = [...prev];
-                      inStockProducts.forEach(product => {
-                        const existingIdx = updated.findIndex(i => i.product_id === product.id);
-                        if (existingIdx >= 0) {
-                          // Already in bill — increment qty (capped at stock)
-                          const maxQty = parseFloat(product.stock_quantity);
-                          updated[existingIdx] = {
-                            ...updated[existingIdx],
-                            quantity: Math.min(updated[existingIdx].quantity + 1, maxQty),
-                            total: product.selling_price * Math.min(updated[existingIdx].quantity + 1, maxQty),
-                          };
-                        } else {
-                          updated.push({
-                            product_id: product.id,
-                            name: product.product_name,
-                            price: product.selling_price,
-                            quantity: 1,
-                            total: product.selling_price,
-                          });
-                        }
-                      });
-                      return updated;
-                    });
-
-                    toast.success(`${inStockProducts.length} products added to bill`);
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg text-xs font-semibold transition-all shadow-md hover:shadow-lg"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Add All to Bill
-                </button>
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sm px-2 py-1 rounded-lg"
+                  style={{ color: '#8b949e' }}
+                >✕ Clear</button>
               )}
             </div>
 
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">
-                  {searchTerm ? t('billing.noProductsFound') : t('billing.noProductsAvailable')}
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                {filteredProducts.map((product, index) => (
-                  <div
-                    key={product.id}
-                    className="group relative overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl p-3 border border-secondary-200 dark:border-secondary-700 hover:border-blue-500 dark:hover:border-blue-500 transition-all duration-300 hover:shadow-lg hover:scale-105"
-                  >
-                    <div className="absolute top-2 right-2">
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-lg ${
-                        product.stock_quantity > 10
-                          ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                          : product.stock_quantity > 0
-                          ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'
-                          : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                      }`}>
-                        {t('billing.stock')}: {product.stock_quantity}
-                      </span>
-                    </div>
-                    <div className="mb-3 pr-16">
-                      <h3 className="font-semibold text-secondary-900 dark:text-secondary-100 mb-1 text-sm truncate">{product.product_name}</h3>
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="w-3 h-3 text-blue-600" />
-                        <span className="text-lg font-bold text-blue-600">₹{product.selling_price}</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => addToBill(product)}
-                      disabled={product.stock_quantity === 0}
-                      className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white rounded-lg font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                    >
-                      <Plus className="w-3 h-3" />
-                      {t('billing.addToBill')}
-                    </button>
+            {/* Dropdown results */}
+            {(searchTerm.length > 0 || filteredProducts.length <= products.length) && searchTerm.length > 0 && (
+              <div
+                className="absolute top-full left-0 right-0 z-30 mt-2 rounded-2xl overflow-hidden shadow-2xl"
+                style={{ backgroundColor: '#161b22', border: '1px solid #30363d', maxHeight: '420px', overflowY: 'auto' }}
+              >
+                {filteredProducts.length === 0 ? (
+                  <div className="px-5 py-8 text-center text-base" style={{ color: '#6e7681' }}>
+                    No products found for "{searchTerm}"
                   </div>
-                ))}
+                ) : (
+                  <>
+                    {/* Add All matching */}
+                    {filteredProducts.length > 1 && (
+                      <button
+                        onClick={() => {
+                          const inStock = filteredProducts.filter(p => parseFloat(p.stock_quantity) > 0);
+                          setSelectedItems(prev => {
+                            const updated = [...prev];
+                            inStock.forEach(product => {
+                              const idx = updated.findIndex(i => i.product_id === product.id);
+                              if (idx >= 0) {
+                                const maxQty = parseFloat(product.stock_quantity);
+                                updated[idx] = { ...updated[idx], quantity: Math.min(updated[idx].quantity + 1, maxQty), total: product.selling_price * Math.min(updated[idx].quantity + 1, maxQty) };
+                              } else {
+                                updated.push({ product_id: product.id, name: product.product_name, price: product.selling_price, quantity: 1, total: product.selling_price });
+                              }
+                            });
+                            return updated;
+                          });
+                          toast.success(`${inStock.length} products added`);
+                          setSearchTerm('');
+                        }}
+                        className="w-full px-5 py-3.5 flex items-center gap-2 text-sm font-semibold text-left transition-colors"
+                        style={{ borderBottom: '1px solid #21262d', color: '#388bfd', backgroundColor: 'rgba(56,139,253,0.05)' }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(56,139,253,0.12)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(56,139,253,0.05)'}
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add all {filteredProducts.length} matching products
+                      </button>
+                    )}
+
+                    {/* Individual product rows */}
+                    {filteredProducts.map(product => {
+                      const qty = parseFloat(product.stock_quantity) || 0;
+                      const stockColor = qty > 10 ? '#3fb950' : qty > 0 ? '#f0883e' : '#f85149';
+                      const inCart = selectedItems.find(i => i.product_id === product.id);
+
+                      return (
+                        <button
+                          key={product.id}
+                          disabled={qty === 0}
+                          onClick={() => {
+                            addToBill(product);
+                            setSearchTerm('');
+                          }}
+                          className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          style={{ borderBottom: '1px solid rgba(33,38,45,0.6)' }}
+                          onMouseEnter={e => { if (qty > 0) e.currentTarget.style.backgroundColor = '#21262d'; }}
+                          onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-base font-semibold truncate" style={{ color: '#e6edf3' }}>
+                              {product.product_name}
+                              {inCart && <span className="ml-2 text-sm px-2 py-0.5 rounded" style={{ backgroundColor: 'rgba(56,139,253,0.15)', color: '#388bfd' }}>in cart ×{inCart.quantity}</span>}
+                            </p>
+                            <p className="text-sm mt-0.5" style={{ color: stockColor }}>
+                              Stock: {product.stock_quantity}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-base font-bold" style={{ color: '#388bfd' }}>₹{product.selling_price}</p>
+                            {qty > 0 && (
+                              <p className="text-sm mt-0.5 flex items-center gap-1 justify-end" style={{ color: '#3fb950' }}>
+                                <Plus className="w-3.5 h-3.5" /> Add
+                              </p>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
               </div>
+            )}
+
+            {/* Hint */}
+            {searchTerm.length === 0 && (
+              <p className="mt-2 text-sm" style={{ color: '#6e7681' }}>
+                💡 Type to search products — press Enter or click to add
+              </p>
             )}
           </div>
 
           {/* Customer Details */}
-          <div id="customer-section" className="bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-2xl border border-blue-200 dark:border-blue-600 p-4 sm:p-6">
-            <h3 className="text-base font-bold text-secondary-900 dark:text-secondary-100 mb-3 flex items-center gap-2">
-              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div id="customer-section" className="rounded-2xl p-6" style={{ backgroundColor: '#161b22', border: '1px solid #30363d', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' }}>
+            <h3 className="text-base font-bold mb-4 flex items-center gap-2" style={{ color: '#e6edf3' }}>
+              <svg className="w-5 h-5" style={{ color: '#388bfd' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
               Customer Details
-              <span className="text-red-500 text-xs font-normal">(Required to preview)</span>
+              <span className="text-xs font-normal ml-1" style={{ color: '#f85149' }}>(Required to preview)</span>
             </h3>
             {existingCustomer && (
-              <div className="mb-3 p-3 bg-blue-100 dark:bg-blue-900/30 border border-blue-300 dark:border-blue-700 rounded-lg">
-                <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">✓ Existing Customer Found</p>
-                <p className="text-sm text-blue-700 dark:text-blue-400">Previous Due: ₹{parseFloat(existingCustomer.total_due).toFixed(2)}</p>
+              <div className="mb-4 p-3 rounded-xl" style={{ backgroundColor: 'rgba(37,99,235,0.1)', border: '1px solid rgba(56,139,253,0.3)' }}>
+                <p className="text-sm font-semibold" style={{ color: '#388bfd' }}>✓ Existing Customer Found</p>
+                <p className="text-sm" style={{ color: '#8b949e' }}>Previous Due: ₹{parseFloat(existingCustomer.total_due).toFixed(2)}</p>
               </div>
             )}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer Name <span className="text-red-500">*</span></label>
                 <input type="text" placeholder="Customer Name" value={customerDetails.name}
@@ -1627,115 +1303,407 @@ const Billing = () => {
           </div>
 
           <div className="h-4" />
-        </div>{/* end left grid */}
-        </div>{/* end left column */}
 
-        {/* RIGHT COLUMN - Fixed, own scroll */}
-        <div className="w-80 xl:w-96 flex-shrink-0 flex flex-col border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
-          {/* Scrollable items list */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            <h2 className="text-base font-bold text-secondary-900 dark:text-secondary-100 flex items-center gap-2 sticky top-0 bg-white dark:bg-gray-800 py-2 z-10 border-b border-gray-100 dark:border-gray-700">
-              <Receipt className="w-4 h-4 text-blue-600" />
-              {t('billing.currentBill')}
-            </h2>
+          {/* ── RECENT BILLS ──────────────────────────────────────────── */}
+          <div
+            className="rounded-2xl overflow-hidden"
+            style={{ border: '1px solid rgba(59,130,246,0.2)', backgroundColor: 'rgba(22,27,34,0.6)', backdropFilter: 'blur(12px)' }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid rgba(59,130,246,0.15)' }}>
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#2563eb,#3b82f6)' }}>
+                  <Clock className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-secondary-900 dark:text-white">Recent Bills</h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Last {recentBills.length} transactions</p>
+                </div>
+              </div>
+              <button
+                onClick={fetchRecentBills}
+                className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors"
+                style={{ color: '#3b82f6', background: 'rgba(59,130,246,0.1)' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(59,130,246,0.2)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(59,130,246,0.1)'}
+              >
+                ↻ Refresh
+              </button>
+            </div>
 
-            {selectedItems.length === 0 ? (
-              <div className="text-center py-12">
-                <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">{t('billing.noItemsAdded')}</p>
+            {/* Content */}
+            {recentLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : recentBills.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500 dark:text-gray-400">
+                <Receipt className="w-7 h-7 mb-2 opacity-40" />
+                <p className="text-xs">No bills yet</p>
               </div>
             ) : (
-              <div className="space-y-2">
-                {selectedItems.map((item) => (
-                  <div key={item.product_id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-xl border border-secondary-200 dark:border-secondary-700">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-secondary-900 dark:text-secondary-100 truncate text-sm">{item.name}</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">₹{item.price} × {item.quantity} = ₹{item.total}</p>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><Minus className="w-3 h-3" /></button>
-                      <input type="number" value={item.quantity} onChange={(e) => updateQuantity(item.product_id, e.target.value)} min="1"
-                        className="w-10 text-center font-semibold text-sm border border-secondary-300 dark:border-secondary-700 rounded bg-white dark:bg-secondary-800 focus:ring-1 focus:ring-blue-500" />
-                      <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"><Plus className="w-3 h-3" /></button>
-                      <button onClick={() => removeFromBill(item.product_id)} className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 className="w-3 h-3" /></button>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-left" style={{ backgroundColor: 'rgba(13,17,23,0.5)', borderBottom: '1px solid rgba(59,130,246,0.1)' }}>
+                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Bill #</th>
+                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Customer</th>
+                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Amount</th>
+                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Status</th>
+                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Date</th>
+                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentBills.map((bill, idx) => {
+                      const sc =
+                        bill.status === 'PAID'    ? '#3fb950' :
+                        bill.status === 'PARTIAL' ? '#f0883e' :
+                        bill.status === 'UNPAID'  ? '#f85149' : '#8b949e';
+                      return (
+                        <tr
+                          key={bill.id}
+                          style={{ borderBottom: idx < recentBills.length - 1 ? '1px solid rgba(59,130,246,0.08)' : 'none' }}
+                          className="hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
+                        >
+                          <td className="px-3 py-2.5 font-mono font-semibold" style={{ color: '#3b82f6' }}>#{bill.bill_number}</td>
+                          <td className="px-3 py-2.5 text-gray-700 dark:text-gray-300 max-w-[90px] truncate">
+                            {bill.customer_name || 'Walk-in'}
+                          </td>
+                          <td className="px-3 py-2.5 font-bold text-gray-900 dark:text-white">
+                            ₹{Number(bill.total_amount).toLocaleString('en-IN')}
+                            {bill.due_amount > 0 && (
+                              <span className="block text-[10px] font-normal" style={{ color: '#f85149' }}>
+                                Due: ₹{Number(bill.due_amount).toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2.5">
+                            <span
+                              className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                              style={{ backgroundColor: `${sc}18`, color: sc, border: `1px solid ${sc}33` }}
+                            >
+                              {bill.status}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2.5 text-gray-500 dark:text-gray-400">
+                            {new Date(bill.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                          </td>
+                          {/* Actions: View + Edit + Download */}
+                          <td className="px-3 py-2.5">
+                            <div className="flex items-center justify-center gap-1">
+                              {/* View */}
+                              <button
+                                onClick={() => openBillView(bill)}
+                                className="p-1 rounded transition-colors"
+                                style={{ color: '#8b949e' }}
+                                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(139,92,246,0.1)'; e.currentTarget.style.color = '#a78bfa'; }}
+                                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#8b949e'; }}
+                                title="View Bill"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                              {/* Edit */}
+                              {bill.status !== 'CANCELLED' && (
+                                <button
+                                  onClick={() => openBillEdit(bill)}
+                                  className="p-1 rounded transition-colors"
+                                  style={{ color: '#8b949e' }}
+                                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.1)'; e.currentTarget.style.color = '#3b82f6'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#8b949e'; }}
+                                  title="Edit Bill"
+                                >
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              {/* Download */}
+                              <button
+                                onClick={() => downloadBillPDF(bill.id, bill.bill_number)}
+                                disabled={downloadingId === bill.id}
+                                className="p-1 rounded transition-colors disabled:opacity-50"
+                                style={{ color: '#8b949e' }}
+                                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.1)'; e.currentTarget.style.color = '#3b82f6'; }}
+                                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#8b949e'; }}
+                                title="Download PDF"
+                              >
+                                {downloadingId === bill.id
+                                  ? <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                  : <Download className="w-3.5 h-3.5" />
+                                }
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
+          </div>
 
-            {/* Bill Preview */}
-            {previewData && (
-              <div className="mt-3 bg-gradient-to-br from-blue-50 to-blue-50 dark:from-blue-900/20 dark:to-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-600 p-4">
-                <h3 className="text-sm font-bold text-secondary-900 dark:text-secondary-100 mb-3 flex items-center gap-2">
-                  <Receipt className="w-4 h-4 text-blue-600" />
-                  {t('billing.billPreview')}
-                </h3>
-                {(customerDetails.name || customerDetails.phone) && (
-                  <div className="mb-3 pb-2 border-b border-blue-200 dark:border-blue-500">
-                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">Customer:</p>
-                    {customerDetails.name && <p className="text-xs text-gray-600 dark:text-gray-400">{customerDetails.name}</p>}
-                    {customerDetails.phone && <p className="text-xs text-gray-600 dark:text-gray-400">{customerDetails.phone}</p>}
+          <div className="h-4" />
+        </div>{/* end left grid */}
+
+          {/* ── CART ITEMS + PREVIEW + ACTIONS (inline, full width) ─────── */}
+          {selectedItems.length > 0 && (
+            <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #30363d', backgroundColor: '#161b22', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+              {/* Cart header */}
+              <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #21262d', background: 'linear-gradient(135deg,rgba(31,111,235,0.1),rgba(56,139,253,0.05))' }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1f6feb,#388bfd)' }}>
+                    <ShoppingCart className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <span className="text-base font-bold" style={{ color: '#e6edf3' }}>
+                      Cart — {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''}
+                    </span>
+                    <p className="text-xs" style={{ color: '#6e7681' }}>Review before preview</p>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedItems([])}
+                  className="text-sm font-semibold px-3 py-1.5 rounded-lg transition-colors"
+                  style={{ color: '#f85149', border: '1px solid rgba(248,81,73,0.3)' }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(248,81,73,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                  🗑 Clear all
+                </button>
+              </div>
+
+              {/* Items table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr style={{ backgroundColor: '#0d1117', borderBottom: '1px solid #21262d' }}>
+                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Item</th>
+                      <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Qty</th>
+                      <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Unit Price</th>
+                      <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Total</th>
+                      <th className="px-6 py-3 w-12"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedItems.map((item, idx) => (
+                      <tr key={item.product_id} style={{ borderBottom: idx < selectedItems.length - 1 ? '1px solid #21262d' : 'none' }}>
+                        <td className="px-6 py-4 font-medium text-base" style={{ color: '#e6edf3' }}>{item.name}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors"
+                              style={{ color: '#8b949e', border: '1px solid #21262d' }}
+                              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#21262d'}
+                              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                              −
+                            </button>
+                            <input type="number" value={item.quantity}
+                              onChange={e => updateQuantity(item.product_id, e.target.value)}
+                              min="1" className="w-16 text-center text-base font-bold rounded-lg py-1"
+                              style={{ backgroundColor: '#0d1117', border: '1px solid #21262d', color: '#e6edf3' }} />
+                            <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors"
+                              style={{ color: '#8b949e', border: '1px solid #21262d' }}
+                              onMouseEnter={e => e.currentTarget.style.backgroundColor = '#21262d'}
+                              onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm" style={{ color: '#8b949e' }}>₹{item.price}</td>
+                        <td className="px-6 py-4 text-right text-base font-bold" style={{ color: '#388bfd' }}>₹{Number(item.total).toFixed(2)}</td>
+                        <td className="px-6 py-4">
+                          <button onClick={() => removeFromBill(item.product_id)}
+                            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                            style={{ color: '#f85149' }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(248,81,73,0.1)'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Totals */}
+              <div className="px-6 py-5 space-y-2.5" style={{ borderTop: '1px solid #21262d', backgroundColor: 'rgba(13,17,23,0.6)' }}>
+                <div className="flex justify-between text-sm" style={{ color: '#8b949e' }}>
+                  <span>Subtotal</span><span className="font-semibold" style={{ color: '#e6edf3' }}>₹{calculateTotal().toFixed(2)}</span>
+                </div>
+                {previewData && (
+                  <>
+                    {previewData.gst_amount && (
+                      <div className="flex justify-between text-sm" style={{ color: '#8b949e' }}>
+                        <span>GST ({previewData.gst_percentage}%)</span>
+                        <span className="font-semibold" style={{ color: '#388bfd' }}>+₹{previewData.gst_amount}</span>
+                      </div>
+                    )}
+                    {previewData.discount_amount && (
+                      <div className="flex justify-between text-sm" style={{ color: '#8b949e' }}>
+                        <span>Discount</span>
+                        <span className="font-semibold" style={{ color: '#f85149' }}>−₹{previewData.discount_amount}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center font-bold text-xl pt-3" style={{ borderTop: '1px solid #30363d', color: '#e6edf3' }}>
+                      <span>Grand Total</span>
+                      <span style={{ color: '#388bfd', fontSize: '1.4rem' }}>₹{previewData.total_amount}</span>
+                    </div>
+                  </>
+                )}
+                {!previewData && (
+                  <div className="flex justify-between items-center font-bold text-lg pt-2" style={{ borderTop: '1px solid #30363d', color: '#e6edf3' }}>
+                    <span>Estimated Total</span>
+                    <span style={{ color: '#8b949e' }}>₹{calculateTotal().toFixed(2)}</span>
                   </div>
                 )}
-                <div className="space-y-1 mb-3">
-                  {previewData.items.map((item, index) => (
-                    <div key={index} className="flex justify-between text-xs">
-                      <span className="text-gray-600 dark:text-gray-400 truncate mr-2">{item.name} × {item.quantity}</span>
-                      <span className="font-semibold text-secondary-900 dark:text-secondary-100 flex-shrink-0">₹{item.total}</span>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-4 px-6 py-5" style={{ borderTop: '1px solid #21262d' }}>
+                <button
+                  onClick={previewBill}
+                  disabled={previewLoading || !customerDetails.name.trim()}
+                  className="flex-1 py-4 rounded-2xl font-bold text-base text-white transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg,#1f6feb,#388bfd)', boxShadow: '0 4px 16px rgba(31,111,235,0.3)' }}
+                  title={!customerDetails.name.trim() ? 'Enter customer name first' : ''}
+                >
+                  {previewLoading
+                    ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Loading...</>
+                    : <><Receipt className="w-5 h-5" /> Preview Bill</>
+                  }
+                </button>
+
+                {previewData && (
+                  <button
+                    onClick={() => setShowPaymentModal(true)}
+                    className="flex-1 py-4 rounded-2xl font-bold text-base text-white transition-all flex items-center justify-center gap-2"
+                    style={{ background: 'linear-gradient(135deg,#6d28d9,#7c3aed)', boxShadow: '0 4px 16px rgba(109,40,217,0.3)' }}
+                  >
+                    <Receipt className="w-5 h-5" />
+                    Proceed to Payment →
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+        </div>{/* end left column */}
+
+      </div>{/* end single-column layout */}
+
+      {/* ── VIEW MODAL ───────────────────────────────────────────────────── */}
+      {showBillViewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor:'rgba(0,0,0,0.8)',backdropFilter:'blur(4px)' }}>
+          <div className="rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" style={{ backgroundColor:'#161b22',border:'1px solid #21262d' }}>
+            <div className="flex items-center justify-between p-5" style={{ borderBottom:'1px solid #21262d' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'linear-gradient(135deg,#7c3aed,#a78bfa)' }}><Eye className="w-4 h-4 text-white"/></div>
+                <div><h2 className="text-base font-bold" style={{ color:'#e6edf3' }}>Bill #{viewingBill?.bill_number||'…'}</h2><p className="text-xs" style={{ color:'#6e7681' }}>{viewingBill?new Date(viewingBill.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):''}</p></div>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewingBill&&(<span className="text-xs font-semibold px-2 py-1 rounded" style={{ color:viewingBill.status==='PAID'?'#3fb950':viewingBill.status==='PARTIAL'?'#f0883e':'#f85149',background:viewingBill.status==='PAID'?'rgba(63,185,80,0.15)':viewingBill.status==='PARTIAL'?'rgba(240,136,62,0.15)':'rgba(248,81,73,0.15)' }}>{viewingBill.status}</span>)}
+                <button onClick={()=>{setShowBillViewModal(false);setViewingBill(null);}} className="p-1.5 rounded-lg" style={{ color:'#8b949e' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#21262d'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>✕</button>
+              </div>
+            </div>
+            {viewLoading?(<div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"/></div>)
+            :viewingBill&&(
+              <div className="p-5 space-y-4">
+                {viewingBill.customer&&(<div className="rounded-xl p-4" style={{ backgroundColor:'rgba(139,92,246,0.08)',border:'1px solid rgba(139,92,246,0.2)' }}>
+                  <p className="text-xs font-semibold uppercase mb-2" style={{ color:'#a78bfa' }}>Customer</p>
+                  <p className="font-semibold text-sm" style={{ color:'#e6edf3' }}>{viewingBill.customer.name||'Walk-in'}</p>
+                  {viewingBill.customer.phone&&<p className="text-xs mt-0.5" style={{ color:'#8b949e' }}>📞 {viewingBill.customer.phone}</p>}
+                  {viewingBill.customer.total_due>0&&<p className="text-xs mt-1 font-semibold" style={{ color:'#f85149' }}>Total Due: ₹{Number(viewingBill.customer.total_due).toFixed(2)}</p>}
+                </div>)}
+                <div>
+                  <p className="text-xs font-semibold uppercase mb-2" style={{ color:'#8b949e' }}>Items</p>
+                  <div className="rounded-xl overflow-hidden" style={{ border:'1px solid #21262d' }}>
+                    <table className="w-full text-xs">
+                      <thead><tr style={{ backgroundColor:'#0d1117' }}><th className="px-3 py-2 text-left" style={{ color:'#6e7681' }}>Item</th><th className="px-3 py-2 text-center" style={{ color:'#6e7681' }}>Qty</th><th className="px-3 py-2 text-right" style={{ color:'#6e7681' }}>Price</th><th className="px-3 py-2 text-right" style={{ color:'#6e7681' }}>Total</th></tr></thead>
+                      <tbody>{(viewingBill.items||[]).map((item,i)=>(<tr key={i} style={{ borderTop:'1px solid #21262d' }}><td className="px-3 py-2.5 font-medium" style={{ color:'#e6edf3' }}>{item.product_name||'Item'}</td><td className="px-3 py-2.5 text-center" style={{ color:'#8b949e' }}>{item.quantity}</td><td className="px-3 py-2.5 text-right" style={{ color:'#8b949e' }}>₹{Number(item.unit_price).toFixed(2)}</td><td className="px-3 py-2.5 text-right font-semibold" style={{ color:'#e6edf3' }}>₹{Number(item.total).toFixed(2)}</td></tr>))}</tbody>
+                    </table>
+                  </div>
+                </div>
+                <div className="rounded-xl p-4 space-y-1.5" style={{ backgroundColor:'#0d1117',border:'1px solid #21262d' }}>
+                  <div className="flex justify-between text-xs" style={{ color:'#8b949e' }}><span>Subtotal</span><span>₹{Number(viewingBill.subtotal_amount||0).toFixed(2)}</span></div>
+                  {viewingBill.gst_percentage>0&&<div className="flex justify-between text-xs" style={{ color:'#8b949e' }}><span>GST ({viewingBill.gst_percentage}%)</span><span>₹{Number(viewingBill.gst_amount||0).toFixed(2)}</span></div>}
+                  {viewingBill.discount_amount>0&&<div className="flex justify-between text-xs" style={{ color:'#f0883e' }}><span>Discount</span><span>-₹{Number(viewingBill.discount_amount).toFixed(2)}</span></div>}
+                  <div className="flex justify-between font-bold text-sm pt-1" style={{ color:'#e6edf3',borderTop:'1px solid #21262d' }}><span>Grand Total</span><span style={{ color:'#3b82f6' }}>₹{Number(viewingBill.total_amount).toFixed(2)}</span></div>
+                  <div className="flex justify-between text-xs" style={{ color:'#3fb950' }}><span>Paid</span><span>₹{Number(viewingBill.paid_amount||0).toFixed(2)}</span></div>
+                  {viewingBill.due_amount>0&&<div className="flex justify-between text-xs font-semibold" style={{ color:'#f85149' }}><span>Balance Due</span><span>₹{Number(viewingBill.due_amount).toFixed(2)}</span></div>}
+                </div>
+                {(viewingBill.payments||[]).length>0&&(<div>
+                  <p className="text-xs font-semibold uppercase mb-2" style={{ color:'#8b949e' }}>Payments</p>
+                  <div className="space-y-1.5">{viewingBill.payments.map((p,i)=>(<div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg" style={{ backgroundColor:'#0d1117',border:'1px solid #21262d' }}><span className="text-xs font-semibold uppercase" style={{ color:'#3b82f6' }}>{p.payment_mode}</span>{p.reference_id&&<span className="text-xs" style={{ color:'#6e7681' }}>Ref: {p.reference_id}</span>}<span className="text-xs font-bold" style={{ color:'#e6edf3' }}>₹{Number(p.amount).toFixed(2)}</span></div>))}</div>
+                </div>)}
+              </div>
+            )}
+            <div className="flex gap-3 p-5" style={{ borderTop:'1px solid #21262d' }}>
+              <button onClick={()=>{setShowBillViewModal(false);setViewingBill(null);}} className="flex-1 py-2.5 rounded-xl font-medium text-sm" style={{ border:'1px solid #30363d',color:'#8b949e' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#21262d'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>Close</button>
+              {viewingBill&&viewingBill.status!=='CANCELLED'&&(<button onClick={()=>{setShowBillViewModal(false);openBillEdit(viewingBill);}} className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white" style={{ background:'linear-gradient(135deg,#2563eb,#3b82f6)' }}>✏️ Edit This Bill</button>)}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── EDIT MODAL ───────────────────────────────────────────────────── */}
+      {showBillEditModal && editingBill && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor:'rgba(0,0,0,0.8)',backdropFilter:'blur(4px)' }}>
+          <div className="rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" style={{ backgroundColor:'#161b22',border:'1px solid #21262d' }}>
+            <div className="flex items-center justify-between p-5" style={{ borderBottom:'1px solid #21262d' }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'linear-gradient(135deg,#2563eb,#3b82f6)' }}><Edit className="w-4 h-4 text-white"/></div>
+                <div><h2 className="text-base font-bold" style={{ color:'#e6edf3' }}>Edit Bill #{editingBill.bill_number}</h2><p className="text-xs" style={{ color:'#6e7681' }}>Modify items, prices, customer</p></div>
+              </div>
+              <button onClick={()=>setShowBillEditModal(false)} className="p-2 rounded-lg" style={{ color:'#8b949e' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#21262d'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>✕</button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div><p className="text-xs font-semibold uppercase mb-2" style={{ color:'#8b949e' }}>Customer</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <input className="input-field" placeholder="Customer Name" value={editMeta.customer_name} onChange={e=>setEditMeta(p=>({...p,customer_name:e.target.value}))}/>
+                  <input className="input-field" placeholder="Phone" value={editMeta.customer_phone} onChange={e=>setEditMeta(p=>({...p,customer_phone:e.target.value}))}/>
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-semibold uppercase" style={{ color:'#8b949e' }}>Items</p>
+                  <button onClick={()=>setEditItems(p=>[...p,{product_id:null,item_name:'',price:'',quantity:1}])} className="text-xs font-semibold px-2.5 py-1 rounded-lg" style={{ color:'#3b82f6',background:'rgba(59,130,246,0.1)' }}>+ Add Item</button>
+                </div>
+                <div className="space-y-2">
+                  {editItems.map((item,idx)=>(
+                    <div key={idx} className="grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-5">
+                        <select className="input-field text-sm" value={item.product_id||''} onChange={e=>updateEditItem(idx,'product_id',e.target.value?parseInt(e.target.value):null)}>
+                          <option value="">— Custom —</option>
+                          {products.map(p=><option key={p.id} value={p.id}>{p.product_name}</option>)}
+                        </select>
+                        {!item.product_id&&<input className="input-field text-sm mt-1" placeholder="Item name *" value={item.item_name} onChange={e=>updateEditItem(idx,'item_name',e.target.value)}/>}
+                      </div>
+                      <input className="input-field text-sm col-span-2" type="number" min="0.01" step="any" placeholder="Qty" value={item.quantity} onChange={e=>updateEditItem(idx,'quantity',e.target.value)}/>
+                      <input className="input-field text-sm col-span-3" type="number" min="0" step="any" placeholder="₹ Price" value={item.price} onChange={e=>updateEditItem(idx,'price',e.target.value)}/>
+                      <span className="col-span-1 text-xs font-bold text-center" style={{ color:'#3b82f6' }}>₹{((parseFloat(item.price)||0)*(parseFloat(item.quantity)||0)).toFixed(0)}</span>
+                      <button onClick={()=>setEditItems(p=>p.filter((_,i)=>i!==idx))} className="col-span-1 p-1.5 rounded" style={{ color:'#f85149' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='rgba(248,81,73,0.1)'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>✕</button>
                     </div>
                   ))}
                 </div>
-                <div className="border-t border-blue-200 dark:border-blue-500 pt-2 space-y-1">
-                  <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">Subtotal:</span><span className="font-semibold">₹{previewData.subtotal || previewData.total_amount}</span></div>
-                  {previewData.gst_amount && <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">GST ({previewData.gst_percentage}%):</span><span className="font-semibold text-blue-600">+₹{previewData.gst_amount}</span></div>}
-                  {previewData.discount_amount && <div className="flex justify-between text-xs"><span className="text-gray-600 dark:text-gray-400">Discount:</span><span className="font-semibold text-red-600">-₹{previewData.discount_amount}</span></div>}
-                  <div className="flex justify-between items-center pt-1 border-t border-blue-300 dark:border-blue-600">
-                    <span className="text-sm font-bold text-secondary-900 dark:text-secondary-100">Total:</span>
-                    <span className="text-lg font-black text-blue-600">₹{previewData.total_amount}</span>
-                  </div>
+              </div>
+              <div><p className="text-xs font-semibold uppercase mb-2" style={{ color:'#8b949e' }}>Tax & Discount</p>
+                <div className="grid grid-cols-3 gap-3">
+                  <div><label className="text-xs mb-1 block" style={{ color:'#6e7681' }}>GST %</label><input className="input-field" type="number" min="0" max="28" placeholder="0" value={editMeta.gst_percentage} onChange={e=>setEditMeta(p=>({...p,gst_percentage:e.target.value}))}/></div>
+                  <div><label className="text-xs mb-1 block" style={{ color:'#6e7681' }}>Discount Type</label><select className="input-field" value={editMeta.discount_type} onChange={e=>setEditMeta(p=>({...p,discount_type:e.target.value}))}><option value="">None</option><option value="percentage">Percentage</option><option value="fixed">Fixed ₹</option></select></div>
+                  <div><label className="text-xs mb-1 block" style={{ color:'#6e7681' }}>Value</label><input className="input-field" type="number" min="0" placeholder="0" disabled={!editMeta.discount_type} value={editMeta.discount_value} onChange={e=>setEditMeta(p=>({...p,discount_value:e.target.value}))}/></div>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Bottom actions - always visible */}
-          <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 space-y-3">
-            {selectedItems.length > 0 && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600 dark:text-gray-400">{t('billing.subtotal')}:</span>
-                <span className="text-xl font-bold text-secondary-900 dark:text-secondary-100">₹{calculateTotal().toFixed(2)}</span>
-              </div>
-            )}
-
-            <button
-              onClick={previewBill}
-              disabled={previewLoading || selectedItems.length === 0}
-              className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium shadow-md transition-all duration-300 text-sm
-                ${!customerDetails.name.trim() || selectedItems.length === 0
-                  ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-600 to-blue-600 hover:from-blue-700 hover:to-blue-700 text-white hover:shadow-lg'
-                }`}
-            >
-              {previewLoading ? t('common.loading') : (
-                !customerDetails.name.trim() && selectedItems.length > 0
-                  ? '⚠ Enter customer name first'
-                  : t('billing.previewBill')
-              )}
-            </button>
-
-            {previewData && (
-              <button
-                onClick={() => setShowPaymentModal(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-md hover:shadow-lg transition-all duration-300 text-sm"
-              >
-                <Receipt className="w-4 h-4" />
-                {t('billing.proceedToPayment')}
+              {(()=>{const{sub,gst,total}=calcEditTotal();return(<div className="rounded-xl p-4 space-y-1" style={{ backgroundColor:'#0d1117',border:'1px solid #21262d' }}><div className="flex justify-between text-xs" style={{ color:'#8b949e' }}><span>Subtotal</span><span>₹{sub}</span></div>{parseFloat(editMeta.gst_percentage)>0&&<div className="flex justify-between text-xs" style={{ color:'#8b949e' }}><span>GST ({editMeta.gst_percentage}%)</span><span>₹{gst}</span></div>}<div className="flex justify-between font-bold text-sm pt-1" style={{ color:'#e6edf3',borderTop:'1px solid #21262d' }}><span>New Total</span><span style={{ color:'#3b82f6' }}>₹{total}</span></div></div>);})()}
+            </div>
+            <div className="flex gap-3 p-5" style={{ borderTop:'1px solid #21262d' }}>
+              <button onClick={()=>setShowBillEditModal(false)} className="flex-1 py-2.5 rounded-xl font-medium text-sm" style={{ border:'1px solid #30363d',color:'#8b949e' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#21262d'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>Cancel</button>
+              <button onClick={saveBillEdit} disabled={editSaving} className="flex-1 py-2.5 rounded-xl font-semibold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-50" style={{ background:'linear-gradient(135deg,#2563eb,#3b82f6)' }}>
+                {editSaving?<><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/>Saving...</>:'✓ Save Changes'}
               </button>
-            )}
+            </div>
           </div>
-        </div>{/* end right column */}
-      </div>{/* end two-column */}
+        </div>
+      )}
 
       {/* ✅ SIMPLE Payment Modal - Dark Mode Friendly */}
       {showPaymentModal && (
