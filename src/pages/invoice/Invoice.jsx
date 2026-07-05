@@ -227,13 +227,35 @@ const Invoice = () => {
     }));
 
     const gstPct = bill.gst_percentage || 0;
+    const ROW_H_INV = 6;
+    const PAGE_BOTTOM_INV = PH - 25;
+    let tblPageStartInv = Y;
+
+    const drawTblHdrInv = (startY) => {
+      sc(BLUE, 'fill'); doc.rect(M, startY, CW, TH_H, 'F');
+      sc(WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+      cols.forEach(c => {
+        const tx = c.align === 'right' ? c.x + c.w - 1.5 : c.align === 'center' ? c.x + c.w / 2 : c.x + 1.5;
+        doc.text(c.hdr, tx, startY + 4.8, { align: c.align });
+      });
+      return startY + TH_H;
+    };
+
+    tblPageStartInv = Y;
+    Y = drawTblHdrInv(Y);
 
     items.forEach((item, idx) => {
-      if (Y > PH - 40) { doc.addPage(); Y = M; }
-      const ROW_H = 6;
+      if (Y + ROW_H_INV > PAGE_BOTTOM_INV) {
+        sc(BORD, 'draw'); doc.setLineWidth(0.4);
+        doc.rect(M, tblPageStartInv, CW, Y - tblPageStartInv, 'D');
+        doc.addPage();
+        Y = M;
+        tblPageStartInv = Y;
+        Y = drawTblHdrInv(Y);
+      }
       const bg = idx % 2 === 0 ? WHITE : BGGY;
       sc(bg, 'fill'); sc(BORD, 'draw'); doc.setLineWidth(0.2);
-      doc.rect(M, Y, CW, ROW_H, 'FD');
+      doc.rect(M, Y, CW, ROW_H_INV, 'FD');
       const vals = {
         sno:  String(idx + 1),
         desc: (item.name || '').substring(0, 40),
@@ -248,11 +270,11 @@ const Invoice = () => {
         const tx = c.align === 'right' ? c.x + c.w - 1.5 : c.align === 'center' ? c.x + c.w / 2 : c.x + 1.5;
         doc.text(vals[c.key] || '', tx, Y + 4, { align: c.align });
       });
-      Y += ROW_H;
+      Y += ROW_H_INV;
     });
 
     sc(BORD, 'draw'); doc.setLineWidth(0.4);
-    doc.rect(M, Y - items.length * 6 - TH_H, CW, TH_H + items.length * 6, 'D');
+    doc.rect(M, tblPageStartInv, CW, Y - tblPageStartInv, 'D');
     Y += 3;
 
     // ── 5. TOTALS ────────────────────────────────────────────────────────────

@@ -17,7 +17,13 @@ const Billing = () => {
   const { t } = useTranslation();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [selectedItems, setSelectedItems] = useState([]);
+  const [selectedItems, setSelectedItems] = useState(() => {
+    // ✅ Restore draft from localStorage on mount
+    try {
+      const saved = localStorage.getItem('billing_draft_items');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
   const [previewData, setPreviewData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -27,10 +33,11 @@ const Billing = () => {
   const [shop, setShop] = useState(null);
 
   // ✅ NEW: Customer details state (with address)
-  const [customerDetails, setCustomerDetails] = useState({
-    name: '',
-    phone: '',
-    address: '', // ✅ Added address field
+  const [customerDetails, setCustomerDetails] = useState(() => {
+    try {
+      const saved = localStorage.getItem('billing_draft_customer');
+      return saved ? JSON.parse(saved) : { name: '', phone: '', address: '' };
+    } catch { return { name: '', phone: '', address: '' }; }
   });
   const [existingCustomer, setExistingCustomer] = useState(null);
   const [searchingCustomer, setSearchingCustomer] = useState(false);
@@ -88,6 +95,23 @@ const Billing = () => {
     fetchShop();
     fetchRecentBills(); // ✅ Load recent bills on mount
   }, []);
+
+  // ✅ Auto-save draft to localStorage whenever items or customer change
+  useEffect(() => {
+    if (selectedItems.length > 0) {
+      localStorage.setItem('billing_draft_items', JSON.stringify(selectedItems));
+    } else {
+      localStorage.removeItem('billing_draft_items');
+    }
+  }, [selectedItems]);
+
+  useEffect(() => {
+    if (customerDetails.name || customerDetails.phone) {
+      localStorage.setItem('billing_draft_customer', JSON.stringify(customerDetails));
+    } else {
+      localStorage.removeItem('billing_draft_customer');
+    }
+  }, [customerDetails]);
 
 
   useEffect(() => {
@@ -552,6 +576,9 @@ const Billing = () => {
       setDiscountType('percentage');
       setDiscountValue(''); // Empty string instead of 0
       fetchRecentBills(); // ✅ Refresh recent bills
+      // ✅ Clear draft from localStorage after successful bill creation
+      localStorage.removeItem('billing_draft_items');
+      localStorage.removeItem('billing_draft_customer');
     } catch (error) {
       const errorMsg = error.response?.data?.error || error.response?.data?.message || 'Failed to create bill';
       toast.error(errorMsg, { id: progressToast });
@@ -692,20 +719,53 @@ const Billing = () => {
     });
     Y += TH_H;
 
-    // Data rows
+    // Data rows — with proper multi-page support
     const items = billData.items || previewData?.items || [];
     const gstPct = billData.gst_percentage || 0;
+    const ROW_H  = 6;
+    const PAGE_BOTTOM = PH - 25; // leave 25mm for footer margin
+
+    // Draw table column headers
+    const drawTblHeader = (startY) => {
+      setColor(BLUE, 'fill');
+      doc.rect(M, startY, CW, TH_H, 'F');
+      setColor(WHITE);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      cols.forEach(c => {
+        const tx = c.align === 'right' ? c.x + c.w - 1.5
+                 : c.align === 'center' ? c.x + c.w / 2
+                 : c.x + 1.5;
+        doc.text(c.hdr, tx, startY + 4.8, { align: c.align });
+      });
+      return startY + TH_H;
+    };
+
+    // Track where the table on current page started (for border drawing)
+    let tblPageStart = Y;
+    Y = drawTblHeader(Y);
 
     items.forEach((item, idx) => {
-      if (Y > PH - 40) { doc.addPage(); Y = M; }
+      // Need a new page?
+      if (Y + ROW_H > PAGE_BOTTOM) {
+        // Draw border around rows on this page
+        setColor(BORD, 'draw');
+        doc.setLineWidth(0.4);
+        doc.rect(M, tblPageStart, CW, Y - tblPageStart, 'D');
 
-      const ROW_H = 6;
+        doc.addPage();
+        Y = M;
+        tblPageStart = Y;
+        Y = drawTblHeader(Y); // repeat header
+      }
+
       const rowBg = idx % 2 === 0 ? WHITE : BGGY;
-      setColor(rowBg, 'fill'); setColor(BORD, 'draw');
+      setColor(rowBg, 'fill');
+      setColor(BORD, 'draw');
       doc.setLineWidth(0.2);
       doc.rect(M, Y, CW, ROW_H, 'FD');
 
-      const itemTotal = parseFloat(item.total || item.price * item.quantity);
+      const itemTotal = parseFloat(item.total || item.price * item.quantity || 0);
       const vals = {
         sno:  String(idx + 1),
         desc: (item.name || '').substring(0, 40),
@@ -719,16 +779,18 @@ const Billing = () => {
       cols.forEach(c => {
         doc.setFont('helvetica', c.key === 'desc' ? 'bold' : 'normal');
         doc.setFontSize(7.5);
-        doc.text(vals[c.key] || '', c.align === 'right' ? c.x + c.w - 1.5 : c.align === 'center' ? c.x + c.w / 2 : c.x + 1.5,
-          Y + 4, { align: c.align });
+        const tx = c.align === 'right' ? c.x + c.w - 1.5
+                 : c.align === 'center' ? c.x + c.w / 2
+                 : c.x + 1.5;
+        doc.text(vals[c.key] || '', tx, Y + 4, { align: c.align });
       });
       Y += ROW_H;
     });
 
-    // Table border
+    // Final border for last page table
     setColor(BORD, 'draw');
     doc.setLineWidth(0.4);
-    doc.rect(M, Y - items.length * 6 - TH_H, CW, TH_H + items.length * 6, 'D');
+    doc.rect(M, tblPageStart, CW, Y - tblPageStart, 'D');
     Y += 3;
 
     // ── 5. TOTALS ─────────────────────────────────────────────────────────────
@@ -1458,7 +1520,10 @@ const Billing = () => {
                     <span className="text-base font-bold" style={{ color: '#e6edf3' }}>
                       Cart — {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''}
                     </span>
-                    <p className="text-xs" style={{ color: '#6e7681' }}>Review before preview</p>
+                    <p className="text-xs flex items-center gap-1" style={{ color: '#3fb950' }}>
+                      <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: '#3fb950' }} />
+                      Draft auto-saved
+                    </p>
                   </div>
                 </div>
                 <button onClick={() => setSelectedItems([])}
