@@ -979,7 +979,7 @@ const Billing = () => {
               }}
             >
               <Plus className={`w-4 h-4 transition-transform duration-200 ${showManualItem ? 'rotate-45' : ''}`} />
-              {showManualItem ? 'Cancel' : '+ Add Manual Item'}
+              {showManualItem ? 'Cancel' : ' Add Manual Item'}
             </button>
           </div>
         </div>
