@@ -208,15 +208,6 @@ const Invoice = () => {
       { key: 'amt',  hdr: 'AMOUNT',      x: M + 145, w: (M + CW) - (M + 145), align: 'right' },
     ];
 
-    const TH_H = 7;
-    sc(BLUE, 'fill'); doc.rect(M, Y, CW, TH_H, 'F');
-    sc(WHITE); doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
-    cols.forEach(c => {
-      const tx = c.align === 'right' ? c.x + c.w - 1.5 : c.align === 'center' ? c.x + c.w / 2 : c.x + 1.5;
-      doc.text(c.hdr, tx, Y + 4.8, { align: c.align });
-    });
-    Y += TH_H;
-
     // parse items from BillItems
     const rawItems = bill.BillItems || bill.items || [];
     const items = rawItems.map(item => ({
@@ -228,6 +219,7 @@ const Invoice = () => {
 
     const gstPct = bill.gst_percentage || 0;
     const ROW_H_INV = 6;
+    const TH_H = 7;  // ✅ Define TH_H here
     const PAGE_BOTTOM_INV = PH - 25;
     let tblPageStartInv = Y;
 
@@ -258,7 +250,7 @@ const Invoice = () => {
       doc.rect(M, Y, CW, ROW_H_INV, 'FD');
       const vals = {
         sno:  String(idx + 1),
-        desc: (item.name || '').substring(0, 40),
+        desc: (item.name || '').substring(0, 55),
         qty:  String(item.quantity),
         rate: rs(item.price),
         gst:  gstPct > 0 ? `${gstPct}%` : '0%',
@@ -268,7 +260,10 @@ const Invoice = () => {
       cols.forEach(c => {
         doc.setFont('helvetica', c.key === 'desc' ? 'bold' : 'normal'); doc.setFontSize(7.5);
         const tx = c.align === 'right' ? c.x + c.w - 1.5 : c.align === 'center' ? c.x + c.w / 2 : c.x + 1.5;
-        doc.text(vals[c.key] || '', tx, Y + 4, { align: c.align });
+        doc.text(vals[c.key] || '', tx, Y + 4, {
+          align: c.align,
+          maxWidth: c.key === 'desc' ? c.w - 2 : undefined,
+        });
       });
       Y += ROW_H_INV;
     });
@@ -322,47 +317,60 @@ const Invoice = () => {
     sc(BORD, 'draw'); doc.setLineWidth(0.3); doc.line(M, Y, M + CW, Y);
     Y += 5;
 
-    // ── 7. PAYMENT + SIGNATURE ───────────────────────────────────────────────
-    const hasBankInfo = shop?.bank_name || shop?.bank_account_number || shop?.upi_id;
-    const PAY_W   = hasBankInfo ? (CW - 4) / 2 : 0;
-    const SIG_X   = hasBankInfo ? M + PAY_W + 4 : M;
-    const SIG_W   = hasBankInfo ? CW - PAY_W - 4 : CW;
-    const secTopY = Y;
+    // ── 7. SIGNATURE (right corner) + PAYMENT (left) ───────────────────────
+    const SIG_W_B   = 65;
+    const SIG_X_B   = M + CW - SIG_W_B;
+    const secTopYB  = Y;
 
-    if (hasBankInfo) {
-      sc(LBLUE); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-      doc.text('Payment Details:', M, Y); Y += 5;
-      const bLine = (label, val) => {
-        if (!val) return;
-        sc(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
-        doc.text(`${label}: `, M, Y);
-        sc(GREY); doc.text(val, M + doc.getTextWidth(`${label}: `), Y);
-        Y += 4.2;
-      };
-      bLine('Bank',   shop.bank_name);
-      bLine('Branch', shop.bank_branch);
-      bLine('A/C No', shop.bank_account_number);
-      bLine('IFSC',   shop.bank_ifsc);
-      if (shop.upi_id) bLine('UPI', `${shop.upi_id}${shop.upi_name ? ` (${shop.upi_name})` : ''}`);
+    // Payment details
+    sc(LBLUE); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    doc.text('Payment Details:', M, Y); Y += 5;
+    const bPmtLine = (label, val, color) => {
+      sc(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+      doc.text(`${label}: `, M, Y);
+      sc(color || GREY);
+      doc.text(val, M + doc.getTextWidth(`${label}: `), Y);
+      Y += 4.2;
+    };
+
+    const bPaidAmt = parseFloat(bill.paid_amount || 0);
+    const bDueAmt  = parseFloat(bill.due_amount  || 0);
+    const bPmts    = bill.BillPayments || bill.payments || [];
+    bPmts.forEach(p => {
+      const mode = (p.payment_mode || p.mode || '').toUpperCase();
+      if (mode && mode !== 'CREDIT') bPmtLine(mode, rs(p.amount || p.amount));
+    });
+
+    if (bDueAmt > 0.01) {
+      bPmtLine('PAID', rs(bPaidAmt), GREEN);
+      bPmtLine('BALANCE DUE', rs(bDueAmt), RED);
+    } else {
+      bPmtLine('TOTAL PAID', rs(bill.total_amount), GREEN);
     }
 
-    // Signature block
-    sc(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-    doc.text('Authorised Signatory', SIG_X + SIG_W / 2, secTopY, { align: 'center' });
+    // Signature — right corner box
+    sc(BORD, 'draw'); doc.setLineWidth(0.3);
+    doc.rect(SIG_X_B, secTopYB, SIG_W_B, 28, 'D');
+
+    sc(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+    doc.text('Authorised Signatory', SIG_X_B + SIG_W_B / 2, secTopYB + 4, { align: 'center' });
 
     if (shop?.signature_image) {
-      try { doc.addImage(shop.signature_image, 'PNG', SIG_X + SIG_W / 2 - 15, secTopY + 3, 30, 12); }
-      catch (_) { /* skip */ }
+      try {
+        doc.addImage(shop.signature_image, 'PNG', SIG_X_B + SIG_W_B / 2 - 12, secTopYB + 8, 24, 12);
+      } catch (_) { /* skip */ }
     }
 
-    const sigLineY = secTopY + 20;
-    sc(BORD, 'draw'); doc.setLineWidth(0.4);
-    doc.line(SIG_X + 4, sigLineY, SIG_X + SIG_W - 4, sigLineY);
-    sc(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-    doc.text(shop?.authorized_signatory || shop?.shop_name || 'Authorized Signatory',
-      SIG_X + SIG_W / 2, sigLineY + 4, { align: 'center' });
+    sc(BORD, 'draw'); doc.setLineWidth(0.3);
+    doc.line(SIG_X_B + 4, secTopYB + 22, SIG_X_B + SIG_W_B - 4, secTopYB + 22);
+    sc(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(7);
+    doc.text(
+      shop?.authorized_signatory || shop?.shop_name || 'Authorized Signatory',
+      SIG_X_B + SIG_W_B / 2, secTopYB + 24.5,
+      { align: 'center', maxWidth: SIG_W_B - 4 }
+    );
 
-    Y = Math.max(Y, sigLineY + 8) + 6;
+    Y = Math.max(Y, secTopYB + 32) + 6;
 
     // ── 8. TERMS ─────────────────────────────────────────────────────────────
     const effectiveTerms = shop?.terms_and_conditions || 'Goods once sold will not be taken back.';
@@ -374,11 +382,20 @@ const Invoice = () => {
     });
     Y += 3;
 
-    // ── 9. FOOTER ─────────────────────────────────────────────────────────────
-    sc(BORD, 'draw'); doc.setLineWidth(0.3); doc.line(M, Y, M + CW, Y); Y += 4;
-    sc(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
-    doc.text(`This is a computer-generated ${isInvoice ? 'invoice' : 'bill'}. Thank you for your business!`,
-      PW / 2, Y, { align: 'center' });
+    // ── 9. FOOTER — handled by page loop above ───────────────────────────────
+
+    // ── Add footer to ALL pages ───────────────────────────────────────────────
+    const totalPgs = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPgs; p++) {
+      doc.setPage(p);
+      sc(BLUE, 'fill');
+      doc.rect(0, PH - 14, PW, 14, 'F');
+      sc(WHITE); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5);
+      doc.text(
+        `This is a computer-generated ${isInvoice ? 'invoice' : 'bill'}.  |  ${shop?.shop_name || ''}  |  ${shop?.owner_phone || ''}  |  Page ${p} of ${totalPgs}`,
+        PW / 2, PH - 7, { align: 'center', maxWidth: CW }
+      );
+    }
 
     return doc;
   };

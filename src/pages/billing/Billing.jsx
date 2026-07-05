@@ -542,21 +542,19 @@ const Billing = () => {
       // ✅ UPDATE PROGRESS - Generating PDF
       toast.loading('Generating PDF...', { id: progressToast });
       
-      const billDataForPrint = {
-        id: billResponse.bill_id || billResponse.data?.bill_id || 'N/A',
-        items: previewData.items,
-        subtotal: previewData.subtotal || previewData.total_amount,
-        gst_percentage: previewData.gst_percentage,
-        gst_amount: previewData.gst_amount,
-        discount_type: previewData.discount_type,
-        discount_value: previewData.discount_value,
-        discount_amount: previewData.discount_amount,
-        total_amount: previewData.total_amount,
-        payments: payments,
-        customer: customerDetails.name || customerDetails.phone ? customerDetails : null,
-      };
-      
-      printBill(billDataForPrint);
+      // ✅ Use backend PDF generation for consistency (same as download button)
+      const newBillId = billResponse.bill_id || billResponse.data?.bill_id;
+      try {
+        const blob = await invoiceService.generateInvoice(newBillId);
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = `bill-${newBillId}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch (pdfErr) {
+        console.warn('PDF generation failed, bill was created successfully');
+      }
       
       // ✅ FINAL SUCCESS MESSAGE
       toast.success('Bill PDF downloaded!', { id: progressToast });
@@ -707,23 +705,12 @@ const Billing = () => {
     // fix last col width
     cols[5].w = (M + CW) - cols[5].x;
 
-    // Header row
-    const TH_H = 7;
-    setColor(BLUE, 'fill');
-    doc.rect(M, Y, CW, TH_H, 'F');
-    setColor(WHITE);
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
-    cols.forEach(c => {
-      doc.text(c.hdr, c.align === 'right' ? c.x + c.w - 1.5 : c.align === 'center' ? c.x + c.w / 2 : c.x + 1.5,
-        Y + 4.8, { align: c.align });
-    });
-    Y += TH_H;
-
     // Data rows — with proper multi-page support
     const items = billData.items || previewData?.items || [];
     const gstPct = billData.gst_percentage || 0;
     const ROW_H  = 6;
-    const PAGE_BOTTOM = PH - 25; // leave 25mm for footer margin
+    const TH_H   = 7;
+    const PAGE_BOTTOM = PH - 25;
 
     // Draw table column headers
     const drawTblHeader = (startY) => {
@@ -768,7 +755,7 @@ const Billing = () => {
       const itemTotal = parseFloat(item.total || item.price * item.quantity || 0);
       const vals = {
         sno:  String(idx + 1),
-        desc: (item.name || '').substring(0, 40),
+        desc: (item.name || '').substring(0, 55),
         qty:  String(item.quantity),
         rate: rs(item.price),
         gst:  gstPct > 0 ? `${gstPct}%` : '0%',
@@ -782,7 +769,10 @@ const Billing = () => {
         const tx = c.align === 'right' ? c.x + c.w - 1.5
                  : c.align === 'center' ? c.x + c.w / 2
                  : c.x + 1.5;
-        doc.text(vals[c.key] || '', tx, Y + 4, { align: c.align });
+        doc.text(vals[c.key] || '', tx, Y + 4, {
+          align: c.align,
+          maxWidth: c.key === 'desc' ? c.w - 2 : undefined,
+        });
       });
       Y += ROW_H;
     });
@@ -846,44 +836,61 @@ const Billing = () => {
     doc.line(M, Y, M + CW, Y);
     Y += 5;
 
-    // ── 7. PAYMENT + SIGNATURE (two cols) ───────────────────────────────────
-    const PAY_W   = (CW - 4) / 2;
-    const SIG_X   = M + PAY_W + 4;
-    const SIG_W   = CW - PAY_W - 4;
+    // ── 7. SIGNATURE (right corner) + PAYMENT (left) ────────────────────────
+    const SIG_W   = 65;  // signature block width
+    const SIG_X   = M + CW - SIG_W; // pinned to RIGHT
+    const PAY_W   = CW - SIG_W - 8;
     const secTopY = Y;
 
-    // Payment details (left)
+    // Left — Payment details
     setColor(LBLUE); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
     doc.text('Payment Details:', M, Y);
     Y += 5;
     const pmtLine = (label, val, color) => {
       setColor(DARK); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
-      doc.text(`${label}: `, M, Y, { continued: false });
       doc.text(`${label}: `, M, Y);
       setColor(color || GREY);
       doc.text(val, M + doc.getTextWidth(`${label}: `), Y);
       Y += 4.2;
     };
-    (billData.payments || []).forEach(p => pmtLine(p.mode.toUpperCase(), rs(p.amount)));
-    if (dueAmt > 0.01) pmtLine('BALANCE DUE', rs(dueAmt), RED);
 
-    // Signature (right)
-    setColor(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-    doc.text('Authorised Signatory', SIG_X + SIG_W / 2, secTopY, { align: 'center' });
-
-    if (shop?.signature_image) {
-      try { doc.addImage(shop.signature_image, 'PNG', SIG_X + SIG_W / 2 - 15, secTopY + 3, 30, 12); }
-      catch (_) { /* skip */ }
+    // ✅ Show all payments — treat total_amount as PAID (edit ke baad due nhi dikhe)
+    const allPaid = parseFloat(billData.total_amount || 0);
+    (billData.payments || []).forEach(p => {
+      if (p.mode !== 'credit') pmtLine(p.mode.toUpperCase(), rs(p.amount));
+    });
+    // Only show due if explicitly > 0 and > 0.01
+    if (dueAmt > 0.01) {
+      pmtLine('PAID', rs(totalPaid), GREEN);
+      pmtLine('BALANCE DUE', rs(dueAmt), RED);
+    } else {
+      // ✅ Bill fully paid — show total as PAID, no due
+      pmtLine('TOTAL PAID', rs(allPaid), GREEN);
     }
 
-    const sigLineY = secTopY + 20;
-    setColor(BORD, 'draw'); doc.setLineWidth(0.4);
-    doc.line(SIG_X + 4, sigLineY, SIG_X + SIG_W - 4, sigLineY);
-    setColor(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-    doc.text(shop?.authorized_signatory || shop?.shop_name || 'Authorized Signatory',
-      SIG_X + SIG_W / 2, sigLineY + 4, { align: 'center' });
+    // Right — Signature block (right corner)
+    const sigBoxY = secTopY;
+    setColor(BORD, 'draw'); doc.setLineWidth(0.3);
+    doc.rect(SIG_X, sigBoxY, SIG_W, 28, 'D');
 
-    Y = Math.max(Y, sigLineY + 8) + 6;
+    setColor(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+    doc.text('Authorised Signatory', SIG_X + SIG_W / 2, sigBoxY + 4, { align: 'center' });
+
+    if (shop?.signature_image) {
+      try {
+        doc.addImage(shop.signature_image, 'PNG', SIG_X + SIG_W / 2 - 12, sigBoxY + 8, 24, 12);
+      } catch (_) { /* skip */ }
+    }
+
+    setColor(BORD, 'draw'); doc.setLineWidth(0.3);
+    doc.line(SIG_X + 4, sigBoxY + 22, SIG_X + SIG_W - 4, sigBoxY + 22);
+    setColor(DARK); doc.setFont('helvetica', 'bold'); doc.setFontSize(7);
+    doc.text(
+      shop?.authorized_signatory || shop?.shop_name || 'Authorized Signatory',
+      SIG_X + SIG_W / 2, sigBoxY + 24.5, { align: 'center', maxWidth: SIG_W - 4 }
+    );
+
+    Y = Math.max(Y, sigBoxY + 32) + 6;
 
     // ── 8. TERMS ─────────────────────────────────────────────────────────────
     const termsText = shop?.terms_and_conditions || 'Goods once sold will not be taken back.';
@@ -896,12 +903,20 @@ const Billing = () => {
     });
     Y += 3;
 
-    // ── 9. FOOTER ─────────────────────────────────────────────────────────────
-    setColor(BORD, 'draw'); doc.setLineWidth(0.3);
-    doc.line(M, Y, M + CW, Y);
-    Y += 4;
-    setColor(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
-    doc.text('This is a computer-generated bill. Thank you for your business!', PW / 2, Y, { align: 'center' });
+    // ── 9. FOOTER — handled by page loop below ───────────────────────────────
+
+    // ── Add footer to ALL pages ───────────────────────────────────────────────
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      setColor(BLUE, 'fill');
+      doc.rect(0, PH - 14, PW, 14, 'F');
+      setColor(WHITE); doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5);
+      doc.text(
+        `This is a computer-generated bill.  |  ${shop?.shop_name || ''}  |  ${shop?.owner_phone || ''}  |  Page ${p} of ${totalPages}`,
+        PW / 2, PH - 7, { align: 'center', maxWidth: CW }
+      );
+    }
 
     // ── Save ─────────────────────────────────────────────────────────────────
     doc.save(`Bill_${billData.id || Date.now()}.pdf`);
@@ -1509,7 +1524,7 @@ const Billing = () => {
 
           {/* ── CART ITEMS + PREVIEW + ACTIONS (inline, full width) ─────── */}
           {selectedItems.length > 0 && (
-            <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #30363d', backgroundColor: '#161b22', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+            <div id="preview-bill-section" className="rounded-2xl overflow-hidden" style={{ border: '1px solid #30363d', backgroundColor: '#161b22', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
               {/* Cart header */}
               <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid #21262d', background: 'linear-gradient(135deg,rgba(31,111,235,0.1),rgba(56,139,253,0.05))' }}>
                 <div className="flex items-center gap-3">
