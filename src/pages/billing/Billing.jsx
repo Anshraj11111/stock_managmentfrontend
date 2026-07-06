@@ -176,7 +176,7 @@ const Billing = () => {
       setEditingBill(full);
       const rows = (full.BillItems || []).map(item => ({
         product_id: item.product_id || null,
-        item_name:  item.Product?.product_name || '',
+        item_name:  item.Product?.product_name || item.item_name || '',
         price:      item.price,
         quantity:   item.quantity,
       }));
@@ -198,7 +198,13 @@ const Billing = () => {
       const updated = { ...item, [key]: val };
       if (key === 'product_id' && val) {
         const p = products.find(pr => pr.id === parseInt(val));
-        if (p) { updated.item_name = p.product_name; updated.price = p.selling_price; }
+        if (p) { 
+          updated.item_name = p.product_name; 
+          updated.price = p.selling_price; 
+        }
+      } else if (key === 'product_id' && !val) {
+        // Manual item selected, keep existing name and price or reset
+        updated.product_id = null;
       }
       return updated;
     }));
@@ -225,7 +231,7 @@ const Billing = () => {
     try {
       await billService.editBill(editingBill.id, {
         items: validItems.map(i => ({
-          ...(i.product_id ? { product_id: parseInt(i.product_id) } : { item_name: i.item_name }),
+          ...(i.product_id && i.product_id !== 'manual' ? { product_id: parseInt(i.product_id) } : { item_name: i.item_name }),
           price:    parseFloat(i.price),
           quantity: parseFloat(i.quantity) || 1,
         })),
@@ -240,14 +246,14 @@ const Billing = () => {
       setEditingBill(null);
       fetchRecentBills();
 
-      // ✅ Load edited items into selectedItems and auto-preview
-      const previewItems = validItems.map(i => ({
-        product_id: i.product_id || `manual_${Date.now()}_${Math.random()}`,
+      // ✅ Load edited items into selectedItems with proper manual item handling
+      const previewItems = validItems.map((i, index) => ({
+        product_id: i.product_id && i.product_id !== 'manual' ? i.product_id : `manual_${Date.now()}_${index}`,
         name:       i.item_name || '',
         price:      parseFloat(i.price),
         quantity:   parseFloat(i.quantity) || 1,
         total:      parseFloat(i.price) * (parseFloat(i.quantity) || 1),
-        isManual:   !i.product_id,
+        isManual:   !i.product_id || i.product_id === 'manual',
       }));
       setSelectedItems(previewItems);
 
@@ -270,6 +276,31 @@ const Billing = () => {
         setDiscountType(editMeta.discount_type);
         setDiscountValue(editMeta.discount_value);
       }
+
+      // ✅ Set payment mode to show paid amount for editing (no due by default)
+      const totalAmount = previewItems.reduce((sum, item) => sum + item.total, 0);
+      const gstAmount = editMeta.gst_percentage ? (totalAmount * parseFloat(editMeta.gst_percentage)) / 100 : 0;
+      const discountAmount = (editMeta.discount_type && editMeta.discount_value) ? 
+        (editMeta.discount_type === 'percentage' ? 
+          ((totalAmount + gstAmount) * parseFloat(editMeta.discount_value)) / 100 : 
+          parseFloat(editMeta.discount_value)) : 0;
+      const finalTotal = totalAmount + gstAmount - discountAmount;
+      
+      // ✅ Set preview data for payment modal
+      setPreviewData({
+        subtotal: totalAmount,
+        gst_amount: gstAmount > 0 ? gstAmount : null,
+        gst_percentage: editMeta.gst_percentage || null,
+        discount_amount: discountAmount > 0 ? discountAmount : null,
+        discount_type: editMeta.discount_type || null,
+        discount_value: editMeta.discount_value || null,
+        total_amount: finalTotal,
+        items: previewItems
+      });
+      
+      setPaidAmount(finalTotal.toFixed(2));
+      setDueAmount('0');
+      setShowPaymentModal(true);
 
       // Scroll to preview section after short delay
       setTimeout(() => {
@@ -428,6 +459,10 @@ const Billing = () => {
 
       const data = await billService.previewBill(requestData);
       setPreviewData(data);
+      
+      // ✅ Auto-set paid amount to total (full payment by default, no due)
+      setPaidAmount(data.total_amount.toFixed(2));
+      setDueAmount('0');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to preview bill');
     } finally {
@@ -449,7 +484,7 @@ const Billing = () => {
     // ✅ SIMPLE VALIDATION
     const paid = parseFloat(paidAmount) || 0;
     const due = parseFloat(dueAmount) || 0;
-    const total = previewData.total_amount;
+    const total = previewData?.total_amount || 0;
 
     // Check if paid + due = total
     if (Math.abs((paid + due) - total) > 0.01) {
@@ -816,12 +851,6 @@ const Billing = () => {
         `-${rs(billData.discount_amount)}`);
     totalRow('GRAND TOTAL', rs(billData.total_amount), true);
 
-    // Paid / Due
-    const totalPaid = (billData.payments || []).filter(p => p.mode !== 'credit').reduce((s, p) => s + parseFloat(p.amount), 0);
-    const dueAmt    = parseFloat(billData.total_amount) - totalPaid;
-    if (totalPaid > 0)  totalRow('Paid Amount', rs(totalPaid), false, GREEN);
-    if (dueAmt > 0.01)  totalRow('Balance Due',  rs(dueAmt),   false, RED);
-
     Y += 6;
 
     // ── Amount in words ───────────────────────────────────────────────────────
@@ -854,19 +883,10 @@ const Billing = () => {
       Y += 4.2;
     };
 
-    // ✅ Show all payments — treat total_amount as PAID (edit ke baad due nhi dikhe)
-    const allPaid = parseFloat(billData.total_amount || 0);
+    // Left — Payment methods only (no paid/due amounts)
     (billData.payments || []).forEach(p => {
       if (p.mode !== 'credit') pmtLine(p.mode.toUpperCase(), rs(p.amount));
     });
-    // Only show due if explicitly > 0 and > 0.01
-    if (dueAmt > 0.01) {
-      pmtLine('PAID', rs(totalPaid), GREEN);
-      pmtLine('BALANCE DUE', rs(dueAmt), RED);
-    } else {
-      // ✅ Bill fully paid — show total as PAID, no due
-      pmtLine('TOTAL PAID', rs(allPaid), GREEN);
-    }
 
     // Right — Signature block (right corner)
     const sigBoxY = secTopY;
@@ -890,18 +910,57 @@ const Billing = () => {
       SIG_X + SIG_W / 2, sigBoxY + 24.5, { align: 'center', maxWidth: SIG_W - 4 }
     );
 
-    Y = Math.max(Y, sigBoxY + 32) + 6;
+    Y = Math.max(Y, sigBoxY + 32) + 8;
 
     // ── 8. TERMS ─────────────────────────────────────────────────────────────
+    // Ensure we have enough space for terms, if not add a new page
+    const termsHeight = 20; // Estimated height needed for terms
+    if (Y + termsHeight > PAGE_BOTTOM) {
+      // Draw border around current page table if any
+      if (tblPageStart < Y) {
+        setColor(BORD, 'draw');
+        doc.setLineWidth(0.4);
+        doc.rect(M, tblPageStart, CW, Y - tblPageStart, 'D');
+      }
+      
+      doc.addPage();
+      Y = M;
+    }
+
     const termsText = shop?.terms_and_conditions || 'Goods once sold will not be taken back.';
-    setColor(LBLUE); doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    setColor(LBLUE); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
     doc.text('Terms & Conditions:', M, Y);
-    Y += 4;
-    setColor(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
-    termsText.split('\n').forEach(line => {
-      if (line.trim()) { doc.text(`• ${line.trim()}`, M, Y, { maxWidth: CW }); Y += 4; }
+    Y += 6;
+    
+    // Better terms formatting with proper spacing
+    setColor(GREY); doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+    const termLines = termsText.split('\n').filter(line => line.trim());
+    termLines.forEach(line => {
+      if (line.trim()) { 
+        // Add bullet point and proper indentation
+        doc.text(`•`, M, Y);
+        doc.text(line.trim(), M + 4, Y, { maxWidth: CW - 8 }); 
+        Y += 4.5; 
+      }
     });
-    Y += 3;
+    
+    // Add some standard terms if none provided
+    if (!shop?.terms_and_conditions || shop.terms_and_conditions.trim().length === 0) {
+      const defaultTerms = [
+        'All sales are final unless products are defective',
+        'Returns accepted within 7 days with original receipt',
+        'Warranty terms as per manufacturer guidelines',
+        'Prices are subject to change without notice'
+      ];
+      
+      defaultTerms.forEach(term => {
+        doc.text(`•`, M, Y);
+        doc.text(term, M + 4, Y, { maxWidth: CW - 8 });
+        Y += 4.5;
+      });
+    }
+    
+    Y += 4;
 
     // ── 9. FOOTER — handled by page loop below ───────────────────────────────
 
@@ -1075,22 +1134,29 @@ const Billing = () => {
           {/* ── Manual Item Form (inline, expands on click) ── */}
           {showManualItem && (
             <div
-              className="rounded-xl p-4 animate-fade-in"
+              className="rounded-xl p-5 animate-fade-in"
               style={{ backgroundColor: '#161b22', border: '1px solid #21262d' }}
             >
-              <p className="text-sm font-bold mb-3" style={{ color: '#388bfd' }}>
+              <p className="text-base font-bold mb-4 flex items-center gap-2" style={{ color: '#388bfd' }}>
                 ✏️ Add Custom Item to Bill
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <input
-                  className="input-field"
+                  className="input-field px-4 py-3 rounded-xl border-2 border-blue-300 text-base font-medium"
                   placeholder="Item / Service name *"
                   value={manualItem.name}
                   onChange={e => setManualItem(p => ({ ...p, name: e.target.value }))}
                   onKeyDown={e => e.key === 'Enter' && addManualItemToBill()}
+                  style={{ 
+                    minHeight: '48px', 
+                    fontSize: '16px',
+                    backgroundColor: '#0d1117', 
+                    borderColor: '#30363d', 
+                    color: '#e6edf3' 
+                  }}
                 />
                 <input
-                  className="input-field"
+                  className="input-field px-4 py-3 rounded-xl border-2 border-blue-300 text-base font-medium"
                   placeholder="Price (₹) *"
                   type="number"
                   min="0"
@@ -1098,30 +1164,49 @@ const Billing = () => {
                   value={manualItem.price}
                   onChange={e => setManualItem(p => ({ ...p, price: e.target.value }))}
                   onKeyDown={e => e.key === 'Enter' && addManualItemToBill()}
+                  style={{ 
+                    minHeight: '48px', 
+                    fontSize: '16px',
+                    backgroundColor: '#0d1117', 
+                    borderColor: '#30363d', 
+                    color: '#e6edf3' 
+                  }}
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                   <input
-                    className="input-field flex-1"
+                    className="input-field flex-1 px-4 py-3 rounded-xl border-2 border-blue-300 text-base font-medium"
                     placeholder="Qty"
                     type="number"
                     min="1"
                     value={manualItem.quantity}
                     onChange={e => setManualItem(p => ({ ...p, quantity: e.target.value }))}
                     onKeyDown={e => e.key === 'Enter' && addManualItemToBill()}
+                    style={{ 
+                      minHeight: '48px', 
+                      fontSize: '16px',
+                      backgroundColor: '#0d1117', 
+                      borderColor: '#30363d', 
+                      color: '#e6edf3' 
+                    }}
                   />
                   <button
                     onClick={addManualItemToBill}
-                    className="px-4 py-2 rounded-lg font-semibold text-sm text-white transition-all"
-                    style={{ background: 'linear-gradient(135deg,#238636,#3fb950)' }}
+                    className="px-5 py-3 rounded-xl font-semibold text-base text-white transition-all"
+                    style={{ 
+                      background: 'linear-gradient(135deg,#238636,#3fb950)',
+                      minHeight: '48px'
+                    }}
                   >
                     Add
                   </button>
                 </div>
               </div>
               {manualItem.name && manualItem.price && (
-                <p className="text-xs mt-2" style={{ color: '#6e7681' }}>
-                  Preview: {manualItem.name} × {manualItem.quantity || 1} = ₹{((parseFloat(manualItem.price) || 0) * (parseInt(manualItem.quantity) || 1)).toFixed(2)}
-                </p>
+                <div className="text-sm mt-3 p-3 rounded-lg" style={{ color: '#6e7681', backgroundColor: 'rgba(56,139,253,0.08)' }}>
+                  💡 Preview: <span style={{ color: '#e6edf3', fontWeight: '500' }}>
+                    {manualItem.name} × {manualItem.quantity || 1} = ₹{((parseFloat(manualItem.price) || 0) * (parseInt(manualItem.quantity) || 1)).toFixed(2)}
+                  </span>
+                </div>
               )}
             </div>
           )}
@@ -1137,21 +1222,23 @@ const Billing = () => {
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 onFocus={() => setSearchTerm(searchTerm)}
-                className="w-full pl-12 pr-4 py-4 rounded-2xl font-medium text-base"
+                className="w-full pl-12 pr-4 input-enhanced rounded-2xl font-medium border-2"
                 style={{
                   backgroundColor: '#161b22',
-                  border: '1px solid #30363d',
+                  borderColor: '#30363d',
                   color: '#e6edf3',
                   outline: 'none',
-                  fontSize: '1rem',
+                  fontSize: '16px',
+                  minHeight: '52px',
+                  lineHeight: '1.4'
                 }}
-                onFocusCapture={e => e.target.style.border = '2px solid #388bfd'}
-                onBlurCapture={e => e.target.style.border = '1px solid #30363d'}
+                onFocusCapture={e => e.target.style.borderColor = '#388bfd'}
+                onBlurCapture={e => e.target.style.borderColor = '#30363d'}
               />
               {searchTerm && (
                 <button
                   onClick={() => setSearchTerm('')}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sm px-2 py-1 rounded-lg"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-sm px-3 py-1 rounded-lg font-medium"
                   style={{ color: '#8b949e' }}
                 >✕ Clear</button>
               )}
@@ -1164,8 +1251,13 @@ const Billing = () => {
                 style={{ backgroundColor: '#161b22', border: '1px solid #30363d', maxHeight: '420px', overflowY: 'auto' }}
               >
                 {filteredProducts.length === 0 ? (
-                  <div className="px-5 py-8 text-center text-base" style={{ color: '#6e7681' }}>
-                    No products found for "{searchTerm}"
+                  <div className="px-5 py-10 text-center">
+                    <div className="text-base font-medium mb-2" style={{ color: '#6e7681' }}>
+                      No products found for "{searchTerm}"
+                    </div>
+                    <div className="text-sm" style={{ color: '#8b949e' }}>
+                      Try a different search term or check your spelling
+                    </div>
                   </div>
                 ) : (
                   <>
@@ -1195,8 +1287,11 @@ const Billing = () => {
                         onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(56,139,253,0.12)'}
                         onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(56,139,253,0.05)'}
                       >
-                        <Plus className="w-4 h-4" />
-                        Add all {filteredProducts.length} matching products
+                        <Plus className="w-5 h-5" />
+                        <div className="text-left">
+                          <div className="font-semibold text-base">Add all {filteredProducts.length} matching products</div>
+                          <div className="text-sm font-normal opacity-75 mt-0.5">Quick add all search results to bill</div>
+                        </div>
                       </button>
                     )}
 
@@ -1214,26 +1309,32 @@ const Billing = () => {
                             addToBill(product);
                             setSearchTerm('');
                           }}
-                          className="w-full px-5 py-4 flex items-center justify-between gap-3 text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="w-full px-5 py-4 flex items-center justify-between gap-4 text-left transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                           style={{ borderBottom: '1px solid rgba(33,38,45,0.6)' }}
                           onMouseEnter={e => { if (qty > 0) e.currentTarget.style.backgroundColor = '#21262d'; }}
                           onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                         >
                           <div className="flex-1 min-w-0">
-                            <p className="text-base font-semibold truncate" style={{ color: '#e6edf3' }}>
-                              {product.product_name}
-                              {inCart && <span className="ml-2 text-sm px-2 py-0.5 rounded" style={{ backgroundColor: 'rgba(56,139,253,0.15)', color: '#388bfd' }}>in cart ×{inCart.quantity}</span>}
-                            </p>
-                            <p className="text-sm mt-0.5" style={{ color: stockColor }}>
+                            <div className="text-base font-semibold" style={{ color: '#e6edf3', lineHeight: '1.3' }}>
+                              <div className="truncate">{product.product_name}</div>
+                              {inCart && (
+                                <div className="mt-1">
+                                  <span className="text-sm px-2 py-0.5 rounded-md" style={{ backgroundColor: 'rgba(56,139,253,0.15)', color: '#388bfd' }}>
+                                    in cart ×{inCart.quantity}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="text-sm mt-1" style={{ color: stockColor, fontWeight: '500' }}>
                               Stock: {product.stock_quantity}
-                            </p>
+                            </div>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-base font-bold" style={{ color: '#388bfd' }}>₹{product.selling_price}</p>
+                            <div className="text-lg font-bold" style={{ color: '#388bfd' }}>₹{product.selling_price}</div>
                             {qty > 0 && (
-                              <p className="text-sm mt-0.5 flex items-center gap-1 justify-end" style={{ color: '#3fb950' }}>
+                              <div className="text-sm mt-1 flex items-center gap-1 justify-end" style={{ color: '#3fb950', fontWeight: '500' }}>
                                 <Plus className="w-3.5 h-3.5" /> Add
-                              </p>
+                              </div>
                             )}
                           </div>
                         </button>
@@ -1246,9 +1347,12 @@ const Billing = () => {
 
             {/* Hint */}
             {searchTerm.length === 0 && (
-              <p className="mt-2 text-sm" style={{ color: '#6e7681' }}>
-                💡 Type to search products — press Enter or click to add
-              </p>
+              <div className="mt-3 text-base font-medium" style={{ color: '#6e7681' }}>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#388bfd' }}></div>
+                  Type to search products — press Enter or click to add items to your bill
+                </div>
+              </div>
             )}
           </div>
 
@@ -1267,16 +1371,28 @@ const Billing = () => {
                 <p className="text-sm" style={{ color: '#8b949e' }}>Previous Due: ₹{parseFloat(existingCustomer.total_due).toFixed(2)}</p>
               </div>
             )}
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer Name <span className="text-red-500">*</span></label>
-                <input type="text" placeholder="Customer Name" value={customerDetails.name}
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Customer Name <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="Enter customer name" 
+                  value={customerDetails.name}
                   onChange={(e) => setCustomerDetails({ ...customerDetails, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                  className="w-full px-4 py-3 border-2 border-blue-300 dark:border-blue-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base font-medium"
+                  style={{ minHeight: '48px', fontSize: '16px', lineHeight: '1.4' }}
+                />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number (10 digits)</label>
-                <input type="tel" placeholder="Search by phone..." value={customerDetails.phone}
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Phone Number (10 digits)
+                </label>
+                <input 
+                  type="tel" 
+                  placeholder="Search by phone number..." 
+                  value={customerDetails.phone}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '').slice(0, 10);
                     setCustomerDetails({ ...customerDetails, phone: value });
@@ -1284,17 +1400,25 @@ const Billing = () => {
                     else setExistingCustomer(null);
                   }}
                   maxLength="10"
-                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
-                {searchingCustomer && <p className="text-xs text-blue-600 mt-1">Searching...</p>}
+                  className="w-full px-4 py-3 border-2 border-blue-300 dark:border-blue-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base font-medium"
+                  style={{ minHeight: '48px', fontSize: '16px', lineHeight: '1.4' }}
+                />
+                {searchingCustomer && <p className="text-sm text-blue-600 mt-2 font-medium">🔍 Searching customer...</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
-                <textarea placeholder="Customer Address" value={customerDetails.address}
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                  Address
+                </label>
+                <textarea 
+                  placeholder="Enter customer address (required for credit sales)" 
+                  value={customerDetails.address}
                   onChange={(e) => setCustomerDetails({ ...customerDetails, address: e.target.value })}
-                  rows="2"
-                  className="w-full px-3 py-2 border border-blue-300 dark:border-blue-700 rounded-lg bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" />
+                  rows="3"
+                  className="w-full px-4 py-3 border-2 border-blue-300 dark:border-blue-700 rounded-xl bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base font-medium"
+                  style={{ minHeight: '80px', fontSize: '16px', lineHeight: '1.4' }}
+                />
               </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-2 rounded">
+              <div className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
                 💡 Address & phone required only for credit/udhar sales
               </div>
             </div>
@@ -1420,15 +1544,15 @@ const Billing = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="text-left" style={{ backgroundColor: 'rgba(13,17,23,0.5)', borderBottom: '1px solid rgba(59,130,246,0.1)' }}>
-                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Bill #</th>
-                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Customer</th>
-                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Amount</th>
-                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Status</th>
-                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Date</th>
-                      <th className="px-3 py-2 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center">Actions</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Bill #</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Customer</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Amount</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Status</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-sm">Date</th>
+                      <th className="px-4 py-3 font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide text-center text-sm">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1443,69 +1567,71 @@ const Billing = () => {
                           style={{ borderBottom: idx < recentBills.length - 1 ? '1px solid rgba(59,130,246,0.08)' : 'none' }}
                           className="hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
                         >
-                          <td className="px-3 py-2.5 font-mono font-semibold" style={{ color: '#3b82f6' }}>#{bill.bill_number}</td>
-                          <td className="px-3 py-2.5 text-gray-700 dark:text-gray-300 max-w-[90px] truncate">
-                            {bill.customer_name || 'Walk-in'}
+                          <td className="px-4 py-4 font-mono font-semibold text-sm whitespace-nowrap" style={{ color: '#3b82f6' }}>#{bill.bill_number}</td>
+                          <td className="px-4 py-4 text-gray-700 dark:text-gray-300 max-w-[120px] text-sm">
+                            <div className="truncate" title={bill.customer_name || 'Walk-in'}>
+                              {bill.customer_name || 'Walk-in'}
+                            </div>
                           </td>
-                          <td className="px-3 py-2.5 font-bold text-gray-900 dark:text-white">
-                            ₹{Number(bill.total_amount).toLocaleString('en-IN')}
+                          <td className="px-4 py-4 font-bold text-gray-900 dark:text-white text-sm whitespace-nowrap">
+                            <div>₹{Number(bill.total_amount).toLocaleString('en-IN')}</div>
                             {bill.due_amount > 0 && (
-                              <span className="block text-[10px] font-normal" style={{ color: '#f85149' }}>
+                              <div className="text-xs font-normal mt-1" style={{ color: '#f85149' }}>
                                 Due: ₹{Number(bill.due_amount).toLocaleString('en-IN')}
-                              </span>
+                              </div>
                             )}
                           </td>
-                          <td className="px-3 py-2.5">
+                          <td className="px-4 py-4">
                             <span
-                              className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold"
+                              className="inline-flex items-center px-2 py-1 rounded text-xs font-semibold whitespace-nowrap"
                               style={{ backgroundColor: `${sc}18`, color: sc, border: `1px solid ${sc}33` }}
                             >
                               {bill.status}
                             </span>
                           </td>
-                          <td className="px-3 py-2.5 text-gray-500 dark:text-gray-400">
+                          <td className="px-4 py-4 text-gray-500 dark:text-gray-400 text-sm whitespace-nowrap">
                             {new Date(bill.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                           </td>
                           {/* Actions: View + Edit + Download */}
-                          <td className="px-3 py-2.5">
-                            <div className="flex items-center justify-center gap-1">
+                          <td className="px-4 py-4">
+                            <div className="flex items-center justify-center gap-2">
                               {/* View */}
                               <button
                                 onClick={() => openBillView(bill)}
-                                className="p-1 rounded transition-colors"
+                                className="p-2 rounded transition-colors"
                                 style={{ color: '#8b949e' }}
                                 onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(139,92,246,0.1)'; e.currentTarget.style.color = '#a78bfa'; }}
                                 onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#8b949e'; }}
                                 title="View Bill"
                               >
-                                <Eye className="w-3.5 h-3.5" />
+                                <Eye className="w-4 h-4" />
                               </button>
                               {/* Edit */}
                               {bill.status !== 'CANCELLED' && (
                                 <button
                                   onClick={() => openBillEdit(bill)}
-                                  className="p-1 rounded transition-colors"
+                                  className="p-2 rounded transition-colors"
                                   style={{ color: '#8b949e' }}
                                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.1)'; e.currentTarget.style.color = '#3b82f6'; }}
                                   onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#8b949e'; }}
                                   title="Edit Bill"
                                 >
-                                  <Edit className="w-3.5 h-3.5" />
+                                  <Edit className="w-4 h-4" />
                                 </button>
                               )}
                               {/* Download */}
                               <button
                                 onClick={() => downloadBillPDF(bill.id, bill.bill_number)}
                                 disabled={downloadingId === bill.id}
-                                className="p-1 rounded transition-colors disabled:opacity-50"
+                                className="p-2 rounded transition-colors disabled:opacity-50"
                                 style={{ color: '#8b949e' }}
                                 onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(59,130,246,0.1)'; e.currentTarget.style.color = '#3b82f6'; }}
                                 onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#8b949e'; }}
                                 title="Download PDF"
                               >
                                 {downloadingId === bill.id
-                                  ? <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                  : <Download className="w-3.5 h-3.5" />
+                                  ? <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                  : <Download className="w-4 h-4" />
                                 }
                               </button>
                             </div>
@@ -1555,21 +1681,28 @@ const Billing = () => {
                 <table className="w-full">
                   <thead>
                     <tr style={{ backgroundColor: '#0d1117', borderBottom: '1px solid #21262d' }}>
-                      <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Item</th>
-                      <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Qty</th>
-                      <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Unit Price</th>
-                      <th className="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Total</th>
-                      <th className="px-6 py-3 w-12"></th>
+                      <th className="px-6 py-4 text-left text-sm font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Item</th>
+                      <th className="px-6 py-4 text-center text-sm font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Qty</th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Unit Price</th>
+                      <th className="px-6 py-4 text-right text-sm font-semibold uppercase tracking-wide" style={{ color: '#6e7681' }}>Total</th>
+                      <th className="px-6 py-4 w-16"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {selectedItems.map((item, idx) => (
                       <tr key={item.product_id} style={{ borderBottom: idx < selectedItems.length - 1 ? '1px solid #21262d' : 'none' }}>
-                        <td className="px-6 py-4 font-medium text-base" style={{ color: '#e6edf3' }}>{item.name}</td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-center gap-2">
+                        <td className="px-6 py-5">
+                          <div className="font-semibold text-base" style={{ color: '#e6edf3', lineHeight: '1.4' }}>
+                            {item.name}
+                          </div>
+                          {item.isManual && (
+                            <div className="text-sm mt-1" style={{ color: '#6e7681' }}>Manual Item</div>
+                          )}
+                        </td>
+                        <td className="px-6 py-5">
+                          <div className="flex items-center justify-center gap-3">
                             <button onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors"
+                              className="w-9 h-9 rounded-lg flex items-center justify-center text-lg font-bold transition-colors"
                               style={{ color: '#8b949e', border: '1px solid #21262d' }}
                               onMouseEnter={e => e.currentTarget.style.backgroundColor = '#21262d'}
                               onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
@@ -1577,10 +1710,10 @@ const Billing = () => {
                             </button>
                             <input type="number" value={item.quantity}
                               onChange={e => updateQuantity(item.product_id, e.target.value)}
-                              min="1" className="w-16 text-center text-base font-bold rounded-lg py-1"
+                              min="1" className="w-20 text-center text-base font-bold rounded-lg py-2 px-3"
                               style={{ backgroundColor: '#0d1117', border: '1px solid #21262d', color: '#e6edf3' }} />
                             <button onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                              className="w-8 h-8 rounded-lg flex items-center justify-center text-lg font-bold transition-colors"
+                              className="w-9 h-9 rounded-lg flex items-center justify-center text-lg font-bold transition-colors"
                               style={{ color: '#8b949e', border: '1px solid #21262d' }}
                               onMouseEnter={e => e.currentTarget.style.backgroundColor = '#21262d'}
                               onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
@@ -1588,11 +1721,11 @@ const Billing = () => {
                             </button>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-right text-sm" style={{ color: '#8b949e' }}>₹{item.price}</td>
-                        <td className="px-6 py-4 text-right text-base font-bold" style={{ color: '#388bfd' }}>₹{Number(item.total).toFixed(2)}</td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-5 text-right text-base font-medium" style={{ color: '#8b949e' }}>₹{item.price}</td>
+                        <td className="px-6 py-5 text-right text-base font-bold" style={{ color: '#388bfd' }}>₹{Number(item.total).toFixed(2)}</td>
+                        <td className="px-6 py-5">
                           <button onClick={() => removeFromBill(item.product_id)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                            className="w-9 h-9 rounded-lg flex items-center justify-center transition-colors"
                             style={{ color: '#f85149' }}
                             onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(248,81,73,0.1)'}
                             onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}>
@@ -1626,7 +1759,7 @@ const Billing = () => {
                     )}
                     <div className="flex justify-between items-center font-bold text-xl pt-3" style={{ borderTop: '1px solid #30363d', color: '#e6edf3' }}>
                       <span>Grand Total</span>
-                      <span style={{ color: '#388bfd', fontSize: '1.4rem' }}>₹{previewData.total_amount}</span>
+                      <span style={{ color: '#388bfd', fontSize: '1.4rem' }}>₹{previewData?.total_amount || 0}</span>
                     </div>
                   </>
                 )}
@@ -1805,7 +1938,7 @@ const Billing = () => {
               <div className="text-center p-4 sm:p-8 bg-gradient-to-br from-blue-600 via-blue-600 to-blue-600 dark:from-blue-700 dark:via-blue-700 dark:to-blue-700 rounded-2xl shadow-2xl border-2 border-blue-400 dark:border-blue-600">
                 <p className="text-xs sm:text-sm text-white/90 font-bold mb-1 sm:mb-2 tracking-wide uppercase">Total Amount</p>
                 <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white drop-shadow-2xl tracking-tight break-all">
-                  ₹{previewData.total_amount}
+                  ₹{previewData?.total_amount || 0}
                 </p>
               </div>
 
@@ -1854,7 +1987,7 @@ const Billing = () => {
                       setDueAmount('');
                     } else {
                       const paid = parseFloat(paidAmount) || 0;
-                      const due = Math.max(0, previewData.total_amount - paid);
+                      const due = Math.max(0, (previewData?.total_amount || 0) - paid);
                       setDueAmount(due.toFixed(2));
                     }
                   }}
@@ -1886,7 +2019,7 @@ const Billing = () => {
                       setPaidAmount('');
                     } else {
                       const due = parseFloat(dueAmount) || 0;
-                      const paid = Math.max(0, previewData.total_amount - due);
+                      const paid = Math.max(0, (previewData?.total_amount || 0) - due);
                       setPaidAmount(paid.toFixed(2));
                     }
                   }}
@@ -1950,7 +2083,7 @@ const Billing = () => {
                   <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-700/60 p-3 rounded-lg">
                     <span className="text-gray-700 dark:text-gray-200 font-medium">Total Amount:</span>
                     <span className="font-bold text-gray-900 dark:text-gray-100">
-                      ₹{previewData.total_amount}
+                      ₹{previewData?.total_amount || 0}
                     </span>
                   </div>
                   {paidAmount && parseFloat(paidAmount) > 0 && (
@@ -1975,12 +2108,12 @@ const Billing = () => {
                   <div className="flex justify-between text-base bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 p-3 rounded-lg">
                     <span className="font-bold text-gray-900 dark:text-gray-100">Balance:</span>
                     <span className={`font-bold text-lg ${
-                      Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - previewData.total_amount) < 0.01
+                      Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - (previewData?.total_amount || 0)) < 0.01
                         ? 'text-blue-600 dark:text-blue-300'
                         : 'text-red-600 dark:text-red-400'
                     }`}>
-                      ₹{Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - previewData.total_amount)}
-                      {Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - previewData.total_amount) < 0.01 ? ' ✓' : ' ✗'}
+                      ₹{Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - (previewData?.total_amount || 0))}
+                      {Math.abs((parseFloat(paidAmount) || 0) + (parseFloat(dueAmount) || 0) - (previewData?.total_amount || 0)) < 0.01 ? ' ✓' : ' ✗'}
                     </span>
                   </div>
                 </div>
