@@ -42,4 +42,10 @@ export const billService = {
     const response = await api.get(`/bills/${billId}/detail`);
     return response.data;
   },
+
+  // Delete bill
+  deleteBill: async (billId) => {
+    const response = await api.delete(`/bills/${billId}`);
+    return response.data;
+  },
 };

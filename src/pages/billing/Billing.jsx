@@ -65,17 +65,81 @@ const Billing = () => {
   const [recentLoading, setRecentLoading] = useState(false);
   const [downloadingId, setDownloadingId] = useState(null);
 
-  // ✅ Bill Edit state
+  // ✅ Bill Edit state with auto-save
   const [showBillEditModal, setShowBillEditModal] = useState(false);
   const [editingBill, setEditingBill]       = useState(null);
   const [editItems, setEditItems]           = useState([]);
   const [editMeta, setEditMeta]             = useState({ customer_name: '', customer_phone: '', gst_percentage: '', discount_type: '', discount_value: '' });
   const [editSaving, setEditSaving]         = useState(false);
+  const [editDraftSaved, setEditDraftSaved] = useState(false);
+
+  // ✅ Auto-save edit draft to localStorage whenever editItems or editMeta changes
+  useEffect(() => {
+    if (editingBill && (editItems.length > 0 || editMeta.customer_name || editMeta.customer_phone)) {
+      const draftData = {
+        billId: editingBill.id,
+        items: editItems,
+        meta: editMeta,
+        timestamp: Date.now()
+      };
+      localStorage.setItem(`bill_edit_draft_${editingBill.id}`, JSON.stringify(draftData));
+      setEditDraftSaved(true);
+      
+      // Clear draft saved indicator after 2 seconds
+      setTimeout(() => setEditDraftSaved(false), 2000);
+    }
+  }, [editItems, editMeta, editingBill]);
 
   // ✅ Bill View state
   const [showBillViewModal, setShowBillViewModal] = useState(false);
   const [viewingBill, setViewingBill]             = useState(null);
   const [viewLoading, setViewLoading]             = useState(false);
+
+  // ✅ Delete Bill state
+  const [deletingId, setDeletingId] = useState(null);
+
+  // ✅ Keep session alive during bill editing
+  useEffect(() => {
+    let keepAliveInterval;
+    
+    if (showBillEditModal) {
+      // Send a keep-alive request every 5 minutes during editing
+      keepAliveInterval = setInterval(async () => {
+        try {
+          // Simple API call to keep session active
+          await billService.getBills();
+          console.log('✓ Session kept alive during edit');
+        } catch (error) {
+          console.warn('⚠ Session keep-alive failed:', error);
+          toast.warning('Session may expire soon. Please save your changes.');
+        }
+      }, 5 * 60 * 1000); // 5 minutes
+    }
+    
+    return () => {
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+      }
+    };
+  }, [showBillEditModal]);
+
+  // ✅ Delete Bill function
+  const deleteBill = async (bill) => {
+    if (!window.confirm(`Are you sure you want to delete Bill BILL-${bill.id}? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingId(bill.id);
+    try {
+      await billService.deleteBill(bill.id);
+      toast.success('Bill deleted successfully');
+      fetchRecentBills(); // Refresh the bills list
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete bill');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   // ✅ REMOVED: Complex payment array - using simple state instead
 
@@ -147,13 +211,33 @@ const Billing = () => {
     setDownloadingId(billId);
     try {
       const blob = await invoiceService.generateInvoice(billId);
-      const url  = URL.createObjectURL(blob);
-      const a    = document.createElement('a');
-      a.href = url; a.download = `bill-${billNumber}.pdf`;
-      a.click(); URL.revokeObjectURL(url);
-      toast.success('Bill downloaded');
-    } catch { toast.error('Download failed'); }
-    finally { setDownloadingId(null); }
+      
+      // Create download with better error handling
+      if (blob && blob.size > 0) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bill-${billNumber}.pdf`;
+        a.style.display = 'none';
+        
+        // Add to body, click, and remove
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        
+        // Clean up URL after a short delay
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        
+        toast.success('Bill downloaded successfully');
+      } else {
+        throw new Error('Invalid PDF data');
+      }
+    } catch (error) {
+      console.error('PDF download error:', error);
+      toast.error('Download failed - Please try again');
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   // ── View Bill ──────────────────────────────────────────────────────────────
@@ -174,22 +258,60 @@ const Billing = () => {
     try {
       const full = await billService.getBillById(bill.id);
       setEditingBill(full);
-      const rows = (full.BillItems || []).map(item => ({
-        product_id: item.product_id || null,
-        item_name:  item.Product?.product_name || item.item_name || '',
-        price:      item.price,
-        quantity:   item.quantity,
-      }));
-      setEditItems(rows.length > 0 ? rows : [{ product_id: null, item_name: '', price: '', quantity: 1 }]);
-      setEditMeta({
-        customer_name:  full.customer_name  || '',
+      
+      // ✅ Check for existing draft
+      const draftKey = `bill_edit_draft_${bill.id}`;
+      const savedDraft = localStorage.getItem(draftKey);
+      
+      let itemsToLoad = [];
+      let metaToLoad = {
+        customer_name: full.customer_name || '',
         customer_phone: full.customer_phone || '',
         gst_percentage: full.gst_percentage || '',
-        discount_type:  full.discount_type  || '',
+        discount_type: full.discount_type || '',
         discount_value: full.discount_percentage || '',
-      });
+      };
+      
+      if (savedDraft) {
+        const draftData = JSON.parse(savedDraft);
+        const draftAge = Date.now() - draftData.timestamp;
+        
+        // If draft is less than 30 minutes old, offer to restore
+        if (draftAge < 30 * 60 * 1000) {
+          const shouldRestore = window.confirm(
+            `Found unsaved changes from ${Math.floor(draftAge / 60000)} minutes ago. Restore draft?`
+          );
+          
+          if (shouldRestore) {
+            itemsToLoad = draftData.items;
+            metaToLoad = draftData.meta;
+            toast.success('Draft restored successfully!');
+          } else {
+            localStorage.removeItem(draftKey);
+          }
+        } else {
+          // Remove old draft
+          localStorage.removeItem(draftKey);
+        }
+      }
+      
+      // If no draft or user declined, use original data
+      if (itemsToLoad.length === 0) {
+        const rows = (full.BillItems || []).map(item => ({
+          product_id: item.product_id || null,
+          item_name:  item.Product?.product_name || item.item_name || '',
+          price:      item.price,
+          quantity:   item.quantity,
+        }));
+        itemsToLoad = rows.length > 0 ? rows : [{ product_id: null, item_name: '', price: '', quantity: 1 }];
+      }
+      
+      setEditItems(itemsToLoad);
+      setEditMeta(metaToLoad);
       setShowBillEditModal(true);
-    } catch { toast.error('Failed to load bill'); }
+    } catch { 
+      toast.error('Failed to load bill'); 
+    }
   };
 
   const updateEditItem = (idx, key, val) => {
@@ -241,76 +363,27 @@ const Billing = () => {
         discount_type:  editMeta.discount_type   || undefined,
         discount_value: editMeta.discount_value  ? parseFloat(editMeta.discount_value)  : undefined,
       });
-      toast.success('Bill updated ✓ — Preview loading...');
+      toast.success('Bill updated successfully!');
       setShowBillEditModal(false);
       setEditingBill(null);
-      fetchRecentBills();
-
-      // ✅ Load edited items into selectedItems with proper manual item handling
-      const previewItems = validItems.map((i, index) => ({
-        product_id: i.product_id && i.product_id !== 'manual' ? i.product_id : `manual_${Date.now()}_${index}`,
-        name:       i.item_name || '',
-        price:      parseFloat(i.price),
-        quantity:   parseFloat(i.quantity) || 1,
-        total:      parseFloat(i.price) * (parseFloat(i.quantity) || 1),
-        isManual:   !i.product_id || i.product_id === 'manual',
-      }));
-      setSelectedItems(previewItems);
-
-      // Set customer details from edit
-      if (editMeta.customer_name || editMeta.customer_phone) {
-        setCustomerDetails({
-          name:    editMeta.customer_name  || '',
-          phone:   editMeta.customer_phone || '',
-          address: '',
-        });
-      }
-
-      // Set GST/discount states
-      if (editMeta.gst_percentage) {
-        setGstEnabled(true);
-        setGstPercentage(parseFloat(editMeta.gst_percentage));
-      }
-      if (editMeta.discount_type && editMeta.discount_value) {
-        setDiscountEnabled(true);
-        setDiscountType(editMeta.discount_type);
-        setDiscountValue(editMeta.discount_value);
-      }
-
-      // ✅ Set payment mode to show paid amount for editing (no due by default)
-      const totalAmount = previewItems.reduce((sum, item) => sum + item.total, 0);
-      const gstAmount = editMeta.gst_percentage ? (totalAmount * parseFloat(editMeta.gst_percentage)) / 100 : 0;
-      const discountAmount = (editMeta.discount_type && editMeta.discount_value) ? 
-        (editMeta.discount_type === 'percentage' ? 
-          ((totalAmount + gstAmount) * parseFloat(editMeta.discount_value)) / 100 : 
-          parseFloat(editMeta.discount_value)) : 0;
-      const finalTotal = totalAmount + gstAmount - discountAmount;
+      fetchRecentBills(); // Just refresh the bills list
       
-      // ✅ Set preview data for payment modal
-      setPreviewData({
-        subtotal: totalAmount,
-        gst_amount: gstAmount > 0 ? gstAmount : null,
-        gst_percentage: editMeta.gst_percentage || null,
-        discount_amount: discountAmount > 0 ? discountAmount : null,
-        discount_type: editMeta.discount_type || null,
-        discount_value: editMeta.discount_value || null,
-        total_amount: finalTotal,
-        items: previewItems
-      });
-      
-      setPaidAmount(finalTotal.toFixed(2));
-      setDueAmount('0');
-      setShowPaymentModal(true);
-
-      // Scroll to preview section after short delay
-      setTimeout(() => {
-        const el = document.getElementById('preview-bill-section');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 400);
+      // ✅ Clear any draft data since bill was successfully updated
+      if (editingBill) {
+        localStorage.removeItem(`bill_edit_draft_${editingBill.id}`);
+      }
+      localStorage.removeItem('billing_draft_items');
+      localStorage.removeItem('billing_draft_customer');
     } catch (err) {
-      toast.error(err.response?.data?.message || err.response?.data?.error || 'Update failed');
+      const errorMsg = err.response?.data?.message || err.response?.data?.error || 'Update failed';
+      
+      // ✅ Special handling for stock errors
+      if (err.response?.data?.error === 'INSUFFICIENT_STOCK') {
+        const { productName, availableStock, requestedQuantity } = err.response.data;
+        toast.error(`Stock Error: ${productName} - Available: ${availableStock}, You tried: ${requestedQuantity}`);
+      } else {
+        toast.error(errorMsg);
+      }
     } finally { setEditSaving(false); }
   };
 
@@ -581,12 +654,20 @@ const Billing = () => {
       const newBillId = billResponse.bill_id || billResponse.data?.bill_id;
       try {
         const blob = await invoiceService.generateInvoice(newBillId);
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href = url;
-        a.download = `bill-${newBillId}.pdf`;
-        a.click();
-        URL.revokeObjectURL(url);
+        
+        if (blob && blob.size > 0) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `bill-BILL-${newBillId}.pdf`;
+          a.style.display = 'none';
+          
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+        }
       } catch (pdfErr) {
         console.warn('PDF generation failed, bill was created successfully');
       }
@@ -686,7 +767,7 @@ const Billing = () => {
     setColor(WHITE);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(8);
-    doc.text(`BILL  –  #${billData.id || 'N/A'}`, PW / 2, Y + 5.5, { align: 'center' });
+    doc.text(`BILL  –  BILL-${billData.id || 'N/A'}`, PW / 2, Y + 5.5, { align: 'center' });
     Y += 8 + 4;
 
     // ── 3. INFO BOXES ─────────────────────────────────────────────────────────
@@ -705,7 +786,7 @@ const Billing = () => {
       doc.text(String(val), M + 3 + doc.getTextWidth(label) + 1, lY);
       lY += 4.5;
     };
-    metaLine('Bill No:', `#${billData.id || 'N/A'}`);
+    metaLine('Bill No:', `BILL-${billData.id || 'N/A'}`);
     metaLine('Date:', new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'numeric', year: 'numeric' }));
     metaLine('Payment:', (billData.payments || []).map(p => p.mode.toUpperCase()).join(', ') || '-');
 
@@ -767,6 +848,9 @@ const Billing = () => {
     let tblPageStart = Y;
     Y = drawTblHeader(Y);
 
+    // ✅ Use dedicated serial counter for consistent numbering
+    let serialCounter = 1;
+
     items.forEach((item, idx) => {
       // Need a new page?
       if (Y + ROW_H > PAGE_BOTTOM) {
@@ -789,7 +873,7 @@ const Billing = () => {
 
       const itemTotal = parseFloat(item.total || item.price * item.quantity || 0);
       const vals = {
-        sno:  String(idx + 1),
+        sno:  serialCounter.toString(), // ✅ Use dedicated counter
         desc: (item.name || '').substring(0, 55),
         qty:  String(item.quantity),
         rate: rs(item.price),
@@ -797,10 +881,14 @@ const Billing = () => {
         amt:  rs(itemTotal),
       };
 
-      setColor(DARK);
       cols.forEach(c => {
-        doc.setFont('helvetica', c.key === 'desc' ? 'bold' : 'normal');
-        doc.setFontSize(7.5);
+        // ✅ Enhanced styling for serial numbers  
+        const isSerial = c.key === 'sno';
+        const isDesc = c.key === 'desc';
+        
+        setColor(isSerial ? BLUE : DARK); // ✅ Blue color for serial numbers
+        doc.setFont('helvetica', (isSerial || isDesc) ? 'bold' : 'normal');
+        doc.setFontSize(isSerial ? 9 : 7.5); // ✅ Larger font for serial numbers
         const tx = c.align === 'right' ? c.x + c.w - 1.5
                  : c.align === 'center' ? c.x + c.w / 2
                  : c.x + 1.5;
@@ -809,6 +897,8 @@ const Billing = () => {
           maxWidth: c.key === 'desc' ? c.w - 2 : undefined,
         });
       });
+      
+      serialCounter++; // ✅ Increment serial counter
       Y += ROW_H;
     });
 
@@ -978,7 +1068,7 @@ const Billing = () => {
     }
 
     // ── Save ─────────────────────────────────────────────────────────────────
-    doc.save(`Bill_${billData.id || Date.now()}.pdf`);
+    doc.save(`Bill_BILL-${billData.id || Date.now()}.pdf`);
 
     let yPos = Y; // alias kept for compatibility
   };
@@ -1567,7 +1657,11 @@ const Billing = () => {
                           style={{ borderBottom: idx < recentBills.length - 1 ? '1px solid rgba(59,130,246,0.08)' : 'none' }}
                           className="hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors"
                         >
-                          <td className="px-4 py-4 font-mono font-semibold text-sm whitespace-nowrap" style={{ color: '#3b82f6' }}>#{bill.bill_number}</td>
+                          <td className="px-4 py-4 font-mono font-semibold text-sm whitespace-nowrap" style={{ color: '#3b82f6' }}>
+                            <span className="px-2 py-1 rounded" style={{ backgroundColor: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}>
+                              BILL-{bill.id}
+                            </span>
+                          </td>
                           <td className="px-4 py-4 text-gray-700 dark:text-gray-300 max-w-[120px] text-sm">
                             <div className="truncate" title={bill.customer_name || 'Walk-in'}>
                               {bill.customer_name || 'Walk-in'}
@@ -1621,7 +1715,7 @@ const Billing = () => {
                               )}
                               {/* Download */}
                               <button
-                                onClick={() => downloadBillPDF(bill.id, bill.bill_number)}
+                                onClick={() => downloadBillPDF(bill.id, `BILL-${bill.id}`)}
                                 disabled={downloadingId === bill.id}
                                 className="p-2 rounded transition-colors disabled:opacity-50"
                                 style={{ color: '#8b949e' }}
@@ -1634,6 +1728,23 @@ const Billing = () => {
                                   : <Download className="w-4 h-4" />
                                 }
                               </button>
+                              {/* Delete */}
+                              {bill.status !== 'CANCELLED' && (
+                                <button
+                                  onClick={() => deleteBill(bill)}
+                                  disabled={deletingId === bill.id}
+                                  className="p-2 rounded transition-colors disabled:opacity-50"
+                                  style={{ color: '#8b949e' }}
+                                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(248,81,73,0.1)'; e.currentTarget.style.color = '#f85149'; }}
+                                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = '#8b949e'; }}
+                                  title="Delete Bill"
+                                >
+                                  {deletingId === bill.id
+                                    ? <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                                    : <Trash2 className="w-4 h-4" />
+                                  }
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -1759,7 +1870,7 @@ const Billing = () => {
                     )}
                     <div className="flex justify-between items-center font-bold text-xl pt-3" style={{ borderTop: '1px solid #30363d', color: '#e6edf3' }}>
                       <span>Grand Total</span>
-                      <span style={{ color: '#388bfd', fontSize: '1.4rem' }}>₹{previewData?.total_amount || 0}</span>
+                      <span style={{ color: '#388bfd', fontSize: '1.4rem' }}>₹{(previewData?.total_amount || 0).toFixed(2)}</span>
                     </div>
                   </>
                 )}
@@ -1811,7 +1922,7 @@ const Billing = () => {
             <div className="flex items-center justify-between p-5" style={{ borderBottom:'1px solid #21262d' }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'linear-gradient(135deg,#7c3aed,#a78bfa)' }}><Eye className="w-4 h-4 text-white"/></div>
-                <div><h2 className="text-base font-bold" style={{ color:'#e6edf3' }}>Bill #{viewingBill?.bill_number||'…'}</h2><p className="text-xs" style={{ color:'#6e7681' }}>{viewingBill?new Date(viewingBill.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):''}</p></div>
+                <div><h2 className="text-base font-bold" style={{ color:'#e6edf3' }}>Bill BILL-{viewingBill?.id||'…'}</h2><p className="text-xs" style={{ color:'#6e7681' }}>{viewingBill?new Date(viewingBill.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):''}</p></div>
               </div>
               <div className="flex items-center gap-2">
                 {viewingBill&&(<span className="text-xs font-semibold px-2 py-1 rounded" style={{ color:viewingBill.status==='PAID'?'#3fb950':viewingBill.status==='PARTIAL'?'#f0883e':'#f85149',background:viewingBill.status==='PAID'?'rgba(63,185,80,0.15)':viewingBill.status==='PARTIAL'?'rgba(240,136,62,0.15)':'rgba(248,81,73,0.15)' }}>{viewingBill.status}</span>)}
@@ -1865,9 +1976,32 @@ const Billing = () => {
             <div className="flex items-center justify-between p-5" style={{ borderBottom:'1px solid #21262d' }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background:'linear-gradient(135deg,#2563eb,#3b82f6)' }}><Edit className="w-4 h-4 text-white"/></div>
-                <div><h2 className="text-base font-bold" style={{ color:'#e6edf3' }}>Edit Bill #{editingBill.bill_number}</h2><p className="text-xs" style={{ color:'#6e7681' }}>Modify items, prices, customer</p></div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-base font-bold" style={{ color:'#e6edf3' }}>Edit Bill BILL-{editingBill.id}</h2>
+                    {editDraftSaved && (
+                      <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'rgba(34, 197, 94, 0.15)', color: '#22c55e', border: '1px solid rgba(34, 197, 94, 0.3)' }}>
+                        ✓ Draft Saved
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs" style={{ color:'#6e7681' }}>Modify items, prices, customer • Auto-saves every change</p>
+                </div>
               </div>
-              <button onClick={()=>setShowBillEditModal(false)} className="p-2 rounded-lg" style={{ color:'#8b949e' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#21262d'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>✕</button>
+              <button onClick={()=>{
+                // ✅ Warn user about unsaved changes
+                const hasChanges = editItems.some(item => item.item_name || item.price) || 
+                                 editMeta.customer_name || editMeta.customer_phone;
+                
+                if (hasChanges) {
+                  const shouldClose = window.confirm(
+                    'You have unsaved changes. Your draft is auto-saved. Close anyway?'
+                  );
+                  if (!shouldClose) return;
+                }
+                
+                setShowBillEditModal(false);
+              }} className="p-2 rounded-lg" style={{ color:'#8b949e' }} onMouseEnter={e=>e.currentTarget.style.backgroundColor='#21262d'} onMouseLeave={e=>e.currentTarget.style.backgroundColor='transparent'}>✕</button>
             </div>
             <div className="p-5 space-y-4">
               <div><p className="text-xs font-semibold uppercase mb-2" style={{ color:'#8b949e' }}>Customer</p>
@@ -1938,7 +2072,7 @@ const Billing = () => {
               <div className="text-center p-4 sm:p-8 bg-gradient-to-br from-blue-600 via-blue-600 to-blue-600 dark:from-blue-700 dark:via-blue-700 dark:to-blue-700 rounded-2xl shadow-2xl border-2 border-blue-400 dark:border-blue-600">
                 <p className="text-xs sm:text-sm text-white/90 font-bold mb-1 sm:mb-2 tracking-wide uppercase">Total Amount</p>
                 <p className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white drop-shadow-2xl tracking-tight break-all">
-                  ₹{previewData?.total_amount || 0}
+                  ₹{(previewData?.total_amount || 0).toFixed(2)}
                 </p>
               </div>
 
@@ -2083,7 +2217,7 @@ const Billing = () => {
                   <div className="flex justify-between text-sm bg-white/60 dark:bg-gray-700/60 p-3 rounded-lg">
                     <span className="text-gray-700 dark:text-gray-200 font-medium">Total Amount:</span>
                     <span className="font-bold text-gray-900 dark:text-gray-100">
-                      ₹{previewData?.total_amount || 0}
+                      ₹{(previewData?.total_amount || 0).toFixed(2)}
                     </span>
                   </div>
                   {paidAmount && parseFloat(paidAmount) > 0 && (
