@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Ban, Clock, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight, Calendar, Package, X } from 'lucide-react';
+import { Search, Ban, Clock, ToggleLeft, ToggleRight, ChevronLeft, ChevronRight, Calendar, Package, X, Trash2 } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 import { adminService } from '../services/adminService';
 import Loader from '../../components/common/Loader';
@@ -55,6 +55,36 @@ const AdminShops = () => {
       }
     } catch (error) {
       toast.error(`Failed to ${action} shop`);
+    }
+  };
+
+  const handleDelete = async (id, shopName) => {
+    const confirmMessage = `⚠️ WARNING: This will permanently delete "${shopName}" and ALL associated data:\n\n` +
+                          `• All users\n` +
+                          `• All products\n` +
+                          `• All bills\n` +
+                          `• All customers\n` +
+                          `• All payments\n\n` +
+                          `This action CANNOT be undone!\n\n` +
+                          `Type the shop name to confirm: "${shopName}"`;
+    
+    const userInput = window.prompt(confirmMessage);
+    
+    if (userInput !== shopName) {
+      if (userInput !== null) {
+        toast.error('Shop name does not match. Deletion cancelled.');
+      }
+      return;
+    }
+
+    try {
+      const response = await adminService.deleteShop(id);
+      if (response.success) {
+        toast.success(response.message || 'Shop deleted successfully');
+        fetchShops();
+      }
+    } catch (error) {
+      toast.error('Failed to delete shop');
     }
   };
 
@@ -308,6 +338,13 @@ const AdminShops = () => {
                             >
                               <Ban className="w-4 h-4" />
                             </button>
+                            <button
+                              onClick={() => handleDelete(shop.id, shop.shop_name)}
+                              className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              title="Delete Shop"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -383,6 +420,26 @@ const AdminShops = () => {
                       >
                         <Clock className="w-4 h-4" />
                         Extend
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2 pt-2">
+                      <button
+                        onClick={() => handleSuspend(shop.id, shop.isSuspended)}
+                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                          shop.isSuspended
+                            ? 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30'
+                            : 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30'
+                        }`}
+                      >
+                        <Ban className="w-4 h-4" />
+                        {shop.isSuspended ? 'Unsuspend' : 'Suspend'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(shop.id, shop.shop_name)}
+                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 text-red-600 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete
                       </button>
                     </div>
                   </div>

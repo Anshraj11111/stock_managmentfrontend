@@ -105,6 +105,11 @@ export const adminService = {
     return response.data;
   },
 
+  deleteShop: async (id) => {
+    const response = await adminApi.delete(`/admin/shops/${id}`);
+    return response.data;
+  },
+
   // Analytics
   getAnalytics: async (type = 'overview', period = 'monthly') => {
     const response = await adminApi.get('/admin/analytics', {
