@@ -123,28 +123,56 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        setUser(decoded);
+        // ✅ Reject expired access tokens — try silent refresh
+        if (decoded.exp * 1000 < Date.now()) {
+          silentRefresh();
+        } else {
+          setUser(decoded);
+        }
       } catch (err) {
         console.error("Invalid token:", err);
         localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
       }
     }
 
     setLoading(false);
   }, []);
 
+  // 🔄 SILENT REFRESH — use refresh token to get new access token
+  const silentRefresh = async () => {
+    try {
+      const storedRefreshToken = localStorage.getItem("refreshToken");
+      if (!storedRefreshToken) return;
+
+      const response = await authService.refreshToken(storedRefreshToken);
+      if (response?.token) {
+        localStorage.setItem("token", response.token);
+        if (response.refreshToken) {
+          localStorage.setItem("refreshToken", response.refreshToken);
+        }
+        const decoded = jwtDecode(response.token);
+        setUser(decoded);
+      }
+    } catch {
+      // Silent failure — user will be prompted to log in
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+    }
+  };
+
   // 🔐 LOGIN
   const login = async (credentials) => {
     try {
       const response = await authService.login(credentials);
-      const { token, trialExpired, subscriptionExpired, warningMessage } = response;
+      const { token, refreshToken: rt, trialExpired, subscriptionExpired, warningMessage } = response;
 
       localStorage.setItem("token", token);
+      if (rt) localStorage.setItem("refreshToken", rt);
 
       const decoded = jwtDecode(token);
       setUser(decoded);
 
-      // Check if trial or subscription expired
       if (trialExpired || subscriptionExpired) {
         return { 
           success: true, 
@@ -158,8 +186,7 @@ export const AuthProvider = ({ children }) => {
       toast.success("Login successful!");
       return { success: true };
     } catch (error) {
-      const message =
-        error.response?.data?.message || "Login failed";
+      const message = error.response?.data?.message || "Login failed";
       toast.error(message);
       return { success: false, error: message };
     }
@@ -169,9 +196,10 @@ export const AuthProvider = ({ children }) => {
   const signup = async (userData) => {
     try {
       const response = await authService.signup(userData);
-      const { token } = response;
+      const { token, refreshToken: rt } = response;
 
       localStorage.setItem("token", token);
+      if (rt) localStorage.setItem("refreshToken", rt);
 
       const decoded = jwtDecode(token);
       setUser(decoded);
@@ -179,8 +207,7 @@ export const AuthProvider = ({ children }) => {
       toast.success("Account created successfully!");
       return { success: true };
     } catch (error) {
-      const message =
-        error.response?.data?.message || "Signup failed";
+      const message = error.response?.data?.message || "Signup failed";
       toast.error(message);
       return { success: false, error: message };
     }
@@ -190,9 +217,8 @@ export const AuthProvider = ({ children }) => {
   const googleLogin = async (credential, shopData = null) => {
     try {
       const response = await authService.googleAuth(credential, shopData);
-      const { token, trialExpired, subscriptionExpired, warningMessage, requiresShopData } = response;
+      const { token, refreshToken: rt, trialExpired, subscriptionExpired, warningMessage, requiresShopData } = response;
 
-      // If shop data is required (new user signup)
       if (requiresShopData) {
         return { 
           success: false, 
@@ -202,11 +228,11 @@ export const AuthProvider = ({ children }) => {
       }
 
       localStorage.setItem("token", token);
+      if (rt) localStorage.setItem("refreshToken", rt);
 
       const decoded = jwtDecode(token);
       setUser(decoded);
 
-      // Check if trial or subscription expired
       if (trialExpired || subscriptionExpired) {
         return { 
           success: true, 
@@ -220,8 +246,7 @@ export const AuthProvider = ({ children }) => {
       toast.success("Login successful!");
       return { success: true };
     } catch (error) {
-      const message =
-        error.response?.data?.message || "Google authentication failed";
+      const message = error.response?.data?.message || "Google authentication failed";
       toast.error(message);
       return { success: false, error: message };
     }
@@ -230,6 +255,7 @@ export const AuthProvider = ({ children }) => {
   // 🚪 LOGOUT
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     setUser(null);
     toast.success("Logged out successfully");
   };

@@ -4,11 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
+    <!-- Security Headers for Google OAuth -->
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin-allow-popups" />
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="unsafe-none" />
+    
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#4F46E5" />
     <meta name="description" content="Complete stock and billing management solution for businesses" />
     
     <!-- iOS Specific Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="StockManager" />
@@ -17,9 +22,30 @@
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/pwa-192x192.png" />
     
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-MKJ6X9ELZQ"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-MKJ6X9ELZQ', {
+        'send_page_view': true
+      });
+      console.log('📊 Google Analytics gtag loaded');
+    </script>
+    
+    <!-- Microsoft Clarity -->
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "whclk05t3e");
+    </script>
+    
     <title>Stock Management SaaS</title>
-    <script type="module" crossorigin src="/assets/index-49b6142d.js"></script>
-    <link rel="stylesheet" href="/assets/index-acba34ea.css">
+    <script type="module" crossorigin src="/assets/index-6a5be967.js"></script>
+    <link rel="stylesheet" href="/assets/index-38f6d7a2.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <div id="root"></div>

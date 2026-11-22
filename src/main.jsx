@@ -24,11 +24,8 @@ const LoadingFallback = () => (
 // Get Google Client ID from environment
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-// Debug log (remove in production)
-if (!GOOGLE_CLIENT_ID) {
-  console.error('❌ VITE_GOOGLE_CLIENT_ID is not set!');
-} else {
-  console.log('✅ Google Client ID loaded:', GOOGLE_CLIENT_ID.substring(0, 20) + '...');
+if (!GOOGLE_CLIENT_ID && import.meta.env.DEV) {
+  console.warn('VITE_GOOGLE_CLIENT_ID is not set — Google login will not work.');
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(

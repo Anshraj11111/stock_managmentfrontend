@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { FileText, Download, Calendar, Receipt, FileCheck } from 'lucide-react';
 import jsPDF from 'jspdf';
 import { billService } from '../../services/billService';
@@ -30,7 +30,6 @@ const Invoice = () => {
       const data = await shopService.getShopDetails();
       setShop(data);
     } catch (err) {
-      console.log("Shop fetch error");
     }
   };
 

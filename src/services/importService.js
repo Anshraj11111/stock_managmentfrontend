@@ -1,6 +1,5 @@
-import axios from 'axios';
-
-const API_URL = import.meta.env.VITE_API_BASE_URL;
+// Uses the central api instance so the 401→refresh interceptor works
+import api from './api';
 
 /**
  * Upload and parse file
@@ -9,13 +8,8 @@ export const uploadFile = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const token = localStorage.getItem('token');
-  
-  const response = await axios.post(`${API_URL}/import/upload`, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-      'Authorization': `Bearer ${token}`
-    }
+  const response = await api.post('/import/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
 
   return response.data;
@@ -25,18 +19,7 @@ export const uploadFile = async (file) => {
  * Confirm and import products
  */
 export const confirmImport = async (products, options = {}) => {
-  const token = localStorage.getItem('token');
-  
-  const response = await axios.post(
-    `${API_URL}/import/confirm`,
-    { products, options },
-    {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    }
-  );
-
+  const response = await api.post('/import/confirm', { products, options });
   return response.data;
 };
 
@@ -45,7 +28,7 @@ export const confirmImport = async (products, options = {}) => {
  */
 export const downloadTemplate = (format = 'csv') => {
   const token = localStorage.getItem('token');
-  const url = `${API_URL}/import/template?format=${format}`;
-  
-  window.open(url, '_blank');
+  const base  = import.meta.env.VITE_API_BASE_URL || 'https://stock-managmenta5x.onrender.com/api';
+  // Open with token in query param since it's a file download
+  window.open(`${base}/import/template?format=${format}&token=${token}`, '_blank');
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ClipboardList,
@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { cn } from "../../utils/cn";
+import { confirmAction } from "../../utils/confirm";
 import api from "../../utils/api";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
@@ -267,7 +268,8 @@ const Quotations = () => {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this quotation?")) return;
+    const ok = await confirmAction("Delete this quotation?");
+    if (!ok) return;
     setActionLoading(id + "_del");
     try {
       await api.delete(`/quotations/${id}`);

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+﻿import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUpload, FiFile, FiCheck, FiAlertTriangle, FiX, FiImage, FiFileText, FiCamera, FiZap, FiShield, FiArrowLeft } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { uploadFile, confirmImport } from '../../services/importService';
 import { processImageForProducts } from '../../services/ocrService';
 import PreviewTable from '../../components/import/PreviewTable';
+import { confirmAction } from '../../utils/confirm';
 
 const BulkImport = () => {
   const navigate = useNavigate();
@@ -230,8 +231,9 @@ const BulkImport = () => {
 
     if (validProducts.length < products.length) {
       const errorCount = products.length - validProducts.length;
-      const confirmed = window.confirm(
-        `${errorCount} product(s) have errors and will be skipped. Continue with ${validProducts.length} valid products?`
+      const confirmed = await confirmAction(
+        `${errorCount} product(s) have errors and will be skipped. Continue with ${validProducts.length} valid products?`,
+        { confirmLabel: 'Continue', cancelLabel: 'Cancel' }
       );
       if (!confirmed) return;
     }

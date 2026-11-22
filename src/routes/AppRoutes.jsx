@@ -1,6 +1,7 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+﻿import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
 import Layout from "../components/layout/Layout";
+import ErrorBoundary from "../components/common/ErrorBoundary";
 
 // Admin imports
 import { AdminAuthProvider } from "../admin/context/AdminAuthContext";
@@ -71,7 +72,7 @@ const AppRoutes = () => {
   return (
     <Routes>
 
-      {/* 👇 Smart root redirect - if logged in go to dashboard, else landing */}
+      {/* ðŸ‘‡ Smart root redirect - if logged in go to dashboard, else landing */}
       <Route 
         path="/" 
         element={
@@ -153,7 +154,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <Dashboard />
+              <ErrorBoundary>
+                <Dashboard />
+              </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -164,7 +167,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <Products />
+              <ErrorBoundary>
+                <Products />
+              </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -175,7 +180,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <BulkImport />
+              <ErrorBoundary>
+                <BulkImport />
+              </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -186,7 +193,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <Billing />
+              <ErrorBoundary>
+                <Billing />
+              </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -197,9 +206,11 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
+              <ErrorBoundary>
               <FeatureLock feature="customers">
                 <Customers />
               </FeatureLock>
+                          </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -210,9 +221,11 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
+              <ErrorBoundary>
               <FeatureLock feature="customers">
                 <CustomerDetail />
               </FeatureLock>
+                          </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -223,9 +236,11 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
+              <ErrorBoundary>
               <FeatureLock feature="reports">
                 <Reports />
               </FeatureLock>
+                          </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -236,7 +251,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <Invoices />
+              <ErrorBoundary>
+                <Invoices />
+              </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -247,9 +264,11 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute requireOwner>
             <Layout>
+              <ErrorBoundary>
               <FeatureLock feature="staff">
                 <Staff />
               </FeatureLock>
+                          </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -262,14 +281,18 @@ const AppRoutes = () => {
       <Route path="/subscription" element={<Subscription />} />
 
       {/* Analytics Test page - only for development */}
-      <Route path="/analytics-test" element={<AnalyticsTest />} />
+      {import.meta.env.DEV && (
+        <Route path="/analytics-test" element={<AnalyticsTest />} />
+      )}
 
       <Route
         path="/settings"
         element={
           <ProtectedRoute>
             <Layout>
-              <Settings />
+              <ErrorBoundary>
+                <Settings />
+              </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }
@@ -280,7 +303,9 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <Layout>
-              <Quotations />
+              <ErrorBoundary>
+                <Quotations />
+              </ErrorBoundary>
             </Layout>
           </ProtectedRoute>
         }

@@ -1,4 +1,4 @@
-
+﻿
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
@@ -16,7 +16,8 @@ import { productService } from '../../services/productService';
 import { shopService } from '../../services/shopService';
 import Loader from '../../components/common/Loader';
 import { useAuth } from '../../store/AuthContext';
-import toast from 'react-hot-toast';
+import { confirmAction } from '../../utils/confirm';
+
 
 const Products = () => {
   const { t } = useTranslation();
@@ -153,8 +154,8 @@ const Products = () => {
   };
 
   const handleDelete = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?'))
-      return;
+    const ok = await confirmAction('Delete this product? This cannot be undone.');
+    if (!ok) return;
 
     try {
       await productService.deleteProduct(productId);

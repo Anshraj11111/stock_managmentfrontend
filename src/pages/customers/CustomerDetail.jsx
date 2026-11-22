@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Phone, MapPin, IndianRupee, Calendar, TrendingUp, TrendingDown, Receipt, Wallet, Edit, Trash2, FileText, X, Package } from 'lucide-react';
 import { customerService } from '../../services/customerService';
 import { billService } from '../../services/billService';
 import Loader from '../../components/common/Loader';
 import toast from 'react-hot-toast';
+import { confirmAction } from '../../utils/confirm';
 
 const CustomerDetail = () => {
   const { id } = useParams();
@@ -113,18 +114,15 @@ const CustomerDetail = () => {
     }
   };
 
-  // ✅ NEW: Delete ledger entry (backend needs this endpoint)
   const handleDeleteLedgerEntry = async (entryId) => {
-    if (!window.confirm('Are you sure you want to delete this entry? This will adjust the customer\'s total due amount.')) {
-      return;
-    }
+    const ok = await confirmAction("Delete this entry? This will adjust the customer's total due amount.", { confirmLabel: 'Yes, delete' });
+    if (!ok) return;
 
     try {
       await customerService.deleteLedgerEntry(id, entryId);
       toast.success('Entry deleted successfully');
       fetchCustomerDetails();
     } catch (error) {
-      console.error('Delete error:', error);
       toast.error(error.response?.data?.message || 'Failed to delete entry');
     }
   };

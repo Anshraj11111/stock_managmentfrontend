@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Settings as SettingsIcon, Save, Mic, MicOff } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { shopService } from "../../services/shopService";

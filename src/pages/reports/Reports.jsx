@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { BarChart3, Calendar, Download, Filter, TrendingUp, DollarSign, Receipt, Activity, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { reportService } from '../../services/reportService';

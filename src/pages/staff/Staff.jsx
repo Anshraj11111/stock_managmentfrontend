@@ -1,4 +1,4 @@
-// import { useState, useEffect } from 'react';
+﻿// import { useState, useEffect } from 'react';
 // import { Plus, Edit, Trash2, Users, UserCheck, UserX, Mail, Shield, Search } from 'lucide-react';
 // import { staffService } from '../../services/staffService';
 // import Input from '../../components/common/Input';
@@ -378,6 +378,7 @@ import Input from "../../components/common/Input";
 import Loader from "../../components/common/Loader";
 import toast from "react-hot-toast";
 import { useLocation } from "react-router-dom";
+import { confirmAction } from "../../utils/confirm";
 
 const Staff = () => {
   const { t } = useTranslation();
@@ -467,7 +468,8 @@ const Staff = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this staff member?")) return;
+    const ok = await confirmAction("Delete this staff member?", { confirmLabel: "Yes, delete" });
+    if (!ok) return;
 
     try {
       await staffService.deleteStaff(id);

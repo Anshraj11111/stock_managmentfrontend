@@ -1,4 +1,4 @@
-import { AlertCircle, Phone } from 'lucide-react';
+﻿import { AlertCircle, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const TrialExpired = () => {

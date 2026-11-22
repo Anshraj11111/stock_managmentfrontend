@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
   FileText, Download, Search, Calendar,
   CheckCircle, Clock, Edit, X, Plus, Trash2,
@@ -51,9 +51,7 @@ const Invoices = () => {
 
   const fetchRecentInvoices = async () => {
     try {
-      console.log('🔄 Fetching recent invoices...');
       const data = await invoiceService.getRecentInvoices();
-      console.log('✅ Recent invoices loaded:', data);
       setRecentInvoices(data);
     } catch (err) {
       console.error('❌ Failed to load recent invoices:', err);
@@ -64,9 +62,7 @@ const Invoices = () => {
 
   const fetchInvoiceStats = async () => {
     try {
-      console.log('🔄 Fetching invoice stats...');
       const data = await invoiceService.getInvoiceStats();
-      console.log('✅ Invoice stats loaded:', data);
       setStats(data);
     } catch (err) {
       console.error('❌ Failed to load invoice stats:', err);

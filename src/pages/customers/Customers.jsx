@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Phone, MapPin, IndianRupee, Search, Eye } from 'lucide-react';
 import { customerService } from '../../services/customerService';

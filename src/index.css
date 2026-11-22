@@ -231,6 +231,23 @@
     margin-bottom: 8px;
     padding: 4px 0;
   }
+
+  /* ── Google OAuth Button - Mobile Responsive ── */
+  /* The Google sign-in button renders an iframe; this makes it fill its container */
+  div[id^="credential_picker_container"],
+  .nsm7Bb-HzV7m-LgbsSe,
+  iframe[src*="accounts.google.com"] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Force Google button container to stretch on mobile */
+  @media (max-width: 640px) {
+    div[data-testid="google-auth-btn"] > div,
+    div[data-testid="google-auth-btn"] iframe {
+      width: 100% !important;
+    }
+  }
 }
 
 @layer utilities {

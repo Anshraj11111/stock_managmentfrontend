@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -113,14 +113,14 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-2xl shadow-xl">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4 py-6 sm:px-6">
+      <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 sm:p-8 rounded-2xl shadow-xl">
 
-        <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-300 mb-6 text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-300 mb-4 sm:mb-6 text-center">
           Login
         </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
 
           <Input
             label={t('auth.email')}
@@ -138,7 +138,7 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg pr-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 sm:py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg pr-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-sm"
                 placeholder="Enter password"
               />
               <button
@@ -158,19 +158,19 @@ const Login = () => {
         </form>
 
         {/* Divider */}
-        <div className="relative my-6">
+        <div className="relative my-5 sm:my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-slate-300 dark:border-slate-700"></div>
           </div>
-          <div className="relative flex justify-center text-sm">
+          <div className="relative flex justify-center text-xs sm:text-sm">
             <span className="px-2 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
               Or continue with
             </span>
           </div>
         </div>
 
-        {/* Google Login Button */}
-        <div className="flex justify-center">
+        {/* Google Login Button - Responsive */}
+        <div className="w-full overflow-hidden">
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
@@ -178,11 +178,11 @@ const Login = () => {
             size="large"
             text="signin_with"
             shape="rectangular"
-            width="400"
+            useOneTap={false}
           />
         </div>
 
-        <p className="text-center text-sm mt-6 text-secondary-600 dark:text-secondary-400">
+        <p className="text-center text-xs sm:text-sm mt-5 sm:mt-6 text-secondary-600 dark:text-secondary-400">
           {t('auth.dontHaveAccount')}{" "}
           <Link to="/signup" className="text-blue-600 dark:text-blue-300 font-medium hover:text-blue-700 dark:hover:text-blue-200">
             {t('auth.createOne')}

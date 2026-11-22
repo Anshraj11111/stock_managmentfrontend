@@ -1,56 +1,39 @@
+// Uses the central api instance so the 401→refresh interceptor works
+import api from './api';
 import axios from 'axios';
 
-// Use environment variable or fallback to production
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://stock-managmenta5x.onrender.com/api';
+// Plans endpoint is public (no auth needed)
+const PUBLIC_BASE = import.meta.env.VITE_API_BASE_URL || 'https://stock-managmenta5x.onrender.com/api';
 
-const getAuthHeader = () => {
-  const token = localStorage.getItem('token');
-  return { Authorization: `Bearer ${token}` };
-};
-
-// Get available plans (no auth required)
 export const getPlans = async () => {
-  const response = await axios.get(`${API_URL}/subscription/plans`);
+  const response = await axios.get(`${PUBLIC_BASE}/subscription/plans`);
   return response.data;
 };
 
-// Get current subscription
 export const getCurrentSubscription = async () => {
-  const response = await axios.get(`${API_URL}/subscription/current`, {
-    headers: getAuthHeader()
-  });
+  const response = await api.get('/subscription/current');
   return response.data;
 };
 
-// Initiate payment
 export const initiatePayment = async (planType, duration) => {
-  const response = await axios.post(
-    `${API_URL}/subscription/initiate-payment`,
-    { plan_type: planType, duration },
-    { headers: getAuthHeader() }
-  );
-  return response.data;
-};
-
-// Submit payment proof
-export const submitPaymentProof = async (paymentId, screenshot, transactionId, upiRef) => {
-  const response = await axios.post(
-    `${API_URL}/subscription/submit-payment`,
-    {
-      payment_id: paymentId,
-      screenshot,
-      transaction_id: transactionId,
-      upi_ref: upiRef
-    },
-    { headers: getAuthHeader() }
-  );
-  return response.data;
-};
-
-// Check feature access
-export const checkFeatureAccess = async (feature) => {
-  const response = await axios.get(`${API_URL}/subscription/feature-access/${feature}`, {
-    headers: getAuthHeader()
+  const response = await api.post('/subscription/initiate-payment', {
+    plan_type: planType,
+    duration,
   });
+  return response.data;
+};
+
+export const submitPaymentProof = async (paymentId, screenshot, transactionId, upiRef) => {
+  const response = await api.post('/subscription/submit-payment', {
+    payment_id:     paymentId,
+    screenshot,
+    transaction_id: transactionId,
+    upi_ref:        upiRef,
+  });
+  return response.data;
+};
+
+export const checkFeatureAccess = async (feature) => {
+  const response = await api.get(`/subscription/feature-access/${feature}`);
   return response.data;
 };

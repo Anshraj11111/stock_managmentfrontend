@@ -1,4 +1,4 @@
-// import { useState } from 'react';
+﻿// import { useState } from 'react';
 // import { Link, useNavigate } from 'react-router-dom';
 // import { Eye, EyeOff } from 'lucide-react';
 // import { useAuth } from '../../store/AuthContext';
@@ -179,33 +179,66 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [showGoogleSignupForm, setShowGoogleSignupForm] = useState(false);
   const [googleCredential, setGoogleCredential] = useState(null);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', color: '' });
 
   const { signup, googleLogin } = useAuth();
   const navigate = useNavigate();
 
+  // ✅ FIX 3: Password strength calculation
+  const getPasswordStrength = (pwd) => {
+    if (!pwd) return { score: 0, label: '', color: '' };
+    let score = 0;
+    if (pwd.length >= 8)  score++;
+    if (pwd.length >= 12) score++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score++;
+    else if (/[a-zA-Z]/.test(pwd)) score += 0.5;
+    if (/[0-9]/.test(pwd)) score++;
+    if (/[^a-zA-Z0-9]/.test(pwd)) score++;
+
+    if (score <= 1.5) return { score: 1, label: 'Weak', color: 'bg-red-500' };
+    if (score <= 2.5) return { score: 2, label: 'Fair', color: 'bg-yellow-500' };
+    if (score <= 3.5) return { score: 3, label: 'Good', color: 'bg-blue-500' };
+    return { score: 4, label: 'Strong', color: 'bg-green-500' };
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const updated = { ...formData, [e.target.name]: e.target.value };
+    setFormData(updated);
+    if (e.target.name === 'password') {
+      setPasswordStrength(getPasswordStrength(e.target.value));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    for (const key in formData) {
+    // Validate required fields (exclude plan_type which is auto-set)
+    const required = ['name', 'email', 'password', 'shop_name', 'category', 'owner_phone', 'address'];
+    for (const key of required) {
       if (!formData[key]) {
         toast.error('All fields are required');
         return;
       }
     }
 
+    // Client-side password check before hitting backend
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+    if (!/[0-9]/.test(formData.password)) {
+      toast.error('Password must contain at least one number');
+      return;
+    }
+
     setLoading(true);
     const result = await signup(formData);
     setLoading(false);
 
-   if (result?.success) {
-  trackSignup('email');
-  navigate('/dashboard');
-}
-
+    if (result?.success) {
+      trackSignup('email');
+      navigate('/dashboard');
+    }
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -265,20 +298,20 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-100 dark:from-slate-950 dark:via-emerald-950/20 dark:to-slate-900 px-4 py-6 sm:px-6">
       <div className="w-full max-w-md">
-        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-8">
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-300">StockSaaS</h1>
-            <p className="text-secondary-600 dark:text-secondary-400 mt-1">
+        <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-5 sm:p-8">
+          <div className="text-center mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-300">StockSaaS</h1>
+            <p className="text-xs sm:text-sm text-secondary-600 dark:text-secondary-400 mt-1">
               {t('auth.selectedPlan')}: <span className="font-semibold bg-blue-100 dark:bg-blue-600 text-blue-700 dark:text-white px-2 py-0.5 rounded">{selectedPlan.toUpperCase()}</span>
             </p>
           </div>
 
           {!showGoogleSignupForm ? (
             <>
-              {/* Google Signup Button */}
-              <div className="mb-6">
+              {/* Google Signup Button - Responsive */}
+              <div className="mb-5 sm:mb-6 w-full overflow-hidden">
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={handleGoogleError}
@@ -286,23 +319,23 @@ const Signup = () => {
                   size="large"
                   text="signup_with"
                   shape="rectangular"
-                  width="400"
+                  useOneTap={false}
                 />
               </div>
 
               {/* Divider */}
-              <div className="relative mb-6">
+              <div className="relative mb-5 sm:mb-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-slate-300 dark:border-slate-700"></div>
                 </div>
-                <div className="relative flex justify-center text-sm">
+                <div className="relative flex justify-center text-xs sm:text-sm">
                   <span className="px-2 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400">
                     Or signup with email
                   </span>
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
 
             <Input
               label={t('auth.ownerName')}
@@ -329,7 +362,7 @@ const Signup = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 pr-10 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 sm:py-2 pr-10 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-sm"
                   placeholder={t('auth.createPassword')}
                 />
                 <button
@@ -340,6 +373,28 @@ const Signup = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              {/* ✅ Password strength indicator */}
+              {formData.password.length > 0 && (
+                <div className="mt-1.5">
+                  <div className="flex gap-1 mb-1">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                          i <= passwordStrength.score ? passwordStrength.color : 'bg-slate-200 dark:bg-slate-700'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className={`text-xs ${
+                    passwordStrength.score <= 1 ? 'text-red-500' :
+                    passwordStrength.score === 2 ? 'text-yellow-500' :
+                    passwordStrength.score === 3 ? 'text-blue-500' : 'text-green-500'
+                  }`}>
+                    {passwordStrength.label} — min 8 chars, include a number
+                  </p>
+                </div>
+              )}
             </div>
 
             <Input
@@ -366,7 +421,7 @@ const Signup = () => {
                 value={formData.address}
                 onChange={handleChange}
                 rows="2"
-                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2.5 sm:py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base sm:text-sm"
                 placeholder="Enter shop address"
               />
             </div>
@@ -377,7 +432,7 @@ const Signup = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2.5 sm:py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-sm"
               >
                 <option value="">{t('auth.selectCategory')}</option>
                 <option value="grocery">{t('categories.grocery')}</option>
@@ -395,7 +450,7 @@ const Signup = () => {
 
           </form>
 
-          <p className="text-center text-sm mt-6 text-secondary-600 dark:text-secondary-400">
+          <p className="text-center text-xs sm:text-sm mt-5 sm:mt-6 text-secondary-600 dark:text-secondary-400">
             {t('auth.alreadyHaveAccount')}{" "}
             <Link to="/login" className="text-blue-600 dark:text-blue-300 font-medium hover:text-blue-700 dark:hover:text-blue-200">
               {t('auth.signIn')}
@@ -406,12 +461,12 @@ const Signup = () => {
             <>
               {/* Google Signup - Shop Information Form */}
               <div className="mb-4">
-                <p className="text-sm text-secondary-600 dark:text-secondary-400 text-center">
+                <p className="text-xs sm:text-sm text-secondary-600 dark:text-secondary-400 text-center">
                   Complete your shop information to finish signup
                 </p>
               </div>
 
-              <form onSubmit={handleGoogleSignupSubmit} className="space-y-5">
+              <form onSubmit={handleGoogleSignupSubmit} className="space-y-4 sm:space-y-5">
                 <Input
                   label={t('auth.shopName')}
                   name="shop_name"
@@ -436,7 +491,7 @@ const Signup = () => {
                     value={formData.address}
                     onChange={handleChange}
                     rows="2"
-                    className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                    className="w-full px-3 py-2.5 sm:py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-base sm:text-sm"
                     placeholder="Enter shop address"
                   />
                 </div>
@@ -447,7 +502,7 @@ const Signup = () => {
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2.5 sm:py-2 border border-secondary-300 dark:border-secondary-700 bg-white dark:bg-secondary-800 text-secondary-900 dark:text-secondary-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base sm:text-sm"
                   >
                     <option value="">{t('auth.selectCategory')}</option>
                     <option value="grocery">{t('categories.grocery')}</option>
@@ -469,7 +524,7 @@ const Signup = () => {
                     setShowGoogleSignupForm(false);
                     setGoogleCredential(null);
                   }}
-                  className="w-full text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-300"
+                  className="w-full text-xs sm:text-sm text-secondary-600 dark:text-secondary-400 hover:text-blue-600 dark:hover:text-blue-300"
                 >
                   Back to signup options
                 </button>

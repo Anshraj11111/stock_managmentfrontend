@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Moon, Sun, Check, X, ArrowRight, Sparkles, 
@@ -452,7 +452,7 @@ const Landing = () => {
 
                 {/* Pricing Options */}
                 <div className="space-y-3">
-                  {plans.basic.map((plan) => (
+                  {plans?.basic?.map((plan) => (
                     <motion.div
                       key={plan.duration}
                       whileHover={{ scale: 1.02 }}
@@ -512,7 +512,7 @@ const Landing = () => {
 
                 {/* Pricing Options */}
                 <div className="space-y-3">
-                  {plans.premium.map((plan) => (
+                  {plans?.premium?.map((plan) => (
                     <motion.div
                       key={plan.duration}
                       whileHover={{ scale: 1.02 }}

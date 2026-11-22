@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
-import { 
-  getPlans, 
-  getCurrentSubscription, 
-  initiatePayment, 
-  submitPaymentProof 
+﻿import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
+import {
+  getPlans,
+  getCurrentSubscription,
+  initiatePayment,
+  submitPaymentProof,
 } from '../../services/subscriptionService';
 import { 
   CreditCard, 
@@ -18,7 +19,18 @@ import {
 const Subscription = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [plans, setPlans] = useState(null);
+  const [plans, setPlans] = useState({
+    basic: [
+      { duration: 7, months: 7, price: 7999 },
+      { duration: 9, months: 9, price: 6899 },
+      { duration: 12, months: 12, price: 9999 }
+    ],
+    premium: [
+      { duration: 7, months: 7, price: 9499 },
+      { duration: 9, months: 9, price: 8399 },
+      { duration: 12, months: 12, price: 11499 }
+    ]
+  });
   const [currentSub, setCurrentSub] = useState(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -39,21 +51,23 @@ const Subscription = () => {
       // Try to fetch plans from backend
       try {
         const plansData = await getPlans();
-        setPlans(plansData.plans);
+        if (plansData && plansData.plans) {
+          // Backend sends different format - transform it to match our structure
+          const backendPlans = plansData.plans;
+          
+          // Check if backend format is the new one (starter/business/premium)
+          if (backendPlans.starter || backendPlans.business || backendPlans.premium) {
+            // Use backend plans but keep the old format for now (will need UI update later)
+            console.log('Backend has new plan structure, using default plans for now');
+            // Keep default plans
+          } else if (backendPlans.basic && backendPlans.premium) {
+            // Old format still exists on backend
+            setPlans(backendPlans);
+          }
+        }
       } catch (error) {
-        // Silently use default plans if backend fails
-        setPlans({
-          basic: [
-            { duration: 7, months: 7, price: 7999 },
-            { duration: 9, months: 9, price: 6899 },
-            { duration: 12, months: 12, price: 9999 }
-          ],
-          premium: [
-            { duration: 7, months: 7, price: 9499 },
-            { duration: 9, months: 9, price: 8399 },
-            { duration: 12, months: 12, price: 11499 }
-          ]
-        });
+        // Silently use default plans (already initialized in state)
+        console.log('Using default plans');
       }
       
       // Check if user is authenticated before fetching current subscription
@@ -110,9 +124,8 @@ const Subscription = () => {
           setShowPaymentModal(true);
           setLoading(false);
           return;
-        } catch (error) {
-          // If backend fails, use hardcoded details
-          console.log('Backend failed, using hardcoded payment details');
+        } catch {
+          // Backend failed — fall through to hardcoded details
         }
       }
 
@@ -131,9 +144,9 @@ const Subscription = () => {
       setSelectedPlan({ planType, duration });
       setShowPaymentModal(true);
       setLoading(false);
-    } catch (error) {
+    } catch {
       setLoading(false);
-      alert(`Failed to initiate payment. Please contact: +91-8269858259`);
+      toast.error('Failed to initiate payment. Please contact: +91-8269858259');
     }
   };
 
@@ -150,17 +163,16 @@ const Subscription = () => {
 
   const handleSubmitPayment = async () => {
     if (!screenshot || !transactionId) {
-      alert('Please upload screenshot and enter transaction ID');
+      toast.error('Please upload screenshot and enter transaction ID');
       return;
     }
 
     try {
       setSubmitting(true);
-      
-      // Check if this is a temporary payment ID (no backend)
+
+      // Temporary payment ID means backend was unavailable — manual verification
       if (paymentData.payment_id.startsWith('temp_')) {
-        // Show success message for manual verification
-        alert('Payment details submitted!\n\nYour payment will be verified manually by admin.\n\nYou will receive confirmation via email/SMS once verified.\n\nFor queries, contact: +91-8269858259');
+        toast.success('Payment details submitted! Admin will verify manually. Contact: +91-8269858259 for queries.');
         setShowPaymentModal(false);
         setScreenshot(null);
         setTransactionId('');
@@ -168,19 +180,12 @@ const Subscription = () => {
         return;
       }
 
-      // Try to submit to backend
-      await submitPaymentProof(
-        paymentData.payment_id,
-        screenshot,
-        transactionId,
-        upiRef
-      );
-      alert('Payment submitted successfully! Admin will verify soon.');
+      await submitPaymentProof(paymentData.payment_id, screenshot, transactionId, upiRef);
+      toast.success('Payment submitted successfully! Admin will verify soon.');
       setShowPaymentModal(false);
       fetchData();
-    } catch (error) {
-      // If backend fails, show manual verification message
-      alert('Payment details noted!\n\nYour payment will be verified manually by admin.\n\nYou will receive confirmation via email/SMS once verified.\n\nFor queries, contact: +91-8269858259');
+    } catch {
+      toast.success('Payment noted! Admin will verify manually. Contact: +91-8269858259 for queries.');
       setShowPaymentModal(false);
     } finally {
       setSubmitting(false);
@@ -340,7 +345,7 @@ const Subscription = () => {
               Dashboard, Products, Billing
             </p>
             <div className="space-y-4">
-              {plans?.basic.map((plan) => (
+              {plans?.basic?.map((plan) => (
                 <div
                   key={plan.duration}
                   className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700"
@@ -401,7 +406,7 @@ const Subscription = () => {
               All Features Unlocked
             </p>
             <div className="space-y-4">
-              {plans?.premium.map((plan) => (
+              {plans?.premium?.map((plan) => (
                 <div
                   key={plan.duration}
                   className="relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-600 rounded-xl shadow-lg p-4 sm:p-6 hover:shadow-xl transition-all duration-200 text-white"
@@ -478,7 +483,7 @@ const Subscription = () => {
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(paymentData.upi_id);
-                        alert('UPI ID copied!');
+                        toast.success('UPI ID copied!');
                       }}
                       className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-medium text-sm"
                     >
